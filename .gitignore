@@ -1,0 +1,17 @@
+**/node_modules/
+**/dist/
+**/.env
+**/.env.*
+!**/.env.example
+**/src/uploads/
+**/*_completo.txt
+**/actualizar-credenciales.js
+**/.idea/
+**/*.log
+**/coverage/
+**/test-results/
+**/playwright-report/
+.runtime/
+PREPARACION_DEV.json
+*.sql
+*.zip
