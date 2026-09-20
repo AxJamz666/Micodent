@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { clearSession, shouldClearSession } from './session';
 
 const api = axios.create({
-  baseURL: 'http://localhost:4000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -16,8 +17,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 403 || error.response?.status === 401) {
-      localStorage.clear();
+    if (shouldClearSession(error, localStorage.getItem('token'))) {
+      clearSession();
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -30,6 +31,8 @@ api.interceptors.response.use(
 export const authService = {
   login: (id, password) => api.post('/auth/login', { id, password }),
   getMe: ()             => api.get('/auth/me'),
+  logout: ()            => api.post('/auth/logout'),
+  logoutAll: ()         => api.post('/auth/logout-all'),
 };
 
 // ============================================================

@@ -6,6 +6,7 @@ import {
 import toast from 'react-hot-toast';
 import ConfirmModal from '../components/ConfirmModal';
 import { usuariosService } from '../services/api';
+import { passwordPolicyError } from '../utils/passwordPolicy';
 
 // Etiquetas visuales por nivel
 const NIVEL_CONFIG = {
@@ -93,6 +94,10 @@ const AdministracionPersonal = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!editingId) {
+      const policyError = passwordPolicyError(formData.password);
+      if (policyError) { toast.error(policyError); return; }
+    }
     try {
       const { prefix, nombre_completo } = buildNombreCompleto(
         formData.nombre, formData.rol, formData.gender
@@ -107,6 +112,7 @@ const AdministracionPersonal = () => {
         comision_porcentaje: formData.comision_porcentaje ? parseFloat(formData.comision_porcentaje) : null,
       };
       if (editingId) {
+        delete payload.password;
         await usuariosService.editar(editingId, payload);
         toast.success('Personal actualizado correctamente.');
       } else {
@@ -187,9 +193,8 @@ const AdministracionPersonal = () => {
     if (resetPassForm.newPassword !== resetPassForm.confirmPassword) {
       toast.error('Las contraseñas nuevas no coinciden.'); return;
     }
-    if (resetPassForm.newPassword.length < 6) {
-      toast.error('Mínimo 6 caracteres.'); return;
-    }
+    const policyError = passwordPolicyError(resetPassForm.newPassword);
+    if (policyError) { toast.error(policyError); return; }
     try {
       setSavingReset(true);
       await usuariosService.resetPassword({
@@ -266,9 +271,9 @@ const AdministracionPersonal = () => {
                   <div className="relative">
                     <input required value={resetPassForm.newPassword}
                       onChange={e=>setResetPassForm({...resetPassForm,newPassword:e.target.value})}
-                      type={showNewPass?'text':'password'} minLength="6"
+                      type={showNewPass?'text':'password'} minLength="15"
                       className="w-full pr-12 px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-clinical-500 bg-slate-50 font-medium"
-                      placeholder="Mínimo 6 caracteres"/>
+                      placeholder="Mínimo 15 caracteres"/>
                     <button type="button" onClick={()=>setShowNewPass(!showNewPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
                       {showNewPass?<EyeOff size={18}/>:<Eye size={18}/>}
                     </button>
@@ -279,7 +284,7 @@ const AdministracionPersonal = () => {
                   <div className="relative">
                     <input required value={resetPassForm.confirmPassword}
                       onChange={e=>setResetPassForm({...resetPassForm,confirmPassword:e.target.value})}
-                      type={showConfPass?'text':'password'} minLength="6"
+                      type={showConfPass?'text':'password'} minLength="15"
                       className="w-full pr-12 px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-clinical-500 bg-slate-50 font-medium"/>
                     <button type="button" onClick={()=>setShowConfPass(!showConfPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
                       {showConfPass?<EyeOff size={18}/>:<Eye size={18}/>}
@@ -490,26 +495,21 @@ const AdministracionPersonal = () => {
                   className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-mono"/>
                 {editingId && <p className="text-[10px] text-slate-400 mt-1">El ID no se puede modificar.</p>}
               </div>
-              <div>
+              {!editingId && <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                  {editingId?'Contraseña (vacío = sin cambios)':'Contraseña Inicial'}
+                  Contraseña Inicial
                 </label>
                 <div className="relative">
                   <input required={!editingId} name="password" value={formData.password}
                     onChange={handleChange} type={showPass?'text':'password'}
-                    placeholder={editingId?'Dejar vacío = sin cambios':'Mínimo 6 caracteres'}
+                    placeholder="Mínimo 15 caracteres"
                     className="w-full pl-4 pr-12 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50"/>
                   <button type="button" onClick={()=>setShowPass(!showPass)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
                     {showPass?<EyeOff size={18}/>:<Eye size={18}/>}
                   </button>
                 </div>
-                {editingId && (
-                  <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-                    <KeyRound size={10}/> Usa el ícono 🔑 de la lista para resetear la contraseña.
-                  </p>
-                )}
-              </div>
+              </div>}
             </div>
 
             <button type="submit"

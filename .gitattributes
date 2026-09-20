@@ -1,0 +1,2 @@
+# Migration checksums use exact bytes; never convert their line endings.
+micodent-backend/migrations/*.js -text

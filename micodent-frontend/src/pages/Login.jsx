@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../services/api';
 import toast from 'react-hot-toast';
+import { clearSession } from '../services/session';
 
 const Login = () => {
   const navigate    = useNavigate();
@@ -13,14 +14,12 @@ const Login = () => {
 
 useEffect(() => {
     const token = localStorage.getItem('token');
-    const nombre = localStorage.getItem('userNombre');
-
-    if (token && nombre) {
-      navigate('/');
-    } else {
-
-      localStorage.clear();
+    if (token) {
+      let active = true;
+      authService.getMe().then(() => { if (active) navigate('/'); }).catch(() => {});
+      return () => { active = false; };
     }
+    clearSession();
   }, [navigate]);
 
   const handleLogin = async (e) => {
@@ -29,7 +28,7 @@ useEffect(() => {
     try {
       const { data } = await authService.login(
         userId.trim().toLowerCase(),
-        password.trim()
+        password
       );
       if (data.ok) {
            localStorage.setItem('token',         data.token);

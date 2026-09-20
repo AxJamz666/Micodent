@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import { Home, Users, CalendarDays, UserCircle, LogOut, Settings, User, ChevronDown, TrendingUp } from 'lucide-react';
+import { authService } from '../services/api';
+import { clearMatchingSession } from '../services/session';
+import toast from 'react-hot-toast';
 
 const MainLayout = () => {
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const dropdownRef = useRef(null);
 
   const shortName = localStorage.getItem('userNombre') || 'Usuario';
@@ -22,14 +26,19 @@ const MainLayout = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('userNombre');
-    localStorage.removeItem('userFullName');
-    localStorage.removeItem('userRol');
-    localStorage.removeItem('userPrefix');
-    localStorage.removeItem('userGender');
-    localStorage.removeItem('isAdmin');
-    navigate('/login');
+  const handleLogout = async () => {
+    const token = localStorage.getItem('token');
+    setLoggingOut(true);
+    try {
+      await authService.logout();
+      if (clearMatchingSession(token)) navigate('/login', { replace: true });
+    } catch (error) {
+      if (error.response?.status === 401) {
+        if (clearMatchingSession(token)) navigate('/login', { replace: true });
+      } else {
+        toast.error('No se pudo confirmar el cierre de sesión. Intenta nuevamente.');
+      }
+    } finally { setLoggingOut(false); }
   };
 
   return (
@@ -81,7 +90,7 @@ const MainLayout = () => {
               </div>
 
               <div className="px-2 mt-2 pt-2 border-t border-slate-100">
-                <button onClick={handleLogout} className="w-full px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-50 rounded-xl flex items-center gap-3 font-black transition-colors">
+                <button onClick={handleLogout} disabled={loggingOut} className="w-full px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-50 rounded-xl flex items-center gap-3 font-black transition-colors disabled:opacity-50">
                   <LogOut size={18} /> Cerrar sesión
                 </button>
               </div>

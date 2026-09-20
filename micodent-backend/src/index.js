@@ -47,7 +47,22 @@ app.use((req, res) => {
   res.status(404).json({ ok: false, mensaje: 'Ruta no encontrada.' });
 }); 
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor Micodent corriendo en http://localhost:${PORT}`);
-  console.log(`🛰️ API disponible en http://localhost:${PORT}/api`);
+app.use((err, _req, res, _next) => {
+  if (err.type === 'entity.parse.failed' || err.type === 'entity.too.large') {
+    return res.status(err.type === 'entity.too.large' ? 413 : 400).json({ ok: false, mensaje: 'Solicitud invalida.' });
+  }
+  return require('./utils/securityError').sendSecurityError(res, err);
 });
+
+if (require.main === module) {
+  const db = require('./config/db');
+  require('../scripts/migrate-s1a').verifyApplied(db).then(() => {
+    app.listen(PORT, '127.0.0.1', () => console.log(`MICODENT DEV disponible en http://localhost:${PORT}`));
+  }).catch(async () => {
+    console.error('MICODENT DEV no inicio: verifica la BD y la migracion S1-A. No se aplicaron cambios automaticos.');
+    await db.end();
+    process.exitCode = 1;
+  });
+}
+
+module.exports = app;

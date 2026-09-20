@@ -1,45 +1,25 @@
-const jwt = require('jsonwebtoken');
-const db = require('../config/db');
-require('dotenv').config();
+const security = require('../services/security');
+const { SecurityError, sendSecurityError } = require('../utils/securityError');
 
 const verificarToken = async (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ ok: false, mensaje: 'Acceso denegado. Token no proporcionado.' });
-  }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Validación en tiempo real: si un admin revoca el acceso, el bloqueo aplica
-    // desde el siguiente clic, sin esperar a que expire el token (hasta 8h).
-    const [rows] = await db.query('SELECT activo FROM usuarios WHERE id = ?', [decoded.id]);
-    if (rows.length === 0 || !rows[0].activo) {
-      return res.status(401).json({ ok: false, mensaje: 'Tu acceso ha sido revocado. Contacta al administrador.' });
-    }
-
-    req.usuario = decoded;
+    const header = req.headers.authorization;
+    const match = typeof header === 'string' && /^Bearer ([^\s]+)$/i.exec(header);
+    if (!match) throw new SecurityError(401, 'AUTH_SESSION_INVALID', 'Inicia sesion para continuar.');
+    const { auth, user } = await security.authenticate(match[1]);
+    req.usuario = user;
+    req.auth = auth;
     next();
-  } catch (err) {
-    return res.status(403).json({ ok: false, mensaje: 'Token inválido o expirado.' });
-  }
+  } catch (err) { return sendSecurityError(res, err); }
 };
 
 const soloAdmin = (req, res, next) => {
-  if (!req.usuario?.isAdmin) {
-    return res.status(403).json({ ok: false, mensaje: 'Se requieren permisos de administrador.' });
-  }
+  if (!req.usuario?.isAdmin) return res.status(403).json({ ok: false, codigo: 'AUTH_FORBIDDEN', mensaje: 'Se requieren permisos de administrador.' });
   next();
 };
 
-// ✅ NUEVO: Solo doctores pueden guardar datos clínicos
 const soloDoctor = (req, res, next) => {
-  if (req.usuario?.rol !== 'Doctor') {
-    return res.status(403).json({
-      ok: false,
-      mensaje: 'Solo el médico tratante puede modificar datos clínicos.'
-    });
-  }
+  if (req.usuario?.rol !== 'Doctor') return res.status(403).json({ ok: false, codigo: 'AUTH_FORBIDDEN', mensaje: 'Solo el medico tratante puede modificar datos clinicos.' });
   next();
 };
 
