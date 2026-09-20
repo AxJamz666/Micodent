@@ -32,7 +32,9 @@ reversion y aprobacion propios. No se modifican las laptops ni el piloto.
 
 Estado al 2026-09-20: S1-A aceptado por el propietario. M02-A implementado en
 DEV (ver M02A_CIERRE.md). M02-B, rotacion de secretos por instalacion, pendiente
-de autorizacion; no se considera terminada toda la etapa M02.
+de confirmacion especifica para el cambio JWT solo DEV. Se inicio su inventario
+y ensayo unitario (M02B_ROTACION_DEV.md); aun no se cambio ninguna clave.
+No se considera terminada toda la etapa M02.
 
 - Probar primero sobre copias aisladas. No introducir cuentas sinteticas en las instalaciones de los usuarios.
 - Una etapa no se considera aprobada solo porque compile o responda /api/ping.

@@ -8,7 +8,7 @@ registro. Los estados operativos vivos se consultan en los issues y PR.
 | --- | --- | --- |
 | E00 Base y recuperacion | [#1](https://github.com/AxJamz666/Micodent/issues/1) | Cerrada |
 | E01 S1-A | [#2](https://github.com/AxJamz666/Micodent/issues/2) | Aceptada y cerrada |
-| E02 Secretos | [#3](https://github.com/AxJamz666/Micodent/issues/3) | M02-A implementado; M02-B pendiente |
+| E02 Secretos | [#3](https://github.com/AxJamz666/Micodent/issues/3) | M02-A implementado; M02-B inventariado y en preparacion, sin rotacion |
 | E03 S1-B | [#4](https://github.com/AxJamz666/Micodent/issues/4) | Planificada |
 | E04 Archivos clinicos | [#5](https://github.com/AxJamz666/Micodent/issues/5) | Planificada |
 | E05 Autorizacion | [#6](https://github.com/AxJamz666/Micodent/issues/6) | Planificada |
@@ -28,6 +28,7 @@ registro. Los estados operativos vivos se consultan en los issues y PR.
 Accion prioritaria separada: [M02-B, issue #19](https://github.com/AxJamz666/Micodent/issues/19).
 La clave expuesta no se ha rotado; se necesita autorizacion y coordinacion por
 instalacion. Privacidad del repositorio y limpieza del historial no la revocan.
+Preparacion DEV: [M02B_ROTACION_DEV.md](M02B_ROTACION_DEV.md).
 
 Reglas del flujo: [TRABAJO_EN_GITHUB.md](TRABAJO_EN_GITHUB.md).
 Dependencias tecnicas: [Ruta maestra](RUTA_MAESTRA.md).
