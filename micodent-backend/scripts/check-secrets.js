@@ -137,14 +137,15 @@ function scanIndex(knownSecrets = [], runGit = git) {
 }
 
 function run(args = process.argv.slice(2)) {
+  const patternsOnly = args.includes('--patterns-only');
   const artifactIndex = args.indexOf('--artifact');
   const artifact = artifactIndex === -1 ? null : args[artifactIndex + 1];
-  if (args.some((arg, index) => !['--history', '--artifact'].includes(arg) && !(artifactIndex !== -1 && index === artifactIndex + 1))
+  if (args.some((arg, index) => !['--history', '--artifact', '--patterns-only'].includes(arg) && !(artifactIndex !== -1 && index === artifactIndex + 1))
       || (artifactIndex !== -1 && (!artifact || artifact.startsWith('--')))) throw new Error('INVALID_SCAN_ARGUMENTS');
   const localConfig = path.join(ROOT, 'micodent-backend/.env');
-  if (!fs.existsSync(localConfig)) throw new Error('LOCAL_SECRET_REFERENCE_REQUIRED');
-  const env = dotenv.parse(fs.readFileSync(localConfig));
-  if (!env.JWT_SECRET || !env.DB_PASSWORD) throw new Error('LOCAL_SECRET_REFERENCE_REQUIRED');
+  if (!patternsOnly && !fs.existsSync(localConfig)) throw new Error('LOCAL_SECRET_REFERENCE_REQUIRED');
+  const env = patternsOnly ? {} : dotenv.parse(fs.readFileSync(localConfig));
+  if (!patternsOnly && (!env.JWT_SECRET || !env.DB_PASSWORD)) throw new Error('LOCAL_SECRET_REFERENCE_REQUIRED');
   const knownSecrets = Object.entries(env).filter(([key, value]) => /SECRET|PASSWORD|TOKEN|API_KEY/i.test(key) && value).map(([, value]) => value);
   const result = scanDirectory(artifact ? path.resolve(artifact) : ROOT, { knownSecrets, artifact: Boolean(artifact) });
   let history;
@@ -152,7 +153,7 @@ function run(args = process.argv.slice(2)) {
   if (args.includes('--history')) { history = scanHistory(knownSecrets); result.findings.push(...history.findings); }
   const unique = [...new Map(result.findings.map(f => [JSON.stringify(f), f])).values()];
   const report = { ok: unique.length === 0, mode: artifact ? 'source-artifact' : 'workspace', scannedTextFiles: result.scanned,
-    knownSecretComparison: true, history: history ? { commits: history.commits, uniqueTextEntries: history.uniqueTextEntries } : null,
+    knownSecretComparison: !patternsOnly, history: history ? { commits: history.commits, uniqueTextEntries: history.uniqueTextEntries } : null,
     findings: unique, limitations: ['Pattern and exact-value checks, not a guarantee against every unknown or encoded secret.',
       'No database access, remote fetch, history rewrite or automatic cleanup.', 'Clinical uploads and dependency contents are not inspected.'] };
   // Paths themselves could contain confidential material; never print a known value even there.

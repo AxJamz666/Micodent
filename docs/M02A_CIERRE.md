@@ -61,9 +61,10 @@ JWT anteriormente encontrado en la exportacion sigue vigente: quitar la
 exportacion de DEV NO equivale a revocarlo. Hace falta M02-B, con identificacion
 de instalaciones y autorizacion expresa de rotacion. Ninguna laptop fue tocada.
 
-No se creo repositorio remoto, no se subio codigo a GitHub y no se reescribio
-historial. La publicacion requiere repositorio y cuenta autorizados, revision
-del artefacto y preferentemente un repositorio privado.
+En el cierre inicial de M02-A no se habia conectado GitHub. Posteriormente el
+propietario autorizo administrarlo y proporciono su repositorio. La conexion,
+el saneamiento excepcional del historial y los controles se documentan por
+separado en TRABAJO_EN_GITHUB.md; no implican autorizacion de rotacion.
 
 ## Reversion
 

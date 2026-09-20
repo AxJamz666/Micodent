@@ -113,6 +113,22 @@ test('unknown CLI arguments fail without leaking configuration or internal error
   assert.ok(!result.stderr.includes('Error:'));
 });
 
+test('CI can scan a source artifact without claiming comparison against live credentials', t => {
+  const temp = fs.realpathSync(os.tmpdir());
+  const dir = fs.mkdtempSync(path.join(temp, 'micodent-m02-'));
+  t.after(() => {
+    if (path.dirname(fs.realpathSync(dir)) !== temp || !path.basename(dir).startsWith('micodent-m02-')) throw new Error('CLEANUP_GUARD');
+    fs.rmSync(dir, { recursive: true });
+  });
+  fs.writeFileSync(path.join(dir, 'README.md'), 'Synthetic clean source fixture.');
+  const result = cp.spawnSync(process.execPath, [path.resolve(__dirname, '../../scripts/check-secrets.js'), '--patterns-only', '--artifact', dir],
+    { encoding: 'utf8', timeout: 10000, windowsHide: true });
+  assert.equal(result.status, 0);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.ok, true);
+  assert.equal(report.knownSecretComparison, false);
+});
+
 test('index scanning catches a staged secret independently of the working file', () => {
   const runGit = args => args[0] === 'ls-files' ? '100644 abcdef 0\tsrc/example.js\0' : 'const data = "' + synthetic + '";';
   const result = scanIndex([synthetic], runGit);

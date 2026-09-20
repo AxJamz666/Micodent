@@ -47,6 +47,10 @@ comparan en memoria los secretos del .env backend; nunca los imprimen ni los
 envian a un servicio externo. No consultan MySQL ni acceden a las laptops.
 Requieren que el .env privado de este DEV este disponible como referencia.
 
+GitHub CI utiliza --patterns-only de forma explicita, sin recibir secretos de
+instalaciones. Su reporte indica knownSecretComparison=false. Ese modo no
+sustituye la comparacion local de secretos conocidos antes de compartir.
+
 Salida 0: sin coincidencias para las comprobaciones efectuadas.
 Salida 1: hallazgos que necesitan revision; no compartir ese artefacto.
 Salida 2: comprobacion incompleta; no interpretarla como una aprobacion.
