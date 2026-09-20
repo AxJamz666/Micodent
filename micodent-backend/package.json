@@ -1,6 +1,7 @@
 {
   "name": "micodent-backend",
   "version": "1.0.0",
+  "private": true,
   "description": "API REST - Clínica Micodent",
   "main": "src/index.js",
   "scripts": {
@@ -8,7 +9,10 @@
     "start": "node src/index.js",
     "test": "node --test tests/unit/*.test.js",
     "test:integration": "node --test --test-concurrency=1 tests/integration/*.test.js",
-    "migrate:s1a": "node scripts/migrate-s1a.js"
+    "migrate:s1a": "node scripts/migrate-s1a.js",
+    "security:check": "node scripts/check-secrets.js",
+    "security:history": "node scripts/check-secrets.js --history",
+    "prepack": "node scripts/check-secrets.js --history"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",
