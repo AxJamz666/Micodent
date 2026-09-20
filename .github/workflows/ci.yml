@@ -1,0 +1,73 @@
+name: MICODENT CI
+
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+    branches: [main, codex/mejoras-integracion]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: micodent-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secrets:
+    name: Secrets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.14.0'
+          cache: npm
+          cache-dependency-path: micodent-backend/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: micodent-backend
+      - name: Scan source, index and local history without clinical credentials
+        run: node micodent-backend/scripts/check-secrets.js --patterns-only --history
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.14.0'
+          cache: npm
+          cache-dependency-path: micodent-backend/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: micodent-backend
+      - run: npm test
+        working-directory: micodent-backend
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.14.0'
+          cache: npm
+          cache-dependency-path: micodent-frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: micodent-frontend
+      - run: npm test
+        working-directory: micodent-frontend
+      - run: npm run build
+        working-directory: micodent-frontend

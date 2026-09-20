@@ -1,7 +1,7 @@
 # S1-A - Cierre tecnico en DEV
 
 Fecha: 2026-09-20. Implementacion y verificacion tecnica completadas en DEV.
-Pendiente: aceptacion del propietario usando sus cuentas habituales.
+Aceptacion del propietario: confirmada en la conversacion el 2026-09-20.
 No es una aprobacion de produccion ni del resto de los paquetes del roadmap.
 
 ## Entorno y version
