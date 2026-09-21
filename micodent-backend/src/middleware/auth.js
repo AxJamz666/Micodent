@@ -1,12 +1,12 @@
 const security = require('../services/security');
-const { SecurityError, sendSecurityError } = require('../utils/securityError');
+const browserTransport = require('../config/browserTransport');
+const { sendSecurityError } = require('../utils/securityError');
 
 const verificarToken = async (req, res, next) => {
   try {
-    const header = req.headers.authorization;
-    const match = typeof header === 'string' && /^Bearer ([^\s]+)$/i.exec(header);
-    if (!match) throw new SecurityError(401, 'AUTH_SESSION_INVALID', 'Inicia sesion para continuar.');
-    const { auth, user } = await security.authenticate(match[1]);
+    const token = browserTransport.token(req);
+    const { auth, user } = await security.authenticate(token);
+    req.browserSession = browserTransport.bind(req, token);
     req.usuario = user;
     req.auth = auth;
     next();

@@ -1,4 +1,6 @@
-import { clearMatchingSession, clearSession } from './session.js';
+import { clearSession } from './session.js';
+
+export const SESSION_EVENT_KEY = 'micodentSessionEvent';
 
 export function sessionChangedError() {
   return Object.assign(new Error('La sesion de esta pestana ya no esta disponible.'), { code: 'SESSION_CHANGED' });
@@ -23,11 +25,13 @@ function cacheProfile(user, storage) {
   for (const [key, value] of Object.entries(fields)) storage.setItem(key, String(value));
 }
 
-// A tab keeps its original credential. It must never adopt another tab's login
-// while clinical forms from the previous identity are still mounted.
-export function createSessionState(storage) {
-  let token = storage.getItem('token');
-  let snapshot = { status: token ? 'checking' : 'anonymous', user: null };
+// The cookie is inaccessible to JavaScript. Only a non-authenticating identity
+// marker is shared; the backend also binds every operation to that identity.
+export function createSessionState(storage, nonce = () => crypto.randomUUID()) {
+  storage.removeItem('token');
+  let epoch = storage.getItem(SESSION_EVENT_KEY);
+  let session = null;
+  let snapshot = { status: 'checking', user: null };
   const listeners = new Set();
   const publish = (status, user = snapshot.user) => {
     snapshot = { status, user };
@@ -35,39 +39,56 @@ export function createSessionState(storage) {
   };
   const isLocked = () => ['changed', 'expired'].includes(snapshot.status);
   const lock = () => { if (!isLocked()) publish('changed'); };
-  const assertCurrent = (expected = token) => {
-    if (isLocked() || expected !== token || storage.getItem('token') !== token) {
+  const assertCurrent = (expected = epoch) => {
+    if (storage.getItem(SESSION_EVENT_KEY) !== epoch) {
       lock();
       throw sessionChangedError();
     }
-    return token;
+    if (isLocked() || expected !== epoch) throw sessionChangedError();
+    return epoch;
+  };
+  const validSession = value => {
+    if (!value || typeof value.id !== 'string' || typeof value.csrf !== 'string'
+        || !/^[a-f0-9]{64}$/.test(value.id) || !/^[a-f0-9]{64}$/.test(value.csrf)) throw Error('INVALID_SESSION_CONTEXT');
+    return { id: value.id, csrf: value.csrf };
+  };
+  const announce = value => {
+    storage.setItem(SESSION_EVENT_KEY, value);
+    epoch = value;
+  };
+  const forget = () => {
+    clearSession(storage);
+    session = null;
+    if (epoch && !epoch.startsWith('signed-out:')) announce('signed-out:' + nonce());
   };
   return {
     getSnapshot: () => snapshot,
     subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); },
     assertCurrent,
     checkStorage: event => {
-      if (event && event.key !== null && event.key !== 'token') return;
-      if ((event?.key === 'token' && event.newValue !== token) || storage.getItem('token') !== token) lock();
+      if (event && event.key !== null && event.key !== SESSION_EVENT_KEY) return;
+      if ((event?.key === SESSION_EVENT_KEY && event.newValue !== epoch) || storage.getItem(SESSION_EVENT_KEY) !== epoch) lock();
     },
-    requestToken: login => {
+    requestContext: ({ login = false, bootstrap = false } = {}) => {
       assertCurrent();
-      if (login ? snapshot.status !== 'anonymous' : !token) throw sessionChangedError();
-      if (!login && !['checking', 'ready'].includes(snapshot.status)) throw sessionChangedError();
-      return token;
+      if (login ? snapshot.status !== 'anonymous' : bootstrap ? snapshot.status !== 'checking'
+        : snapshot.status !== 'ready' || !session) throw sessionChangedError();
+      return { epoch, id: session?.id, csrf: session?.csrf };
     },
-    acceptLogin: (newToken, expected) => {
+    acceptLogin: (value, expected) => {
       assertCurrent(expected);
-      if (snapshot.status !== 'anonymous' || typeof newToken !== 'string' || !newToken) throw sessionChangedError();
+      if (snapshot.status !== 'anonymous') throw sessionChangedError();
+      session = validSession(value);
       clearSession(storage);
-      storage.setItem('token', newToken);
-      token = newToken;
+      announce(session.id);
       publish('checking', null);
     },
-    verified: (usuario, expected) => {
+    verified: (usuario, value, expected) => {
       assertCurrent(expected);
       const user = sessionProfile(usuario);
+      session = validSession(value);
       cacheProfile(user, storage);
+      if (epoch !== session.id) announce(session.id);
       publish('ready', user);
     },
     unavailable: expected => {
@@ -75,15 +96,15 @@ export function createSessionState(storage) {
       publish('unavailable');
     },
     retry: () => { assertCurrent(); publish('checking'); },
+    changed: expected => { assertCurrent(expected); lock(); },
     expire: expected => {
       assertCurrent(expected);
-      clearMatchingSession(expected, storage);
-      publish('expired');
+      forget();
+      publish(snapshot.user ? 'expired' : 'anonymous');
     },
     end: expected => {
       assertCurrent(expected);
-      clearMatchingSession(expected, storage);
-      token = null;
+      forget();
       publish('anonymous', null);
     },
   };

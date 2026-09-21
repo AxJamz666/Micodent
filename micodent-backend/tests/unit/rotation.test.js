@@ -95,7 +95,7 @@ test('recovery with a third fresh key rejects both prior generations and permits
 
 test('a correctly signed but unregistered new-key token still cannot authenticate', async () => {
   const f = fixture(), current = options();
-  const token = jwt.sign({ av: f.user.auth_version }, current.secret, {
+  const token = jwt.sign({ av: f.user.auth_version, bt: 2 }, current.secret, {
     algorithm: 'HS256', subject: f.user.id, jwtid: crypto.randomBytes(32).toString('hex'),
     issuer: current.issuer, audience: current.audience, expiresIn: '8h' });
   await assert.rejects(f.service(current).authenticate(token), invalid);

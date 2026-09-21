@@ -43,6 +43,9 @@ Aceptacion funcional recibida del propietario el 2026-09-21. S1-B2 (cookies/CSRF
 autorizado para continuar en DEV; no declarar
 resueltos transporte JWT, proteccion integral del trabajo ni etapa E03 completa.
 
+S1-B2: codigo de cookies/CSRF implementado y pruebas en memoria correctas;
+navegador y activacion DEV pendientes. Ver S1B2_COOKIES_CSRF.md. No aprobado.
+
 - Probar primero sobre copias aisladas. No introducir cuentas sinteticas en las instalaciones de los usuarios.
 - Una etapa no se considera aprobada solo porque compile o responda /api/ping.
 - Toda migracion requiere copia compatible, conteos, integridad y procedimiento de reversion sin descartar datos nuevos.

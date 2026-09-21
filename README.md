@@ -12,7 +12,8 @@ codigo y documentacion; no contiene una instalacion clinica completa ni sus dato
   credenciales MySQL sin cambios; M02 global permanece abierto.
 - V3: simulacro revisado; integracion final de despliegue pendiente.
 - S1-B1: verificacion de perfil y aislamiento entre pestanas implementados en
-  DEV y aceptados por el propietario. S1-B2 autorizado; cookies/CSRF en desarrollo.
+  DEV y aceptados por el propietario. S1-B2 en codigo; navegador y activacion
+  pendientes, sin aprobacion ni despliegue.
 - No se considera listo para produccion ni autorizado para actualizar laptops.
 
 ## Mapa del proyecto
@@ -27,6 +28,7 @@ codigo y documentacion; no contiene una instalacion clinica completa ni sus dato
 | [M02-A](docs/M02A_CIERRE.md) | Contencion y verificacion de secretos |
 | [M02-B DEV](docs/M02B_RESULTADO_DEV.md) | Rotacion JWT, respaldo, pruebas y limites |
 | [S1-B1 DEV](docs/S1B1_SESION_NAVEGADOR.md) | Verificacion de sesion, pestanas y pruebas sin BD |
+| [S1-B2](docs/S1B2_COOKIES_CSRF.md) | Cookies/CSRF, pruebas realizadas y validacion pendiente |
 | [V3](docs/V3_INTEGRACION.md) | Despliegue local futuro y diferencias pendientes |
 | [Issues](https://github.com/AxJamz666/Micodent/issues) | Seguimiento de cada etapa y paquete |
 | [Milestones](https://github.com/AxJamz666/Micodent/milestones?state=all) | Mapa de las etapas |

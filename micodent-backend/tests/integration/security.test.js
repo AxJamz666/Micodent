@@ -4,6 +4,8 @@ const crypto = require('node:crypto');
 const cp = require('node:child_process');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const cookie = require('cookie');
+const { COOKIE_NAME } = require('../../src/services/browserTransport');
 if (process.env.S1A_TEST_MODE !== 'isolated' || process.env.DB_PORT !== '3308'
     || process.env.DB_NAME !== 'micodent_dev' || !process.env.TEST_SERVER_UUID
     || process.env.TEST_SERVER_UUID === 'd30b3b32-6881-11f1-9cad-0250447c4405') {
@@ -14,6 +16,7 @@ const app = require('../../src/index');
 const security = require('../../src/services/security');
 const { createSessionService } = require('../../src/services/session.service');
 const { tokenOptions } = require('../../src/config/environment');
+const transport = require('../../src/config/browserTransport');
 const password = 'Clave sintetica de pruebas 2026!';
 const newPassword = 'Otra clave sintetica segura 2026!';
 const prefix = 'qa_s1a_' + crypto.randomBytes(4).toString('hex') + '_';
@@ -25,15 +28,19 @@ async function seed(label, level = 1, role = 'Asistente', active = 1, hash = nul
   return id;
 }
 async function request(method, route, token, body) {
+  const context = token && transport.session(token);
   const response = await fetch(base + route, { method, headers: { 'Content-Type': 'application/json',
-    ...(token ? { Authorization: 'Bearer ' + token } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
-  return { status: response.status, headers: response.headers, body: await response.json() };
+    Origin: 'http://localhost:5173', 'X-Micodent-Client': 'web',
+    ...(token ? { Cookie: COOKIE_NAME + '=' + token, 'X-Micodent-Session': context.id, 'X-CSRF-Token': context.csrf } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
+  return { status: response.status, headers: response.headers, body: await response.json(),
+    cookieToken: cookie.parse(response.headers.get('set-cookie') || '')[COOKIE_NAME] };
 }
 async function login(id, value = password) {
   const result = await request('POST', '/auth/login', null, { id, password: value });
   assert.equal(result.status, 200, 'Synthetic account must authenticate');
-  assert.equal(typeof result.body.token, 'string');
-  return result.body.token;
+  assert.equal('token' in result.body, false);
+  assert.equal(typeof result.cookieToken, 'string');
+  return result.cookieToken;
 }
 async function credentials(id) {
   const [[row]] = await db.execute('SELECT password_hash,auth_version FROM usuarios WHERE id=?', [id]);
@@ -167,7 +174,7 @@ test('login racing reset cannot leave a usable old-password session', async () =
     request('POST', '/usuarios/reset-password', actor, { targetUserId: id, adminPassword: password, nuevaPassword: newPassword }),
     ...Array.from({ length: 3 }, () => request('POST', '/auth/login', null, { id, password }))]);
   assert.equal(reset.status, 200);
-  for (const r of attempts) if (r.status === 200) assert.equal((await request('GET', '/auth/me', r.body.token)).status, 401);
+  for (const r of attempts) if (r.status === 200) assert.equal((await request('GET', '/auth/me', r.cookieToken)).status, 401);
   await login(id, newPassword);
 });
 test('audit failure rolls back password and revocation together', async () => {

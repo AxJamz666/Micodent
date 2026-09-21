@@ -1,7 +1,7 @@
 const express = require('express');
 const cors    = require('cors');
 const path    = require('path');
-require('dotenv').config();
+const browserTransport = require('./config/browserTransport');
 
 const authRoutes      = require('./routes/auth.routes');
 const usuariosRoutes  = require('./routes/usuarios.routes');
@@ -17,9 +17,10 @@ const app  = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: browserTransport.origins,
   credentials: true,
 }));
+app.use('/api', browserTransport.boundary);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

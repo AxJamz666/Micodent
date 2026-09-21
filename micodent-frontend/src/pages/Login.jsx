@@ -21,13 +21,13 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const expectedToken = browserSession.assertCurrent();
+      const expectedEpoch = browserSession.assertCurrent();
       const { data } = await authService.login(
         userId.trim().toLowerCase(),
         password
       );
       if (data.ok) {
-        browserSession.acceptLogin(data.token, expectedToken);
+        browserSession.acceptLogin(data.sesion, expectedEpoch);
         toast.success(`Bienvenid${data.usuario.gender === 'a' ? 'a' : 'o'}, ${data.usuario.nombre}`);
         navigate('/');
       }
