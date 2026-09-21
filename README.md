@@ -8,7 +8,8 @@ codigo y documentacion; no contiene una instalacion clinica completa ni sus dato
 - S1-A: implementado en DEV, probado y aceptado por el propietario.
 - M02-A: contencion de secretos implementada y verificada en DEV.
 - M02-B: JWT rotado solo en DEV el 2026-09-21; comprobaciones tecnicas correctas,
-  login del propietario pendiente. Otros entornos y credenciales MySQL sin cambios.
+  acceso habitual de Miguel confirmado por el propietario. Otros entornos y
+  credenciales MySQL sin cambios; M02 global permanece abierto.
 - V3: simulacro revisado; integracion final de despliegue pendiente.
 - No se considera listo para produccion ni autorizado para actualizar laptops.
 

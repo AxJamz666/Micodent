@@ -32,7 +32,8 @@ reversion y aprobacion propios. No se modifican las laptops ni el piloto.
 
 Estado al 2026-09-21: S1-A aceptado por el propietario. M02-A implementado en
 DEV (ver M02A_CIERRE.md). M02-B: JWT rotado solo en DEV con autorizacion
-expresa; comprobaciones tecnicas correctas y login del propietario pendiente.
+expresa; comprobaciones tecnicas correctas y acceso habitual de Miguel confirmado
+por el propietario el 2026-09-21, quien autoriza continuar en DEV.
 Ver M02B_RESULTADO_DEV.md. No se cambiaron credenciales MySQL ni otras
 instalaciones. No se considera terminada toda la etapa M02.
 

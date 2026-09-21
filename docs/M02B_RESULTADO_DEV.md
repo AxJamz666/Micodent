@@ -2,7 +2,7 @@
 
 Fecha: 2026-09-21. Autorizacion expresa del propietario para cambiar solo la
 clave JWT de MICODENT_DEV. Base de codigo: 99d5105. Rama de seguimiento:
-codex/m02b-rotacion-dev. PR #21; pendiente de aceptacion funcional y fusion.
+codex/m02b-rotacion-dev. PR #21; acceso DEV aceptado, fusion pendiente.
 
 ## Resultado y alcance
 
@@ -55,7 +55,7 @@ Este paquete no modifica datos ni necesita restaurar una BD para recuperarse.
 | API | Ping 200; /api/auth/me sin token, con sonda antigua o sonda nueva no registrada: 401 |
 | Frontend | HTTP 200 en localhost:5173 |
 | Revision de secretos | Workspace, indice e historial local examinados contra valores actuales y anteriores; sin hallazgos segun reglas |
-| Login con cuenta real | Pendiente de confirmacion del propietario; no se solicitaron contrasenas |
+| Login con cuenta real | El propietario confirma acceso con la cuenta habitual de Miguel el 2026-09-21; no se solicitaron contrasenas |
 
 Las consultas se ejecutaron dentro de transacciones de solo lectura sobre DEV.
 Los conteos no prueban igualdad de todo el contenido clinico: no se realizo
@@ -93,7 +93,9 @@ No descartar datos ingresados despues de la intervencion.
 
 ## Pendientes y criterio de cierre
 
-- Propietario: iniciar sesion con su cuenta habitual y confirmar acceso normal.
+- Aceptacion recibida: el propietario confirma login habitual de Miguel en DEV
+  y solicita continuar. Es evidencia reportada por el usuario, no una prueba
+  automatizada de todos los flujos clinicos.
 - Mantener #19 abierto: piloto y simulacro conservan la clave anterior, y las
   laptops no se inspeccionaron ni modificaron. La rotacion DEV no remedia esos
   entornos ni las copias historicas expuestas.
@@ -101,7 +103,8 @@ No descartar datos ingresados despues de la intervencion.
   consumidores y coordinacion independiente; no esta incluida aqui.
 - Verificar CI del commit final; no confundir CI con login clinico, restauracion
   probada, aceptacion del propietario o autorizacion para desplegar.
-- No fusionar ni iniciar S1-B automaticamente mientras falta aceptacion DEV.
+- S1-B autorizado para continuar en DEV; sin autorizacion de fusion o despliegue.
 
 Estado: rotacion JWT aplicada solo en DEV y verificada tecnicamente;
-aceptacion funcional pendiente. No se declara finalizada toda la etapa M02.
+acceso funcional confirmado por el propietario. No se declara finalizada toda
+la etapa M02 ni aprobados los flujos clinicos completos.

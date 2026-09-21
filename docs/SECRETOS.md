@@ -110,7 +110,8 @@ BD + uploads + configuracion + codigo realizado en S1-A.
 ## M02-B: rotacion por instalacion
 
 Actualizacion 2026-09-21: JWT rotado exclusivamente en DEV con autorizacion
-expresa; verificaciones tecnicas correctas, login del propietario pendiente.
+expresa; verificaciones tecnicas correctas y login habitual de Miguel confirmado
+por el propietario el 2026-09-21. La contencion global sigue pendiente.
 Ver M02B_RESULTADO_DEV.md. DB_PASSWORD y otros entornos no se modificaron.
 El resto de esta seccion define el procedimiento, no afirma que todas las
 instalaciones hayan sido rotadas o que el incidente global este cerrado.

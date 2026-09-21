@@ -4,7 +4,8 @@
 
 Preparacion iniciada el 2026-09-20. El 2026-09-21 el propietario confirmo
 expresamente el cambio JWT solo DEV y se aplico la rotacion. Comprobaciones
-tecnicas correctas; aceptacion funcional de login pendiente del propietario.
+tecnicas correctas; login habitual de Miguel confirmado por el propietario
+el 2026-09-21 con solicitud de continuar S1-B en DEV.
 No se cambio la contrasena MySQL ni se intervinieron otras instalaciones.
 Evidencia y limites: M02B_RESULTADO_DEV.md. La etapa global M02 sigue abierta.
 
