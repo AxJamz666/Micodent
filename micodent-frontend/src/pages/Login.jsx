@@ -3,45 +3,31 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../services/api';
 import toast from 'react-hot-toast';
-import { clearSession } from '../services/session';
+import { browserSession, useSession } from '../services/browserSession';
 
 const Login = () => {
   const navigate    = useNavigate();
+  const { status } = useSession();
   const [userId,    setUserId]    = useState('');
   const [password,  setPassword]  = useState('');
   const [showPass,  setShowPass]  = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      let active = true;
-      authService.getMe().then(() => { if (active) navigate('/'); }).catch(() => {});
-      return () => { active = false; };
-    }
-    clearSession();
-  }, [navigate]);
+  useEffect(() => {
+    if (status === 'ready') navigate('/', { replace: true });
+  }, [navigate, status]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     try {
+      const expectedToken = browserSession.assertCurrent();
       const { data } = await authService.login(
         userId.trim().toLowerCase(),
         password
       );
       if (data.ok) {
-           localStorage.setItem('token',         data.token);
-           localStorage.setItem('userNombre',    data.usuario.nombre);
-           localStorage.setItem('userFullName',  data.usuario.fullName);
-           localStorage.setItem('userRol',       data.usuario.rol);
-           localStorage.setItem('userPrefix',    data.usuario.prefix  || '');
-           localStorage.setItem('userGender',    data.usuario.gender  || 'o');
-           localStorage.setItem('isAdmin',       data.usuario.isAdmin ? 'true' : 'false');
-           localStorage.setItem('userId',        data.usuario.id);
-           localStorage.setItem('userNivel',     String(data.usuario.nivel || 1));  // ✅ NUEVO
-           localStorage.setItem('userEspecialidad', data.usuario.especialidad || '');
-           localStorage.setItem('userCop',          data.usuario.cop          || '');
+        browserSession.acceptLogin(data.token, expectedToken);
         toast.success(`Bienvenid${data.usuario.gender === 'a' ? 'a' : 'o'}, ${data.usuario.nombre}`);
         navigate('/');
       }

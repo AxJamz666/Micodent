@@ -37,6 +37,12 @@ por el propietario el 2026-09-21, quien autoriza continuar en DEV.
 Ver M02B_RESULTADO_DEV.md. No se cambiaron credenciales MySQL ni otras
 instalaciones. No se considera terminada toda la etapa M02.
 
+S1-B1 implementado en DEV: perfil verificado e identidad ligada a cada pestana,
+con pruebas unitarias y navegador simulado. Ver S1B1_SESION_NAVEGADOR.md.
+Aceptacion funcional recibida del propietario el 2026-09-21. S1-B2 (cookies/CSRF)
+autorizado para continuar en DEV; no declarar
+resueltos transporte JWT, proteccion integral del trabajo ni etapa E03 completa.
+
 - Probar primero sobre copias aisladas. No introducir cuentas sinteticas en las instalaciones de los usuarios.
 - Una etapa no se considera aprobada solo porque compile o responda /api/ping.
 - Toda migracion requiere copia compatible, conteos, integridad y procedimiento de reversion sin descartar datos nuevos.
