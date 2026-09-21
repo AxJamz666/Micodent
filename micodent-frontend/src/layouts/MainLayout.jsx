@@ -29,9 +29,9 @@ const MainLayout = () => {
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      const token = browserSession.assertCurrent();
+      const epoch = browserSession.assertCurrent();
       await authService.logout();
-      browserSession.end(token);
+      browserSession.end(epoch);
       navigate('/login', { replace: true });
     } catch (error) {
       if (error.response?.status !== 401 && error.code !== 'SESSION_CHANGED') {

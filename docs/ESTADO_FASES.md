@@ -9,7 +9,7 @@ registro. Los estados operativos vivos se consultan en los issues y PR.
 | E00 Base y recuperacion | [#1](https://github.com/AxJamz666/Micodent/issues/1) | Cerrada |
 | E01 S1-A | [#2](https://github.com/AxJamz666/Micodent/issues/2) | Aceptada y cerrada |
 | E02 Secretos | [#3](https://github.com/AxJamz666/Micodent/issues/3) | JWT DEV rotado; login habitual confirmado por el propietario. M02 global abierto |
-| E03 S1-B | [#4](https://github.com/AxJamz666/Micodent/issues/4) | S1-B1 aceptado DEV. S1-B2 autorizado; implementacion en curso |
+| E03 S1-B | [#4](https://github.com/AxJamz666/Micodent/issues/4) | S1-B1 aceptado. S1-B2 en codigo; navegador y activacion pendientes |
 | E04 Archivos clinicos | [#5](https://github.com/AxJamz666/Micodent/issues/5) | Planificada |
 | E05 Autorizacion | [#6](https://github.com/AxJamz666/Micodent/issues/6) | Planificada |
 | E06 Integridad clinica | [#7](https://github.com/AxJamz666/Micodent/issues/7) | Planificada |

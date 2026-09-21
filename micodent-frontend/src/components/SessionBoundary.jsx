@@ -28,16 +28,17 @@ export default function SessionBoundary({ children }) {
   useEffect(() => {
     if (status !== 'checking') return;
     let active = true;
-    let token;
-    try { token = browserSession.assertCurrent(); } catch { return; }
-    authService.getMe().then(({ data }) => {
-      if (active) browserSession.verified(data.usuario, token);
+    let epoch;
+    try { epoch = browserSession.assertCurrent(); } catch { return; }
+    const controller = new AbortController();
+    authService.bootstrap(controller.signal).then(({ data }) => {
+      if (active) browserSession.verified(data.usuario, data.sesion, epoch);
     }).catch(() => {
       if (active && browserSession.getSnapshot().status === 'checking') {
-        try { browserSession.unavailable(token); } catch { /* Another tab already locked this session. */ }
+        try { browserSession.unavailable(epoch); } catch { /* Another tab already locked this session. */ }
       }
     });
-    return () => { active = false; };
+    return () => { active = false; controller.abort(); };
   }, [status]);
 
   useEffect(() => { if (blocked) action.current?.focus(); }, [blocked, status]);

@@ -7,26 +7,30 @@ const base = process.env.SESSION_TEST_URL || 'http://127.0.0.1:5174';
 if (new URL(base).hostname !== '127.0.0.1' || new URL(base).port !== '5174') throw new Error('DEDICATED_TEST_SERVER_REQUIRED');
 const user = { id:'synthetic-user', nombre:'Prueba', nombre_completo:'Usuario Prueba', rol:'Doctor', is_admin:0, nivel:1 };
 const results = [];
+const identity = { id:'a'.repeat(64), csrf:'b'.repeat(64) };
 let browser;
 async function fixture({token = 'synthetic-a', meStatus = 200, gate} = {}) {
   const context = await browser.newContext({ viewport:{width:1280,height:800}, serviceWorkers:'block',
     storageState:{cookies:[],origins:[{origin:base,localStorage:token ? [
-      {name:'token',value:token},{name:'userNombre',value:'Cache no confiable'},{name:'isAdmin',value:'true'},
+      {name:'token',value:token},{name:'micodentSessionEvent',value:identity.id},{name:'userNombre',value:'Cache no confiable'},{name:'isAdmin',value:'true'},
     ] : []}]} });
-  const f = { context, requests:[], meStatus, gate, user, faults:new Map(), errors:[] };
+  const f = { context, requests:[], meStatus, gate, user, signedIn:Boolean(token), faults:new Map(), errors:[] };
   context.on('page', p=>p.on('pageerror', e=>f.errors.push(e.message)));
   await context.route('**/*',async route=>{
     const req=route.request(); const url=new URL(req.url());
     if (url.origin===base) return route.continue();
     if (url.pathname.startsWith('/api/')) {
-      f.requests.push({path:url.pathname,method:req.method(),token:req.headers().authorization});
+      f.requests.push({path:url.pathname,method:req.method(),identity:req.headers()['x-micodent-session']});
       const fault=f.faults.get(url.pathname);
       if (fault) return fault(route);
       if (url.pathname==='/api/auth/me') {
         if (f.gate) await f.gate;
-        return route.fulfill({status:f.meStatus,json:{ok:f.meStatus===200,usuario:f.user}});
+        return route.fulfill({status:f.signedIn?f.meStatus:401,json:{ok:f.meStatus===200,usuario:f.user,sesion:identity}});
       }
-      if (url.pathname==='/api/auth/login') return route.fulfill({json:{ok:true,token:'synthetic-login',usuario:{...user,fullName:user.nombre_completo}}});
+      if (url.pathname==='/api/auth/login') {
+        f.signedIn=true;
+        return route.fulfill({json:{ok:true,sesion:identity,usuario:{...user,fullName:user.nombre_completo}}});
+      }
       return route.fulfill({json:{ok:true,data:url.pathname.endsWith('/stats') ? {} : []}});
     }
     // Fail closed: never let uploads or unexpected external requests reach DEV.
@@ -73,7 +77,7 @@ async function main() {
       const f=await fixture({meStatus:503});
       await f.page.goto(base+'/pacientes/nuevo');
       await visible(f.page,'No se pudo verificar la sesion');
-      assert.equal(await f.page.evaluate(()=>Boolean(localStorage.getItem('token'))),true);
+      assert.equal(await f.page.evaluate(()=>Boolean(localStorage.getItem('micodentSessionEvent'))),true);
       assert.equal(await f.page.locator('input[name="nombres"]').count(),0);
       f.meStatus=200; await f.page.getByRole('button',{name:'Reintentar',exact:true}).click();
       await f.page.locator('input[name="nombres"]').waitFor();
@@ -92,26 +96,26 @@ async function main() {
       const f=await fixture(); f.user={}; await f.page.goto(base+'/pacientes/nuevo');
       await visible(f.page,'No se pudo verificar la sesion');
       assert.equal(await f.page.locator('input[name="nombres"]').count(),0);
-      assert.equal(await f.page.evaluate(()=>Boolean(localStorage.getItem('token'))),true);
+      assert.equal(await f.page.evaluate(()=>Boolean(localStorage.getItem('micodentSessionEvent'))),true);
       f.user=user; await f.page.getByRole('button',{name:'Reintentar',exact:true}).click();
       await f.page.locator('input[name="nombres"]').waitFor(); await clean(f);
     });
     await run('logout from another tab locks the previous tab',async()=>{
       const f=await fixture(); await draft(f);
       const other=await f.context.newPage(); await other.goto(base+'/');
-      await other.evaluate(()=>localStorage.removeItem('token'));
+      await other.evaluate(()=>localStorage.removeItem('micodentSessionEvent'));
       await visible(f.page,'La sesion cambio en otra pestana'); await preserved(f);
       assert.equal(await probe(f.page),'SESSION_CHANGED'); await clean(f);
     });
     await run('cross-tab login locks drafts and blocks requests without adopting the new account',async()=>{
       const f=await fixture(); await draft(f);
       const other=await f.context.newPage(); await other.goto(base+'/');
-      await other.evaluate(()=>localStorage.setItem('token','synthetic-b'));
+      await other.evaluate(()=>localStorage.setItem('micodentSessionEvent','c'.repeat(64)));
       await visible(f.page,'La sesion cambio en otra pestana');
       await preserved(f);
       assert.equal(await probe(f.page),'SESSION_CHANGED');
       assert.equal(f.requests.some(r=>r.path==='/api/session-probe'),false);
-      assert.equal(await f.page.evaluate(()=>localStorage.getItem('token')==='synthetic-b'),true);
+      assert.equal(await f.page.evaluate(()=>localStorage.getItem('micodentSessionEvent')==='c'.repeat(64)),true);
       assert.equal(await f.page.getByRole('button',{name:'Continuar al acceso'}).evaluate(el=>el===document.activeElement),true);
       for (const [name,width,height] of [['desktop',1280,800],['mobile',390,844]]) {
         await f.page.setViewportSize({width,height});
@@ -149,12 +153,12 @@ async function main() {
       f.faults.set('/api/session-probe',async r=>{ received(); await gate; return r.fulfill({status,json:{ok:status===200}}); });
       const result=probe(f.page); await started;
       const other=await f.context.newPage(); await other.goto(base+'/');
-      await other.evaluate(()=>localStorage.setItem('token','synthetic-b'));
+      await other.evaluate(()=>localStorage.setItem('micodentSessionEvent','c'.repeat(64)));
       release(); assert.equal(await result,'SESSION_CHANGED');
       await visible(f.page,'La sesion cambio en otra pestana'); await preserved(f);
-      assert.equal(await f.page.evaluate(()=>localStorage.getItem('token')==='synthetic-b'),true);
+      assert.equal(await f.page.evaluate(()=>localStorage.getItem('micodentSessionEvent')==='c'.repeat(64)),true);
       assert.equal(f.requests.filter(r=>r.path==='/api/session-probe').length,1);
-      assert.equal(f.requests.find(r=>r.path==='/api/session-probe').token,'Bearer synthetic-a');
+      assert.equal(f.requests.find(r=>r.path==='/api/session-probe').identity,identity.id);
       await clean(f);
     });
     await run('login failure stays anonymous and successful login revalidates the server profile',async()=>{

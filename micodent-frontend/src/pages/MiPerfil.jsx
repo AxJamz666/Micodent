@@ -124,7 +124,7 @@ const MiPerfil = () => {
     const policyError = passwordPolicyError(securityForm.newPass);
     if (policyError) { toast.error(policyError); return; }
     try {
-      const token = browserSession.assertCurrent();
+      const epoch = browserSession.assertCurrent();
       setSavingPass(true);
       await usuariosService.cambiarPassword({
         passwordActual: securityForm.currentPass,
@@ -133,7 +133,7 @@ const MiPerfil = () => {
       setSecurityForm({ currentPass:'', newPass:'', confirmPass:'' });
       setShowCurrent(false); setShowNew(false); setShowConfirm(false);
       toast.success('Contraseña actualizada. Inicia sesión nuevamente.');
-      browserSession.end(token);
+      browserSession.end(epoch);
       navigate('/login', { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.mensaje || 'Error al cambiar contraseña.');

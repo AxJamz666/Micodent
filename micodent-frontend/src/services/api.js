@@ -1,29 +1,35 @@
 import axios from 'axios';
-import { shouldClearSession } from './session';
 import { browserSession } from './browserSession';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api',
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
-  const token = browserSession.requestToken(config.url === '/auth/login');
-  config.sessionToken = token;
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const context = browserSession.requestContext({ login: config.url === '/auth/login', bootstrap: config.sessionBootstrap === true });
+  config.sessionEpoch = context.epoch;
+  config.headers['X-Micodent-Client'] = 'web';
+  if (context.id) config.headers['X-Micodent-Session'] = context.id;
+  if (context.csrf) config.headers['X-CSRF-Token'] = context.csrf;
+  if (config.sessionBootstrap) config.headers['X-Micodent-Bootstrap'] = '1';
   return config;
 });
 
 api.interceptors.response.use(
   (response) => {
-    browserSession.assertCurrent(response.config.sessionToken);
+    browserSession.assertCurrent(response.config.sessionEpoch);
     return response;
   },
   (error) => {
+    if (axios.isCancel(error)) return Promise.reject(error);
     if (error.config) {
-      browserSession.assertCurrent(error.config.sessionToken);
-      if (shouldClearSession(error, error.config.sessionToken)) {
-        browserSession.expire(error.config.sessionToken);
+      browserSession.assertCurrent(error.config.sessionEpoch);
+      if (['AUTH_SESSION_CHANGED', 'AUTH_CSRF_INVALID'].includes(error.response?.data?.codigo)) {
+        browserSession.changed(error.config.sessionEpoch);
+      } else if (error.response?.status === 401 && error.config.url !== '/auth/login') {
+        browserSession.expire(error.config.sessionEpoch);
       }
     }
     return Promise.reject(error);
@@ -36,6 +42,7 @@ api.interceptors.response.use(
 export const authService = {
   login: (id, password) => api.post('/auth/login', { id, password }),
   getMe: ()             => api.get('/auth/me', { timeout: 10000 }),
+  bootstrap: signal     => api.get('/auth/me', { timeout: 10000, signal, sessionBootstrap: true }),
   logout: ()            => api.post('/auth/logout'),
   logoutAll: ()         => api.post('/auth/logout-all'),
 };

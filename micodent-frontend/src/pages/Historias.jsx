@@ -440,7 +440,7 @@ const doctorLogueado = localStorage.getItem('userFullName') || 'Usuario Desconoc
       navigate('/historias');
 
     } catch (err) {
-      console.error(err);
+      console.error('HISTORIA_SAVE_FAILED');
       toast.error(err.response?.data?.mensaje || 'Error al guardar la historia clínica.');
     } finally {
       setSavingHC(false);
