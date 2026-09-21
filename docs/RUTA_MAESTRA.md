@@ -39,7 +39,8 @@ instalaciones. No se considera terminada toda la etapa M02.
 
 S1-B1 implementado en DEV: perfil verificado e identidad ligada a cada pestana,
 con pruebas unitarias y navegador simulado. Ver S1B1_SESION_NAVEGADOR.md.
-Aceptacion funcional pendiente. S1-B2 (cookies/CSRF) sigue pendiente; no declarar
+Aceptacion funcional recibida del propietario el 2026-09-21. S1-B2 (cookies/CSRF)
+autorizado para continuar en DEV; no declarar
 resueltos transporte JWT, proteccion integral del trabajo ni etapa E03 completa.
 
 - Probar primero sobre copias aisladas. No introducir cuentas sinteticas en las instalaciones de los usuarios.

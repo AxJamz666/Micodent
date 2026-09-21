@@ -136,8 +136,9 @@ Recompilar/probar y recargar deliberadamente. No revertir configuracion JWT,
 restaurar BD/uploads ni descartar datos introducidos despues del cambio.
 
 Aprobacion tecnica requiere unitarias, navegador, build, integridad y CI correctos.
-Aceptacion funcional S1-B1 del propietario sigue pendiente: acceso normal,
-navegacion habitual y cierre de sesion en DEV. No equivale a aceptacion clinica.
+El 2026-09-21 el propietario confirma que valido S1-B1 y que todo funciona
+correctamente, y autoriza continuar con S1-B2. Aceptacion funcional DEV reportada
+por el usuario; no equivale a aceptacion clinica integral ni despliegue.
 No fusionar ni desplegar automaticamente. PR apilado sobre M02-B mientras sus
 bases no se integran; retarget a codex/mejoras-integracion y repetir CI antes
 de fusionar. La etapa E03 completa permanece abierta.

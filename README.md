@@ -12,7 +12,7 @@ codigo y documentacion; no contiene una instalacion clinica completa ni sus dato
   credenciales MySQL sin cambios; M02 global permanece abierto.
 - V3: simulacro revisado; integracion final de despliegue pendiente.
 - S1-B1: verificacion de perfil y aislamiento entre pestanas implementados en
-  DEV; aceptacion funcional pendiente. Cookies/CSRF no incluidos todavia.
+  DEV y aceptados por el propietario. S1-B2 autorizado; cookies/CSRF en desarrollo.
 - No se considera listo para produccion ni autorizado para actualizar laptops.
 
 ## Mapa del proyecto
