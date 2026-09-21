@@ -7,8 +7,9 @@ codigo y documentacion; no contiene una instalacion clinica completa ni sus dato
 
 - S1-A: implementado en DEV, probado y aceptado por el propietario.
 - M02-A: contencion de secretos implementada y verificada en DEV.
-- M02-B: rotacion de secretos pendiente de autorizacion; prioritaria por
-  exposicion historica de una clave en una exportacion auxiliar.
+- M02-B: JWT rotado solo en DEV el 2026-09-21; comprobaciones tecnicas correctas,
+  acceso habitual de Miguel confirmado por el propietario. Otros entornos y
+  credenciales MySQL sin cambios; M02 global permanece abierto.
 - V3: simulacro revisado; integracion final de despliegue pendiente.
 - No se considera listo para produccion ni autorizado para actualizar laptops.
 
@@ -22,6 +23,7 @@ codigo y documentacion; no contiene una instalacion clinica completa ni sus dato
 | [Secretos](docs/SECRETOS.md) | Configuracion, exportacion y rotacion pendiente |
 | [S1-A](docs/S1A_CIERRE.md) | Sesiones, contrasenas y migracion DEV |
 | [M02-A](docs/M02A_CIERRE.md) | Contencion y verificacion de secretos |
+| [M02-B DEV](docs/M02B_RESULTADO_DEV.md) | Rotacion JWT, respaldo, pruebas y limites |
 | [V3](docs/V3_INTEGRACION.md) | Despliegue local futuro y diferencias pendientes |
 | [Issues](https://github.com/AxJamz666/Micodent/issues) | Seguimiento de cada etapa y paquete |
 | [Milestones](https://github.com/AxJamz666/Micodent/milestones?state=all) | Mapa de las etapas |
