@@ -1,25 +1,30 @@
 import axios from 'axios';
-import { clearSession, shouldClearSession } from './session';
+import { shouldClearSession } from './session';
+import { browserSession } from './browserSession';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Agrega el token JWT a cada petición automáticamente
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = browserSession.requestToken(config.url === '/auth/login');
+  config.sessionToken = token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Si el token expira, manda al login
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    browserSession.assertCurrent(response.config.sessionToken);
+    return response;
+  },
   (error) => {
-    if (shouldClearSession(error, localStorage.getItem('token'))) {
-      clearSession();
-      window.location.href = '/login';
+    if (error.config) {
+      browserSession.assertCurrent(error.config.sessionToken);
+      if (shouldClearSession(error, error.config.sessionToken)) {
+        browserSession.expire(error.config.sessionToken);
+      }
     }
     return Promise.reject(error);
   }
@@ -30,7 +35,7 @@ api.interceptors.response.use(
 // ============================================================
 export const authService = {
   login: (id, password) => api.post('/auth/login', { id, password }),
-  getMe: ()             => api.get('/auth/me'),
+  getMe: ()             => api.get('/auth/me', { timeout: 10000 }),
   logout: ()            => api.post('/auth/logout'),
   logoutAll: ()         => api.post('/auth/logout-all'),
 };
