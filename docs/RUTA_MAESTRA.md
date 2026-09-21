@@ -1,6 +1,6 @@
 # MICODENT - Ruta maestra de mejora
 
-Actualizada: 2026-09-20. Entorno autorizado: MICODENT_DEV y micodent_dev.
+Actualizada: 2026-09-21. Entorno autorizado: MICODENT_DEV y micodent_dev.
 Esta ruta consolida el orden de trabajo acordado; no autoriza por si sola los
 paquetes posteriores. Cada paquete necesita alcance, respaldo, pruebas,
 reversion y aprobacion propios. No se modifican las laptops ni el piloto.
@@ -30,11 +30,11 @@ reversion y aprobacion propios. No se modifican las laptops ni el piloto.
 
 ## Reglas de avance
 
-Estado al 2026-09-20: S1-A aceptado por el propietario. M02-A implementado en
-DEV (ver M02A_CIERRE.md). M02-B, rotacion de secretos por instalacion, pendiente
-de confirmacion especifica para el cambio JWT solo DEV. Se inicio su inventario
-y ensayo unitario (M02B_ROTACION_DEV.md); aun no se cambio ninguna clave.
-No se considera terminada toda la etapa M02.
+Estado al 2026-09-21: S1-A aceptado por el propietario. M02-A implementado en
+DEV (ver M02A_CIERRE.md). M02-B: JWT rotado solo en DEV con autorizacion
+expresa; comprobaciones tecnicas correctas y login del propietario pendiente.
+Ver M02B_RESULTADO_DEV.md. No se cambiaron credenciales MySQL ni otras
+instalaciones. No se considera terminada toda la etapa M02.
 
 - Probar primero sobre copias aisladas. No introducir cuentas sinteticas en las instalaciones de los usuarios.
 - Una etapa no se considera aprobada solo porque compile o responda /api/ping.

@@ -2,16 +2,18 @@
 
 ## Estado y alcance
 
-Preparacion iniciada el 2026-09-20 tras la solicitud de continuar. La rotacion
-operativa requiere confirmacion especifica de su alcance y del cierre de
-sesiones de DEV. Este documento y las pruebas NO significan que ya se roto.
+Preparacion iniciada el 2026-09-20. El 2026-09-21 el propietario confirmo
+expresamente el cambio JWT solo DEV y se aplico la rotacion. Comprobaciones
+tecnicas correctas; aceptacion funcional de login pendiente del propietario.
+No se cambio la contrasena MySQL ni se intervinieron otras instalaciones.
+Evidencia y limites: M02B_RESULTADO_DEV.md. La etapa global M02 sigue abierta.
 
 Base: bbfa059 (M02-A). Rama: codex/m02b-rotacion-dev, dependiente del PR #20.
 No fusionar ni desplegar automaticamente. Seguimiento: issues #3 y #19.
 PR preparatorio en borrador contra codex/m02a-secretos para aislar su diff.
 Tras aceptar/fusionar #20, retarget a codex/mejoras-integracion y repetir CI.
 
-## Inventario verificado en lectura
+## Inventario previo verificado en lectura
 
 - Workspace: C:\Users\Jamz\Desktop\MICODENT_DEV.
 - Backend: micodent-backend; entrada src/index.js.
@@ -95,10 +97,11 @@ Ejecutar npm test en backend y frontend y los escaneos locales antes de subir.
 CI no usa claves locales. Pruebas unitarias no equivalen a prueba operativa,
 compatibilidad MariaDB ni validacion de las laptops.
 
-Resultado de preparacion: 28/28 unitarias backend (seis nuevas) y 5/5 frontend.
+Resultado de preparacion del 2026-09-20: 28/28 unitarias backend (seis nuevas) y 5/5 frontend.
 No se accedio a MySQL, no se inicio/reinicio ningun servicio y no se cambiaron
 claves ni configuracion activa. Escaneo local sin hallazgos segun sus reglas;
-el resultado remoto se registra en el PR. No se declara aplicada la rotacion.
+el resultado remoto se registra en el PR. Esto describe la preparacion, no la
+intervencion posterior del 2026-09-21 documentada en M02B_RESULTADO_DEV.md.
 
 ## Recuperacion y rechazo
 

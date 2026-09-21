@@ -107,7 +107,13 @@ privada. No se cambiaron permisos Windows ni se borraron respaldos existentes.
 Este respaldo es de archivos para M02-A, no sustituye el respaldo completo de
 BD + uploads + configuracion + codigo realizado en S1-A.
 
-## M02-B: rotacion pendiente y autorizada por separado
+## M02-B: rotacion por instalacion
+
+Actualizacion 2026-09-21: JWT rotado exclusivamente en DEV con autorizacion
+expresa; verificaciones tecnicas correctas, login del propietario pendiente.
+Ver M02B_RESULTADO_DEV.md. DB_PASSWORD y otros entornos no se modificaron.
+El resto de esta seccion define el procedimiento, no afirma que todas las
+instalaciones hayan sido rotadas o que el incidente global este cerrado.
 
 Quitar una copia del workspace NO revoca una clave que ya pudo ser compartida.
 Antes de produccion, identificar en privado las instalaciones que comparten
