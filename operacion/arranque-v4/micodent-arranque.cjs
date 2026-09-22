@@ -10,7 +10,7 @@ const cp = require('node:child_process');
 const { createRequire } = require('node:module');
 const { performance } = require('node:perf_hooks');
 
-const VERSION = '4.0.0';
+const VERSION = '4.0.1';
 const MESSAGES = {
   PLATFORM: 'Este paquete requiere Windows y Node.js 20 o posterior.',
   INSTALLATION: 'Faltan archivos o hay dos backends posibles. Revise la ubicacion del lanzador.',
@@ -22,6 +22,7 @@ const MESSAGES = {
   LOG: 'No se pudo escribir el registro local de arranque. Revise espacio y acceso del usuario.',
   LOCK: 'No se pudo comprobar si otro inicio esta en curso. No se iniciara un proceso duplicado.',
   OWNER: 'No se pudo verificar el propietario del puerto. Solicite revision tecnica.',
+  OWNER_TIMEOUT: 'Windows tardo demasiado al identificar el proceso. Espere a que termine de iniciar y vuelva a abrir MICODENT.',
   PORT_BUSY: 'El puerto pertenece a otro proceso o al lanzador anterior. No se detuvo ningun proceso. El administrador debe revisarlo.',
   MYSQL_TIMEOUT: 'MySQL no estuvo disponible a tiempo. Revise su inicio en XAMPP; no reinstale ni restaure la base.',
   BACKEND_TIMEOUT: 'MICODENT no confirmo conexion con MySQL a tiempo. Puede volver a abrir este acceso; no se duplicara el backend verificado.',
@@ -224,10 +225,14 @@ function powershell(script, env, timeout = 5000) {
     const executable = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe');
     cp.execFile(executable, ['-NoProfile', '-NonInteractive', '-Command', script], {
       env: { ...process.env, ...env }, windowsHide: true, timeout, maxBuffer: 16384,
-    }, (error, stdout) => error ? reject(Object.assign(new Error('OWNER'), { code: 'OWNER' })) : resolve(stdout.trim()));
+    }, (error, stdout) => {
+      if (!error) return resolve(stdout.trim());
+      const code = error.killed ? 'OWNER_TIMEOUT' : 'OWNER';
+      reject(Object.assign(new Error(code), { code }));
+    });
   });
 }
-async function owner(config, timeout = 5000) {
+async function owner(config, timeout = 20000) {
   const script = `$ErrorActionPreference='Stop';
     $all=@(Get-NetTCPConnection -State Listen -ErrorAction Stop);
     $ids=@($all | Where-Object LocalPort -eq ([int]$env:MICODENT_CHECK_PORT) | Select-Object -ExpandProperty OwningProcess -Unique);
@@ -279,7 +284,7 @@ async function boot(config, dependencies = {}) {
   await op.waitUntil(async remaining => {
     if (child?.exited) fail('BACKEND_EXIT');
     const began = performance.now();
-    const state = await op.owner(config, Math.min(5000, remaining));
+    const state = await op.owner(config, Math.min(20000, remaining));
     if (state === 'foreign') fail('PORT_BUSY');
     const left = remaining - (performance.now() - began);
     return state === 'ours' && left > 0 && await op.healthy(config, Math.min(2000, left));

@@ -104,7 +104,7 @@ test('lock: OS releases it when the owning process exits', async t => {
 test('logging: only allowlisted-shaped events, bounded retention, no exception text', t => {
   const dir = fixture(t); const log = launcher.logger(dir); log('BEGIN');
   assert.throws(() => log('password=do-not-print'), rejects('LOG'));
-  assert.match(fs.readFileSync(path.join(dir, 'arranque.log'), 'utf8'), /V4.0.0 BEGIN/);
+  assert.ok(fs.readFileSync(path.join(dir, 'arranque.log'), 'utf8').includes(`V${launcher.VERSION} BEGIN`));
   fs.writeFileSync(path.join(dir, 'arranque.log'), 'x'.repeat(270000));
   launcher.logger(dir)('READY');
   assert.ok(fs.existsSync(path.join(dir, 'arranque.log.1')));

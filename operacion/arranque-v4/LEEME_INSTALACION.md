@@ -1,4 +1,4 @@
-# MICODENT - Arranque V4.0.0
+# MICODENT - Arranque V4.0.1
 
 Paquete exclusivo del lanzador para instalaciones V3 existentes. No contiene
 backend, frontend, SQL, configuracion, contrasenas ni datos clinicos.
@@ -45,7 +45,7 @@ No instalar el workspace MICODENT_DEV en las laptops como parte de este cambio.
    cerrar la ventana de inicio una vez terminado; backend queda sin consola.
 8. Confirmar acceso, datos existentes, navegacion y pruebas de la tabla. Crear
    o corregir el acceso directo para apuntar a este BAT, no al antiguo ni a Vite.
-9. Registrar version V4.0.0, hash del ZIP, resultados y responsable. Solo despues
+9. Registrar version V4.0.1, hash del ZIP, resultados y responsable. Solo despues
    repetir el procedimiento independiente en la otra laptop.
 
 ## Pruebas obligatorias por laptop
@@ -80,8 +80,9 @@ eso NO sustituye estas pruebas en las laptops ni la restauracion de su respaldo.
   No se interpreta como perdida de datos; requiere diagnostico del administrador.
 - BUILD/BUILD_PORT/HTTP: build incompleto, otro puerto compilado o respuesta que
   no coincide. Volver al lanzador anterior y revisar; no copiar el build de DEV.
-- OWNER: Windows no permitio verificar el proceso o excedio el tiempo de la
-  consulta. No desactivar seguridad ni elevar permanentemente para ocultarlo.
+- OWNER/OWNER_TIMEOUT: Windows no permitio verificar el proceso o excedio los
+  20 segundos de la consulta. No desactivar seguridad ni elevar permanentemente
+  para ocultarlo. Esperar a que termine de iniciar Windows y volver a intentar.
 - ENV_CONFLICT/CONFIG: valores de Windows/.env incompatibles. No publicar .env.
 
 El registro indicado en pantalla queda en:
@@ -107,6 +108,8 @@ MySQL automatico confirmado, todas las pruebas aplicables correctas y aceptacion
 del usuario. Si falla un requisito: NO APROBADO; conservar version previa.
 
 El lanzador reduce fallos de inicio, no garantiza disponibilidad continua.
+Cada consulta de propiedad tiene hasta 20 segundos (incluida dentro del limite
+de backend cuando se espera su salud); no se desactiva por ser una PC lenta.
 No reinicia MySQL ni Node tras una caida posterior, no es un servicio Windows y
 no evita cortes electricos, danos de disco, fallos clinicos ni perdida de datos.
 Tras una caida de Node se puede volver a abrir el BAT; si el proceso sigue vivo

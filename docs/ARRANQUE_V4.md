@@ -69,6 +69,17 @@ Estado: implementado para ensayo. Resultado final, hashes de entrega y CI se
 registran en el PR. No aprobado/desplegado en ninguna laptop. No se proclama
 que health verifique esquema ni que el paquete elimine fallos posteriores.
 
+### Correccion V4.0.1
+
+El primer CI Windows detecto timeout de cinco segundos al iniciar en frio el
+proveedor Windows de conexiones/procesos. Se amplia esa consulta a 20 segundos
+y se distingue OWNER_TIMEOUT, sin omitir controles ni exceder el plazo de la
+fase backend. La version 4.0.0 queda como provisional NO entregable. La entrega
+final debe usar exclusivamente 4.0.1 con CI repetido, no el ZIP provisional.
+La limpieza de dos directorios temporales sinteticos de ensayos iniciales fue
+bloqueada por la politica del entorno; no se eludio. No quedaron procesos
+sinteticos activos y esos directorios no contienen datos clinicos.
+
 ## Instalacion, regresion y rollback
 
 El instructivo distribuible es
