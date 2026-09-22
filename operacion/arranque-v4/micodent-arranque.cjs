@@ -224,7 +224,8 @@ function powershell(script, env, timeout = 5000) {
   return new Promise((resolve, reject) => {
     const executable = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe');
     cp.execFile(executable, ['-NoProfile', '-NonInteractive', '-Command', script], {
-      env: { ...process.env, ...env }, windowsHide: true, timeout, maxBuffer: 16384,
+      env: { ...process.env, ...env }, windowsHide: true,
+      timeout: Math.max(1, Math.floor(timeout)), maxBuffer: 16384,
     }, (error, stdout) => {
       if (!error) return resolve(stdout.trim());
       const code = error.killed ? 'OWNER_TIMEOUT' : 'OWNER';
