@@ -19,7 +19,7 @@ registro. Los estados operativos vivos se consultan en los issues y PR.
 | E10 BD/rendimiento | [#11](https://github.com/AxJamz666/Micodent/issues/11) | Planificada |
 | E11 Trabajo/mantenimiento | [#12](https://github.com/AxJamz666/Micodent/issues/12) | Planificada |
 | E12 UX/UI | [#13](https://github.com/AxJamz666/Micodent/issues/13) | Planificada |
-| E13 V3/despliegue local | [#14](https://github.com/AxJamz666/Micodent/issues/14) | Simulacro revisado; integracion pendiente |
+| E13 V3/despliegue local | [#14](https://github.com/AxJamz666/Micodent/issues/14) | M26-A arranque V4 preparado en rama separada; aceptacion por laptop pendiente |
 | E14 Recuperacion operativa | [#15](https://github.com/AxJamz666/Micodent/issues/15) | Planificada |
 | E15 Actualizaciones de laptops | [#16](https://github.com/AxJamz666/Micodent/issues/16) | Planificada |
 | E16 Aceptacion integral | [#17](https://github.com/AxJamz666/Micodent/issues/17) | Planificada |
@@ -31,3 +31,9 @@ instalacion. Privacidad del repositorio y limpieza del historial no la revocan.
 
 Reglas del flujo: [TRABAJO_EN_GITHUB.md](TRABAJO_EN_GITHUB.md).
 Dependencias tecnicas: [Ruta maestra](RUTA_MAESTRA.md).
+
+Adelanto autorizado 2026-09-21: [ARRANQUE_V4.md](ARRANQUE_V4.md). La entrega
+contiene exclusivamente el lanzador, no este backend historico ni S1-B2.
+Esta rama parte de M02-A: los estados previos son su foto historica, no revierten
+la rotacion JWT DEV aceptada en #21 ni S1-B1 aceptado en #23. S1-B2 (#24) sigue
+pendiente de navegador/activacion; otras instalaciones siguen sin intervenir.
