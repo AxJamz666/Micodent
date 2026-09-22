@@ -49,3 +49,12 @@ No se ejecutaron su BAT ni su backend y no se accedio a su BD.
 La arquitectura V3 queda incorporada al objetivo de entrega, pero no se afirma
 que ya este integrada en S1-A. El frontend de desarrollo puede seguir usando
 Vite; la entrega clinica debe usar exclusivamente el build servido por Express.
+
+## Adelanto autorizado M26-A (2026-09-21)
+
+Paquete exclusivo de arranque V4 para V3 existente, preparado en rama separada
+desde M02-A; ver [ARRANQUE_V4.md](ARRANQUE_V4.md). No incluye backend DEV ni
+sesiones nuevas, y no cierra M26/M27. Instalacion y aceptacion por laptop
+pendientes. S1-B2 permanece pendiente de navegador/activacion en su propia rama.
+Los estados anteriores corresponden a la base historica de esta rama; M02-B
+JWT DEV y S1-B1 fueron aceptados posteriormente (PR #21 y #23). No se revierten.
