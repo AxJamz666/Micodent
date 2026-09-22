@@ -62,8 +62,10 @@ error de sintaxis, separadores URL Windows y detalles de aislamiento/limpieza
 del propio harness; el resultado final corresponde a la revision corregida.
 Los seis archivos originales respaldados conservan sus hashes. Comparacion
 local con secretos conocidos e historial sin hallazgos segun el detector.
-El worktree contiene una copia privada ignorada de .env DEV exclusivamente
-como referencia del detector; no se inicia su backend y no se distribuye.
+Se uso una copia privada ignorada de .env DEV exclusivamente como referencia
+del detector; no se inicio su backend ni se distribuyo. Al cerrar se retira
+esa copia temporal al respaldo privado para no interferir con el escaneo de
+S1-B2. El .env activo de MICODENT_DEV permanece intacto.
 
 Estado: implementado para ensayo. Resultado final, hashes de entrega y CI se
 registran en el PR. No aprobado/desplegado en ninguna laptop. No se proclama
@@ -79,6 +81,14 @@ final debe usar exclusivamente 4.0.1 con CI repetido, no el ZIP provisional.
 La limpieza de dos directorios temporales sinteticos de ensayos iniciales fue
 bloqueada por la politica del entorno; no se eludio. No quedaron procesos
 sinteticos activos y esos directorios no contienen datos clinicos.
+
+Verificacion de 4.0.1 en f80b998: 24/24 pruebas locales, tres repeticiones
+adicionales correctas y CI remoto MICODENT CI + Arranque Windows correctos,
+tanto push como PR Windows. ZIP final de 11.970 bytes, cinco archivos legibles,
+sin hallazgos del detector comparando secretos conocidos. SHA-256:
+106397FA733CE27DD5AAE37730078CD67196E4E955C38A77D3F25DCEC4DE7E32.
+El manifiesto del ZIP referencia f80b998; este cierre posterior solo documenta
+la evidencia. Aceptacion por laptop todavia pendiente.
 
 ## Instalacion, regresion y rollback
 
