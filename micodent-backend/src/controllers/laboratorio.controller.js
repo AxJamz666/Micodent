@@ -57,84 +57,46 @@ const getTrabajos = async (req, res) => {
   }
 };
 
-// POST /api/laboratorio/consulta/:consultaId
-const crearTrabajo = async (req, res) => {
-  const conn = await db.getConnection();
-  try {
-    await conn.beginTransaction();
-    const { consultaId } = req.params;
-    const { nombre_laboratorio, monto_total, descripcion } = req.body;
-    if (!nombre_laboratorio || !monto_total || parseFloat(monto_total) <= 0) {
-      await conn.rollback();
-      return res.status(400).json({ ok: false, mensaje: 'Nombre del laboratorio y monto son obligatorios.' });
-    }
-    const [result] = await conn.query(
-      `INSERT INTO trabajos_laboratorio (consulta_id, nombre_laboratorio, monto_total, descripcion, registrado_por)
-       VALUES (?, ?, ?, ?, ?)`,
-      [consultaId, nombre_laboratorio, monto_total, descripcion || null, req.usuario.id]
-    );
+// Lock the same consultation as patient payments before adding external costs.
+const transactional = require('../services/operacionFinanciera');
+const f = require('../services/finanzas');
+const { dateRange } = require('./produccion.controller');
 
-    await registrarAuditoriaFinanciera(conn, {
-      usuario_id: req.usuario.id, modulo: 'laboratorio', accion: `Registró un trabajo con "${nombre_laboratorio}"`,
-      detalle: { trabajo_id: result.insertId, consulta_id: consultaId, nombre_laboratorio, monto_total: parseFloat(monto_total) },
-    });
+const crearTrabajo = transactional('trabajo_laboratorio', async (conn, req) => {
+  const { consultaId } = req.params;
+  const nombre = String(req.body.nombre_laboratorio || '').trim();
+  const monto = f.cents(req.body.monto_total);
+  if (!nombre || !monto) f.fail('Nombre del laboratorio y monto positivo son obligatorios.');
+  const [[consulta]] = await conn.query('SELECT id FROM consultas WHERE id=? FOR UPDATE', [consultaId]);
+  if (!consulta) f.fail('Tratamiento no encontrado.', 404);
+  const [result] = await conn.query(
+    'INSERT INTO trabajos_laboratorio(consulta_id,nombre_laboratorio,monto_total,descripcion,registrado_por) VALUES(?,?,?,?,?)',
+    [consultaId, nombre, f.amount(monto), req.body.descripcion || null, req.usuario.id]);
+  await registrarAuditoriaFinanciera(conn, {
+    usuario_id: req.usuario.id, modulo: 'laboratorio', accion: `Registro un trabajo con "${nombre}"`,
+    detalle: { trabajo_id: result.insertId, consulta_id: consultaId, nombre_laboratorio: nombre, monto_total: f.amount(monto) },
+  });
+  return { mensaje: 'Trabajo de laboratorio registrado.', trabajoId: result.insertId };
+});
 
-    await conn.commit();
-    res.status(201).json({ ok: true, mensaje: 'Trabajo de laboratorio registrado.', trabajoId: result.insertId });
-  } catch (err) {
-    await conn.rollback();
-    console.error(err);
-    res.status(500).json({ ok: false, mensaje: 'Error al registrar el trabajo de laboratorio.' });
-  } finally {
-    conn.release();
-  }
-};
-
-// POST /api/laboratorio/:trabajoId/pagos
-const registrarPagoLaboratorio = async (req, res) => {
-  const conn = await db.getConnection();
-  try {
-    await conn.beginTransaction();
-    const { trabajoId } = req.params;
-    const { monto, fecha_pago } = req.body;
-    if (!monto || parseFloat(monto) <= 0) {
-      await conn.rollback();
-      return res.status(400).json({ ok: false, mensaje: 'El monto debe ser mayor a cero.' });
-    }
-    const [[trabajo]] = await conn.query('SELECT monto_total, nombre_laboratorio FROM trabajos_laboratorio WHERE id = ?', [trabajoId]);
-    if (!trabajo) {
-      await conn.rollback();
-      return res.status(404).json({ ok: false, mensaje: 'Trabajo de laboratorio no encontrado.' });
-    }
-    const [[{ pagado }]] = await conn.query(
-      'SELECT COALESCE(SUM(monto), 0) AS pagado FROM pagos_laboratorio WHERE trabajo_laboratorio_id = ?', [trabajoId]
-    );
-    const saldo = parseFloat(trabajo.monto_total) - parseFloat(pagado);
-    if (parseFloat(monto) > saldo) {
-      await conn.rollback();
-      return res.status(400).json({ ok: false, mensaje: `El pago excede el saldo pendiente (S/ ${saldo.toFixed(2)}).` });
-    }
-    const fechaFinal = fecha_pago || fechaLima();
-    await conn.query(
-      `INSERT INTO pagos_laboratorio (trabajo_laboratorio_id, monto, fecha_pago, registrado_por)
-       VALUES (?, ?, ?, ?)`,
-      [trabajoId, monto, fechaFinal, req.usuario.id]
-    );
-
-    await registrarAuditoriaFinanciera(conn, {
-      usuario_id: req.usuario.id, modulo: 'laboratorio', accion: `Registró un pago a "${trabajo.nombre_laboratorio}"`,
-      detalle: { trabajo_laboratorio_id: trabajoId, monto: parseFloat(monto), fecha_pago: fechaFinal },
-    });
-
-    await conn.commit();
-    res.status(201).json({ ok: true, mensaje: 'Pago a laboratorio registrado correctamente.' });
-  } catch (err) {
-    await conn.rollback();
-    console.error(err);
-    res.status(500).json({ ok: false, mensaje: 'Error al registrar el pago al laboratorio.' });
-  } finally {
-    conn.release();
-  }
-};
+const registrarPagoLaboratorio = transactional('pago_laboratorio', async (conn, req) => {
+  const { trabajoId } = req.params;
+  const monto = f.cents(req.body.monto);
+  if (!monto) f.fail('El monto debe ser mayor a cero.');
+  const fecha = req.body.fecha_pago || fechaLima();
+  dateRange({ desde: fecha, hasta: fecha });
+  const [[trabajo]] = await conn.query('SELECT monto_total,nombre_laboratorio FROM trabajos_laboratorio WHERE id=? FOR UPDATE', [trabajoId]);
+  if (!trabajo) f.fail('Trabajo de laboratorio no encontrado.', 404);
+  const [[{ pagado }]] = await conn.query('SELECT COALESCE(SUM(monto),0) AS pagado FROM pagos_laboratorio WHERE trabajo_laboratorio_id=?', [trabajoId]);
+  const saldo = f.cents(trabajo.monto_total) - f.cents(pagado);
+  if (monto > saldo) f.fail('El pago excede el saldo pendiente del laboratorio.', 409);
+  await conn.query('INSERT INTO pagos_laboratorio(trabajo_laboratorio_id,monto,fecha_pago,registrado_por) VALUES(?,?,?,?)',
+    [trabajoId, f.amount(monto), fecha, req.usuario.id]);
+  await registrarAuditoriaFinanciera(conn, {
+    usuario_id: req.usuario.id, modulo: 'laboratorio', accion: `Registro un pago a "${trabajo.nombre_laboratorio}"`,
+    detalle: { trabajo_laboratorio_id: trabajoId, monto: f.amount(monto), fecha_pago: fecha },
+  });
+  return { mensaje: 'Pago a laboratorio registrado correctamente.' };
+});
 
 module.exports = { getTrabajosPorConsulta, getTrabajos, crearTrabajo, registrarPagoLaboratorio };

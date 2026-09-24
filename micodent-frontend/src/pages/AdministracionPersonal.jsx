@@ -49,7 +49,7 @@ const AdministracionPersonal = () => {
     try {
       setLoading(true);
       const { data } = await usuariosService.getAll();
-      setUsers(data.data || []);
+      setUsers(Array.isArray(data.data) ? data.data : []);
     } catch {
       toast.error('Error al cargar el personal.');
     } finally {
@@ -84,7 +84,7 @@ const AdministracionPersonal = () => {
   // ✅ FIX PUNTO 1: Eliminar prefijo acumulado al cargar para edición
   const stripPrefix = (nombreCompleto) => {
     const prefixes = ['Dr. ','Dra. ','Adm. ','Asist. '];
-    let nombre = nombreCompleto || '';
+    let nombre = typeof nombreCompleto === 'string' ? nombreCompleto : '';
     prefixes.forEach(p => {
       if (nombre.startsWith(p)) nombre = nombre.slice(p.length);
     });
@@ -135,7 +135,7 @@ const AdministracionPersonal = () => {
       direccion:   user.direccion    || '',
       gender:      user.gender       || 'o',
       nivel:       user.nivel        || 1,
-      comision_porcentaje: user.comision_porcentaje || '',
+      comision_porcentaje: user.comision_porcentaje ?? '',
     });
     setShowPass(false);
   };
@@ -235,7 +235,7 @@ const AdministracionPersonal = () => {
 
       {/* MODAL RESET CONTRASEÑA */}
       {resetModal.isOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-pop-in">
             <div className="bg-amber-500 p-5 text-white flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2"><KeyRound size={20}/> Resetear Contraseña</h3>

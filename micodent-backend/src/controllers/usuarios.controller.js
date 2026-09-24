@@ -1,5 +1,6 @@
 const db     = require('../config/db');
 const bcrypt = require('bcryptjs');
+const validRate = value => value == null || value === '' || (/^\d{1,3}(\.\d{1,2})?$/.test(String(value)) && Number(value) <= 100);
 
 // GET /api/usuarios
 const getUsuarios = async (req, res) => {
@@ -19,7 +20,8 @@ const getUsuarios = async (req, res) => {
 const crearUsuario = async (req, res) => {
   try {
     const { id, password, nombre, nombre_completo, prefix, gender,
-            rol, dni, telefono, email, especialidad, cop, direccion, nivel } = req.body;
+            rol, dni, telefono, email, especialidad, cop, direccion, nivel, comision_porcentaje } = req.body;
+    if (!validRate(comision_porcentaje)) return res.status(400).json({ ok: false, mensaje: 'Porcentaje de comisión inválido.' });
 
     if (!id || !password || !nombre || !rol) {
       return res.status(400).json({ ok: false, mensaje: 'Faltan campos requeridos.' });
@@ -41,13 +43,13 @@ const crearUsuario = async (req, res) => {
 
     await db.query(
       `INSERT INTO usuarios (id, password_hash, nombre, nombre_completo, prefix, gender,
-        rol, is_admin, nivel, dni, telefono, email, especialidad, cop, direccion)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        rol, is_admin, nivel, dni, telefono, email, especialidad, cop, direccion, comision_porcentaje)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [id.toLowerCase().trim(), passwordHasheada, nombre, nombre_completo,
        prefix, gender, rol,
        nivelFinal >= 2,  // is_admin = true si nivel >= 2
        nivelFinal,
-       dni, telefono, email, especialidad, cop, direccion]
+       dni, telefono, email, especialidad, cop, direccion, comision_porcentaje === '' ? null : comision_porcentaje ?? null]
     );
 
     res.status(201).json({ ok: true, mensaje: 'Personal registrado exitosamente.' });
@@ -80,10 +82,11 @@ const editarUsuario = async (req, res) => {
       const { nombre, nombre_completo, prefix, gender, rol,
             dni, telefono, email, especialidad, cop, direccion, password,
             comision_porcentaje, nivel } = req.body;
+    if (!validRate(comision_porcentaje)) return res.status(400).json({ ok: false, mensaje: 'Porcentaje de comisión inválido.' });
 
     // Calcular el nivel final (solo el Superadmin nivel >= 3 puede cambiarlo, de lo contrario se mantiene igual)
     const nivelSolicit = parseInt(nivel) || 1;
-    const nivelFinal   = adminNivel >= 3 ? Math.min(nivelSolicit, 2) : targetRows[0].nivel;
+    const nivelFinal   = adminNivel >= 3 && id !== req.usuario.id ? Math.min(Math.max(nivelSolicit, 1), 2) : targetRows[0].nivel;
 
     let hashParaActualizar = '';
     if (password && password.trim() !== '') {
@@ -99,7 +102,7 @@ const editarUsuario = async (req, res) => {
         password_hash = COALESCE(NULLIF(?, ''), password_hash)
        WHERE id = ?`,
       [nombre, nombre_completo, prefix, gender, rol,
-       dni, telefono, email, especialidad, cop, direccion, comision_porcentaje || null,
+       dni, telefono, email, especialidad, cop, direccion, comision_porcentaje === '' ? null : comision_porcentaje ?? null,
        nivelFinal, nivelFinal >= 2,
        hashParaActualizar, id]
     );
@@ -140,7 +143,7 @@ const eliminarUsuario = async (req, res) => {
       });
     }
 
-    await db.query('DELETE FROM usuarios WHERE id = ?', [id]);
+    await db.query('UPDATE usuarios SET activo=0 WHERE id = ?', [id]);
     res.json({ ok: true, mensaje: 'Usuario eliminado correctamente.' });
   } catch (err) {
     res.status(500).json({ ok: false, mensaje: 'Error al eliminar usuario.' });
@@ -216,8 +219,8 @@ const actualizarFirmaSello = async (req, res) => {
     const userId = req.usuario.id;
 
     await db.query(
-      'UPDATE usuarios SET firma_digital = COALESCE(?, firma_digital), sello_digital = COALESCE(?, sello_digital) WHERE id = ?',
-      [firma_digital || null, sello_digital || null, userId]
+      'UPDATE usuarios SET firma_digital = IF(?, ?, firma_digital), sello_digital = IF(?, ?, sello_digital) WHERE id = ?',
+      [Object.hasOwn(req.body, 'firma_digital'), firma_digital || null, Object.hasOwn(req.body, 'sello_digital'), sello_digital || null, userId]
     );
 
     res.json({ ok: true, mensaje: 'Firma y sello actualizados correctamente.' });

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Toaster } from 'react-hot-toast';
 import './index.css';
 import App from './App.jsx';
+import AppErrorBoundary from './components/AppErrorBoundary';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -37,6 +38,6 @@ createRoot(document.getElementById('root')).render(
         },
       }}
     />
-    <App />
+    <AppErrorBoundary><App /></AppErrorBoundary>
   </StrictMode>
 );

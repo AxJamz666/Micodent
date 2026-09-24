@@ -4,6 +4,12 @@ const { registrarAuditoriaFinanciera } = require('../utils/auditoriaFinanciera')
 
 const CATEGORIAS_VALIDAS = ['luz', 'agua', 'internet', 'alquiler', 'materiales', 'sueldos', 'imprevistos'];
 const CATEGORIAS_CON_MES_CONSUMO = ['luz', 'agua', 'internet', 'alquiler'];
+function validarImporteFecha({ monto, fecha_pago }) {
+  const { cents, fail } = require('../services/finanzas');
+  if (!cents(monto)) fail('El monto debe ser mayor a cero.');
+  if (!fecha_pago) fail('La fecha de pago es obligatoria.');
+  require('./produccion.controller').dateRange({ desde: fecha_pago, hasta: fecha_pago });
+}
 
 // GET /api/gastos?desde=&hasta=
 const getGastos = async (req, res) => {
@@ -31,6 +37,7 @@ const crearGasto = async (req, res) => {
   try {
     await conn.beginTransaction();
     const { categoria, descripcion, monto, fecha_pago, mes_consumo } = req.body;
+    validarImporteFecha(req.body);
 
     if (!categoria || !CATEGORIAS_VALIDAS.includes(categoria)) {
       await conn.rollback();
@@ -62,8 +69,8 @@ const crearGasto = async (req, res) => {
     res.status(201).json({ ok: true, mensaje: 'Gasto registrado correctamente.', gastoId: result.insertId });
   } catch (err) {
     await conn.rollback();
-    console.error(err);
-    res.status(500).json({ ok: false, mensaje: 'Error al registrar el gasto.' });
+    if (!err.status) console.error('Error al registrar gasto:', err.code || 'unexpected');
+    res.status(err.status || 500).json({ ok: false, mensaje: err.status ? err.message : 'Error al registrar el gasto.' });
   } finally {
     conn.release();
   }
@@ -76,13 +83,14 @@ const editarGasto = async (req, res) => {
     await conn.beginTransaction();
     const { id } = req.params;
     const { categoria, descripcion, monto, fecha_pago, mes_consumo } = req.body;
+    validarImporteFecha(req.body);
 
-    if (categoria && !CATEGORIAS_VALIDAS.includes(categoria)) {
+    if (!CATEGORIAS_VALIDAS.includes(categoria)) {
       await conn.rollback();
       return res.status(400).json({ ok: false, mensaje: 'Categoría de gasto no válida.' });
     }
 
-    const [[gastoActual]] = await conn.query('SELECT * FROM gastos_clinica WHERE id = ?', [id]);
+    const [[gastoActual]] = await conn.query('SELECT * FROM gastos_clinica WHERE id = ? FOR UPDATE', [id]);
     if (!gastoActual) {
       await conn.rollback();
       return res.status(404).json({ ok: false, mensaje: 'Gasto no encontrado.' });
@@ -111,8 +119,8 @@ const editarGasto = async (req, res) => {
     res.json({ ok: true, mensaje: 'Gasto actualizado correctamente.' });
   } catch (err) {
     await conn.rollback();
-    console.error(err);
-    res.status(500).json({ ok: false, mensaje: 'Error al editar el gasto.' });
+    if (!err.status) console.error('Error al editar gasto:', err.code || 'unexpected');
+    res.status(err.status || 500).json({ ok: false, mensaje: err.status ? err.message : 'Error al editar el gasto.' });
   } finally {
     conn.release();
   }
@@ -125,7 +133,7 @@ const eliminarGasto = async (req, res) => {
     await conn.beginTransaction();
     const { id } = req.params;
 
-    const [[gasto]] = await conn.query('SELECT * FROM gastos_clinica WHERE id = ?', [id]);
+    const [[gasto]] = await conn.query('SELECT * FROM gastos_clinica WHERE id = ? FOR UPDATE', [id]);
     if (!gasto) {
       await conn.rollback();
       return res.status(404).json({ ok: false, mensaje: 'Gasto no encontrado.' });
@@ -160,7 +168,7 @@ const reactivarGasto = async (req, res) => {
     await conn.beginTransaction();
     const { id } = req.params;
 
-    const [[gasto]] = await conn.query('SELECT * FROM gastos_clinica WHERE id = ?', [id]);
+    const [[gasto]] = await conn.query('SELECT * FROM gastos_clinica WHERE id = ? FOR UPDATE', [id]);
     if (!gasto) {
       await conn.rollback();
       return res.status(404).json({ ok: false, mensaje: 'Gasto no encontrado.' });

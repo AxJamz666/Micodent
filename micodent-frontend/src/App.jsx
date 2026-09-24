@@ -10,6 +10,7 @@ import PacienteDetalle from './pages/PacienteDetalle';
 import Historias from './pages/Historias';
 import Agenda from './pages/Agenda';
 import FinanzasDashboard from './pages/FinanzasDashboard';
+import Produccion from './pages/Produccion';
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = localStorage.getItem('userNombre');
@@ -36,6 +37,7 @@ function App() {
           <Route path="pacientes/nuevo" element={<PacienteDetalle />} />
           <Route path="pacientes/:id" element={<PacienteDetalle />} />
           <Route path="agenda" element={<Agenda />} />
+          <Route path="produccion" element={<Produccion />} />
           <Route path="finanzas" element={
             <AdminRoute><FinanzasDashboard /></AdminRoute>
           } />

@@ -10,7 +10,7 @@ const getAuditoriaFinanciera = async (req, res) => {
        ORDER BY a.fecha DESC, a.hora DESC, a.id DESC
        LIMIT 200`
     );
-    res.json({ ok: true, data: rows });
+    res.json({ ok: true, data: rows.map(row => ({ ...row, detalle_json: require('../utils/jsonFields').parse(row.detalle_json, {}) })) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ ok: false, mensaje: 'Error al obtener el registro de actividad.' });

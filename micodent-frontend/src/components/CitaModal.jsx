@@ -125,7 +125,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
   const estadoCfg = esEdicion ? ESTADO_CITA_CONFIG[citaExistente.estado] : null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
+    <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
         <div className="bg-clinical-600 p-5 text-white flex justify-between items-center flex-shrink-0">
           <h3 className="font-bold text-lg">{esEdicion ? 'Detalle de la Cita' : 'Nueva Cita'}</h3>

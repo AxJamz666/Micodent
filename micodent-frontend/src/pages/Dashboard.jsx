@@ -8,6 +8,8 @@ import { dashboardService, usuariosService } from '../services/api';
 import { formatearHora12h, ESTADO_CITA_CONFIG } from '../utils/agendaUtils';
 import CitaModal from '../components/CitaModal';
 import toast from 'react-hot-toast';
+import { money } from '../utils/data';
+import { FINANCE_EVENT } from '../utils/financeEvents';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -25,9 +27,10 @@ const Dashboard = () => {
   const [loading,  setLoading]  = useState(true);
 
   useEffect(() => {
+    let active = true, sequence = 0;
     const cargar = async () => {
+      const current = ++sequence;
       try {
-        setLoading(true);
         const [statsRes, ultimasRes, deudoresRes, citasHoyRes, doctoresRes] = await Promise.all([
           dashboardService.getStats(),
           dashboardService.getUltimasHistorias(),
@@ -35,18 +38,25 @@ const Dashboard = () => {
           dashboardService.getCitasHoy(),
           usuariosService.getDoctores(),
         ]);
+        if (!active || current !== sequence) return;
         setStats(statsRes.data.data);
         setUltimas(ultimasRes.data.data  || []);
         setDeudores(deudoresRes.data.data || []);
         setCitasHoy(citasHoyRes.data.data || []);
         setDoctoresAgenda(doctoresRes.data.data || []);
-      } catch (err) {
-        toast.error('Error al cargar el dashboard.');
+      } catch {
+        if (active && current === sequence) toast.error('Error al actualizar el inicio.');
       } finally {
-        setLoading(false);
+        if (active && current === sequence) setLoading(false);
       }
     };
     cargar();
+    const refresh = event => { if (event?.type !== 'storage' || event.key === FINANCE_EVENT) cargar(); };
+    const visible = () => { if (document.visibilityState === 'visible') cargar(); };
+    window.addEventListener(FINANCE_EVENT,refresh); window.addEventListener('storage',refresh); window.addEventListener('focus',refresh);
+    document.addEventListener('visibilitychange',visible);
+    const timer = setInterval(visible,30000);
+    return () => { active = false; clearInterval(timer); window.removeEventListener(FINANCE_EVENT,refresh); window.removeEventListener('storage',refresh); window.removeEventListener('focus',refresh); document.removeEventListener('visibilitychange',visible); };
   }, []);
 
   const recargarCitasHoy = async () => {
@@ -211,25 +221,26 @@ const Dashboard = () => {
               <AlertTriangle size={18} className="text-red-500"/> Tratamientos por Cancelar
             </h3>
             <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-lg border border-red-100">
-              {deudores.length} deudor{deudores.length !== 1 ? 'es' : ''}
+              {deudores.length} paciente{deudores.length !== 1 ? 's' : ''}
             </span>
           </div>
-          <div className="p-5 max-h-[300px] overflow-y-auto">
+          <div className="p-5 max-h-[520px] overflow-y-auto">
             {deudores.length === 0
-              ? <p className="text-sm text-slate-400 text-center py-6">Sin deudas pendientes 🎉</p>
-              : <div className="space-y-3">
-                  {deudores.map((d, i) => (
-                    <div key={i} className="flex justify-between items-center p-3 hover:bg-slate-50 rounded-xl transition-colors border border-transparent hover:border-slate-100">
-                      <div>
-                        <p className="font-bold text-sm text-slate-800">{d.apellidos}, {d.nombres}</p>
-                        <p className="text-xs font-black text-red-500">Debe: S/ {parseFloat(d.deuda_total).toFixed(2)}</p>
-                      </div>
-                      <button
-                  onClick={() => navigate(`/pacientes/${d.id}?tab=evolucion`)}
-                  className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200 transition-colors whitespace-nowrap">
-                  Ir a Pagos
-                </button>
-                    </div>
+              ? <p className="text-sm text-slate-400 text-center py-6">Sin deudas pendientes.</p>
+              : <div className="divide-y divide-slate-200">
+                  {deudores.map(d => (
+                    <section key={d.id} data-patient-debt={d.id} className="py-4 first:pt-0">
+                      <header className="sticky top-0 bg-white z-10 py-2 flex items-start justify-between gap-3 flex-wrap mb-3">
+                        <div><p className="font-bold text-sm">{d.apellidos}, {d.nombres}</p><p className="text-sm text-red-700">Pendiente: {money(d.deuda_total)}</p></div>
+                        <button onClick={()=>navigate(`/pacientes/${d.id}?tab=evolucion`)} className="text-sm font-semibold text-teal-700 underline">Ir a pagos</button>
+                      </header>
+                      <ul className="divide-y divide-slate-100">
+                        {d.tratamientos?.map(t=><li key={t.id} data-pending-treatment={t.id} className="py-3 text-sm">
+                          <div className="flex justify-between gap-3"><span className="min-w-0 break-words font-medium">{t.descripcion}</span><strong className="text-red-700 whitespace-nowrap">{money(t.pendiente)}</strong></div>
+                          <p className="text-xs text-slate-500 mt-1">{String(t.fecha).slice(0,10)} · Costo: {money(t.costo_total)} · A cuenta: {money(t.pagado)}</p>
+                        </li>)}
+                      </ul>
+                    </section>
                   ))}
                 </div>
             }

@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+.document-signature { width: 192px; max-width: 100%; display: flex; flex-direction: column; align-items: center; break-inside: avoid; }
+.document-signature-image { display: block; max-width: 160px; max-height: 44px; width: auto; height: auto; object-fit: contain; margin: 0 auto 2px; }
+.document-stamp-image { display: block; max-width: 192px; max-height: 80px; width: auto; height: auto; object-fit: contain; margin: 0 auto; }
+.document-stamp-fallback { width: 100%; border-top: 1px solid #64748b; padding-top: 5px; text-align: center; overflow-wrap: anywhere; }
+.rx-reference { break-inside: avoid; }
+
+@media screen {
+  .dialog-overlay { overflow-y: auto; padding: 16px; overscroll-behavior: contain; }
+  .dialog-overlay > div { max-height: calc(100dvh - 32px); min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .dialog-overlay > div > :first-child { flex-shrink: 0; }
+  .dialog-overlay > div > form,
+  .dialog-overlay > div > div:not(:first-child) { min-height: 0; overflow-y: auto; }
+  .dialog-overlay form > button[type="submit"] { position: sticky; bottom: 0; z-index: 1; }
+  .dialog-overlay button { overflow-wrap: anywhere; }
+  .dialog-overlay [data-dialog-footer] { flex-shrink: 0; background: white; padding: 16px 24px; border-top: 1px solid #e2e8f0; }
+}
+@media print {
+  body { background: #fff !important; }
+  .dialog-overlay, .dialog-overlay > div, .orden-print-area, .receta-print-area { overflow: visible !important; max-height: none !important; height: auto !important; }
+  body:has([data-print-dialog]) > #root { display: none !important; }
+  [data-print-dialog] .dialog-overlay { position: static !important; padding: 0 !important; background: white !important; }
+  [data-print-dialog] .dialog-overlay > div { display: block !important; max-width: none !important; border-radius: 0 !important; box-shadow: none !important; }
+  .orden-print-area, .receta-print-area { position: static !important; width: 100% !important; }
+  .orden-print-area img, .receta-print-area img { break-inside: avoid; }
+}
+
 body {
   @apply bg-slate-50 text-slate-800;
 }

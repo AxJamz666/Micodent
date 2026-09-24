@@ -2,26 +2,7 @@ const { fechaLima, horaLima, horaLimaCorta } = require('../utils/fecha');
 const db = require('../config/db');
 
 
-// Calcula la comisión que corresponde a un monto pagado, según el tipo de tratamiento (punto C).
-// Rehabilitación: descuenta el costo total comprometido con el laboratorio antes de aplicar %.
-// Endodoncia: descuenta S/ 20 por radiografía antes de aplicar %.
-// Estándar: % directo sobre el monto pagado, sin descuentos.
-const calcularComision = async (conn, consulta, monto) => {
-  let baseDeducibleTotal = 0;
-  if (consulta.tipo_comision === 'rehabilitacion') {
-    const [[{ totalLab }]] = await conn.query(
-      'SELECT COALESCE(SUM(monto_total), 0) AS totalLab FROM trabajos_laboratorio WHERE consulta_id = ?',
-      [consulta.id]
-    );
-    baseDeducibleTotal = parseFloat(totalLab);
-  } else if (consulta.tipo_comision === 'endodoncia') {
-    baseDeducibleTotal = 20 * (consulta.cantidad_radiografias || 0);
-  }
-  const costoTotal = parseFloat(consulta.costo_total) || 0;
-  const fraccionDeducible = costoTotal > 0 ? Math.min(baseDeducibleTotal / costoTotal, 1) : 0;
-  const montoComisionable = parseFloat(monto) * (1 - fraccionDeducible);
-  return parseFloat((montoComisionable * (parseFloat(consulta.comision_porcentaje_aplicado || 0) / 100)).toFixed(2));
-};
+const { agregarConsulta, registrarPago } = require('./cobros.controller');
 
 // GET /api/historias — listar todas
 const getHistorias = async (req, res) => {
@@ -35,7 +16,7 @@ const getHistorias = async (req, res) => {
              u.firma_digital AS doctor_firma, u.sello_digital AS doctor_sello,
              COALESCE(SUM(c.costo_total), 0) AS total_tratamientos,
              COALESCE((
-               SELECT SUM(pg.monto) FROM pagos pg
+               SELECT SUM(pg.monto) FROM pagos_vigentes pg
                JOIN consultas cc ON pg.consulta_id = cc.id
                WHERE cc.historia_id = h.id
              ), 0) AS total_pagado
@@ -121,7 +102,7 @@ const getHistoriaByPaciente = async (req, res) => {
 
     const [consultas] = await db.query(
       `SELECT c.*, u.nombre_completo AS doctor_nombre,
-              COALESCE((SELECT SUM(p.monto) FROM pagos p WHERE p.consulta_id = c.id), 0) AS total_pagado
+              COALESCE((SELECT SUM(p.monto) FROM pagos_vigentes p WHERE p.consulta_id = c.id), 0) AS total_pagado
        FROM consultas c
        LEFT JOIN usuarios u ON c.doctor_id = u.id
        WHERE c.historia_id = ?
@@ -132,10 +113,18 @@ const getHistoriaByPaciente = async (req, res) => {
 // Pagos y correcciones (adendas) por consulta
     for (const consulta of consultas) {
       const [pagos] = await db.query(
-        'SELECT * FROM pagos WHERE consulta_id = ? ORDER BY creado_en ASC',
+        'SELECT * FROM pagos_vigentes WHERE consulta_id = ? ORDER BY creado_en ASC',
         [consulta.id]
       );
       consulta.pagos = pagos;
+      if (req.usuario.isAdmin) {
+        const total = await require('../services/finanzas').externalTotal(db, consulta) / 100;
+        const [[covered]] = await db.query(`SELECT COALESCE(SUM(f.costo_aplicado),0) AS total
+          FROM finanzas_pagos f JOIN pagos_vigentes p ON p.id=f.pago_id WHERE p.consulta_id=?`, [consulta.id]);
+        const [[state]] = await db.query('SELECT origen FROM finanzas_costos WHERE consulta_id=?',[consulta.id]);
+        const revisar=state?.origen==='legacy_pendiente';
+        consulta.finanzas = { costo_total: total, costo_cubierto: revisar ? null : Number(covered.total), costo_pendiente: revisar ? null : Math.max(0,total-Number(covered.total)), requiere_conciliacion: revisar };
+      }
 
       const [adendas] = await db.query(
         `SELECT a.*, u.nombre_completo AS usuario_nombre
@@ -203,8 +192,8 @@ const getHistoriaByPaciente = async (req, res) => {
         consultas,
         firma:         firma[0]        || {},
         radiografias,
-        recetas,
-        ordenes,
+        recetas: recetas.map(require('../utils/jsonFields').document),
+        ordenes: ordenes.map(require('../utils/jsonFields').document),
         auditoria,
       }
     });
@@ -397,135 +386,7 @@ const eliminarItemOdontograma = async (req, res) => {
 
 
 // POST /api/historias/:historiaId/consultas — agregar consulta/tratamiento (ahora acepta estado clínico y costo de laboratorio, y firma/bloquea sola):
-const agregarConsulta = async (req, res) => {
-  const conn = await db.getConnection();
-  try {
-    await conn.beginTransaction();
-
-    const { historiaId } = req.params;
-    const { descripcion, costo_total, abono_inicial, fecha_consulta, estado_clinico, tipo_comision, cantidad_radiografias, laboratorio } = req.body;
-
-    // Buscamos el % de comisión actual del doctor, para "congelarlo" en este registro
-    const [[doctorInfo]] = await conn.query(
-      'SELECT comision_porcentaje FROM usuarios WHERE id = ?',
-      [req.usuario.id]
-    );
-
-    const [result] = await conn.query(
-      `INSERT INTO consultas
-       (historia_id, descripcion, costo_total, abono_inicial, fecha_consulta, doctor_id,
-        estado_clinico, tipo_comision, cantidad_radiografias, comision_porcentaje_aplicado, firmado_por, firmado_en, bloqueada)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 1)`,
-      [historiaId, descripcion, costo_total || 0, abono_inicial || 0, fecha_consulta, req.usuario.id,
-       estado_clinico || null, tipo_comision || 'estandar', cantidad_radiografias || 0, doctorInfo?.comision_porcentaje || null, req.usuario.id]
-    );
-
-    const consultaId = result.insertId;
-    const fecha = fechaLima();
-    const hora  = horaLima();
-    const horaCorta = horaLimaCorta();
-
-    
-    // Rehabilitación: el trabajo de laboratorio se registra ANTES de calcular comisión sobre el
-    // primer abono, para que el descuento aplique desde el primer pago (punto C de la entrevista).
-    if (tipo_comision === 'rehabilitacion' && laboratorio?.nombre_laboratorio && parseFloat(laboratorio?.monto_total) > 0) {
-      await conn.query(
-        `INSERT INTO trabajos_laboratorio (consulta_id, nombre_laboratorio, monto_total, registrado_por)
-         VALUES (?, ?, ?, ?)`,
-        [consultaId, laboratorio.nombre_laboratorio, laboratorio.monto_total, req.usuario.id]
-      );
-    }
-
-    if (abono_inicial && parseFloat(abono_inicial) > 0) {
-      const comisionGenerada = await calcularComision(conn, {
-        id: consultaId, tipo_comision: tipo_comision || 'estandar', cantidad_radiografias: cantidad_radiografias || 0,
-        costo_total: costo_total || 0, comision_porcentaje_aplicado: doctorInfo?.comision_porcentaje || 0,
-      }, abono_inicial);
-
-      await conn.query(
-        `INSERT INTO pagos
-         (consulta_id, monto, metodo_pago, recargo_pos, comision_generada, fecha_pago, hora_pago, registrado_por)
-         VALUES (?, ?, 'Efectivo', 0, ?, ?, ?, ?)`,
-        [consultaId, abono_inicial, comisionGenerada, fecha, hora, req.usuario.id]
-      );
-    }
-
-    let textoAuditoria = `Registró y firmó Evolución: "${descripcion}" — Costo: S/ ${parseFloat(costo_total || 0).toFixed(2)}`;
-    if (abono_inicial && parseFloat(abono_inicial) > 0) {
-      textoAuditoria += ` (Abono inicial en caja: S/ ${parseFloat(abono_inicial).toFixed(2)})`;
-    }
-
-    await conn.query(
-      `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
-       VALUES (?, ?, ?, ?, ?)`,
-      [historiaId, req.usuario.id, textoAuditoria, fecha, horaCorta]
-    );
-
-    await conn.commit();
-    res.status(201).json({ ok: true, mensaje: 'Evolución registrada y firmada.', consultaId });
-  } catch (err) {
-    await conn.rollback();
-    console.error(err);
-    res.status(500).json({ ok: false, mensaje: 'Error al registrar la evolución.' });
-  } finally {
-    conn.release();
-  }
-};
-
-
-// POST /api/historias/consultas/:consultaId/pagos — registrar abono 
-const registrarPago = async (req, res) => {
-  const conn = await db.getConnection();
-  try {
-    await conn.beginTransaction();
-    const { consultaId } = req.params;
-    const { monto, metodo_pago } = req.body;
-
-    const [[consulta]] = await conn.query(
-      'SELECT id, costo_total, historia_id, tipo_comision, cantidad_radiografias, comision_porcentaje_aplicado FROM consultas WHERE id = ?', [consultaId]
-    );
-    const [[{ pagado }]] = await conn.query(
-      'SELECT COALESCE(SUM(monto), 0) AS pagado FROM pagos WHERE consulta_id = ?', [consultaId]
-    );
-
-    const deuda = parseFloat(consulta.costo_total) - parseFloat(pagado);
-    if (parseFloat(monto) > deuda) {
-      await conn.rollback();
-      return res.status(400).json({ ok: false, mensaje: `El abono excede la deuda.` });
-    }
-
-    // Recargo POS (punto D): 4% si es pago con tarjeta, no afecta la deuda ni la comisión del doctor
-    const esTarjeta = metodo_pago === 'Tarjeta';
-    const recargoPos = esTarjeta ? parseFloat((parseFloat(monto) * 0.04).toFixed(2)) : 0;
-
-    const comisionGenerada = await calcularComision(conn, consulta, monto);
-
-    const fecha = fechaLima();
-    const hora  = horaLima();
-    const horaCorta = horaLimaCorta();
-
-    await conn.query(
-      `INSERT INTO pagos (consulta_id, monto, metodo_pago, recargo_pos, comision_generada, fecha_pago, hora_pago, registrado_por)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [consultaId, monto, metodo_pago || 'Efectivo', recargoPos, comisionGenerada, fecha, hora, req.usuario.id]
-    );
-
-    await conn.query(
-      `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
-       VALUES (?, ?, ?, ?, ?)`,
-      [consulta.historia_id, req.usuario.id, `Registró un abono de S/ ${parseFloat(monto).toFixed(2)} en caja${esTarjeta ? ` (+ S/ ${recargoPos.toFixed(2)} recargo POS)` : ''}.`, fecha, horaCorta]
-    );
-
-    await conn.commit();
-    res.status(201).json({ ok: true, mensaje: 'Pago registrado correctamente.' });
-  } catch (err) {
-    await conn.rollback();
-    console.error(err);
-    res.status(500).json({ ok: false, mensaje: 'Error al registrar pago.' });
-  } finally {
-    conn.release();
-  }
-};
+// Cobros y creacion de evoluciones: controlador transaccional compartido.
 
 // DELETE /api/historias/:pacienteId — eliminar historia completa
 const eliminarHistoria = async (req, res) => {
@@ -1015,6 +876,8 @@ const eliminarConsulta = async (req, res) => {
     if (rows[0].bloqueada) {
       return res.status(409).json({ ok: false, mensaje: 'Esta Evolución ya está firmada y no se puede eliminar.' });
     }
+    const [[paymentCount]] = await db.query('SELECT COUNT(*) AS total FROM pagos WHERE consulta_id=?', [id]);
+    if (paymentCount.total) return res.status(409).json({ ok: false, mensaje: 'Este tratamiento tiene historial financiero y no puede eliminarse.' });
     await db.query('DELETE FROM consultas WHERE id = ?', [id]);
 
     const fecha = fechaLima();

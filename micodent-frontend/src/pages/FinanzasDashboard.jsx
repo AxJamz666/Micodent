@@ -1,6 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { TrendingUp, Users, DollarSign, Wallet, Percent, Plus, X, Trash2, Edit, Package, AlertTriangle, FileText, RotateCcw, History } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { TrendingUp, Users, DollarSign, Wallet, Percent, Plus, X, Trash2, Edit, Package, AlertTriangle, RotateCcw, History } from 'lucide-react';
+import ConfiguracionPos from '../components/ConfiguracionPos';
 import toast from 'react-hot-toast';
+import { activityFields, money } from '../utils/data';
+import { FINANCE_EVENT } from '../utils/financeEvents';
+import Produccion from './Produccion';
 import { dashboardService, gastosService, laboratorioService, usuariosService, auditoriaService } from '../services/api';
 
 const formatearFechaISO = (date) => {
@@ -17,8 +21,9 @@ const FinanzasDashboard = () => {
   const [doctorFiltro, setDoctorFiltro] = useState('todos');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [errorResumen, setErrorResumen] = useState('');
 
-  const [vista, setVista] = useState('resumen');
+  const [vista, setVista] = useState(() => new URLSearchParams(window.location.search).get('vista') === 'produccion' ? 'produccion' : 'resumen');
 
   const [gastos, setGastos] = useState([]);
   const [showGastoModal, setShowGastoModal] = useState(false);
@@ -41,16 +46,18 @@ const FinanzasDashboard = () => {
 
   const [showAuditoriaModal, setShowAuditoriaModal] = useState(false);
   const [auditoriaLogs, setAuditoriaLogs] = useState([]);
+  const requests = useRef({ resumen: 0, gastos: 0, laboratorio: 0, auditoria: 0 });
 
   const cargar = useCallback(async () => {
+    const sequence = ++requests.current.resumen;
     try {
       setLoading(true);
       const { data } = await dashboardService.getFinanciero(desde, hasta);
-      setData(data.data);
-    } catch (err) {
-      toast.error('Error al cargar el reporte financiero.');
+      if (sequence === requests.current.resumen) { setData(data.data); setErrorResumen(''); }
+    } catch {
+      if (sequence === requests.current.resumen) setErrorResumen('No se pudo actualizar el resumen. Los importes mostrados pueden estar desactualizados.');
     } finally {
-      setLoading(false);
+      if (sequence === requests.current.resumen) setLoading(false);
     }
   }, [desde, hasta]);
 
@@ -86,22 +93,53 @@ const FinanzasDashboard = () => {
   const CATEGORIAS_CON_MES_CONSUMO = ['luz', 'agua', 'internet', 'alquiler'];
 
   const cargarGastos = useCallback(async () => {
+    const sequence = ++requests.current.gastos;
     try {
       const { data } = await gastosService.getAll(desde, hasta);
-      setGastos(data.data || []);
-    } catch (err) {
-      toast.error('Error al cargar los gastos.');
+      if (sequence === requests.current.gastos) setGastos(data.data || []);
+    } catch {
+      if (sequence === requests.current.gastos) toast.error('Error al cargar los gastos.');
     }
   }, [desde, hasta]);
 
   const cargarTrabajosLab = useCallback(async () => {
+    const sequence = ++requests.current.laboratorio;
     try {
       const { data } = await laboratorioService.getTrabajos(vistaLab === 'pagados' ? 'pagado' : 'pendiente');
-      setTrabajosLab(data.data || []);
-    } catch (err) {
-      toast.error('Error al cargar los trabajos de laboratorio.');
+      if (sequence === requests.current.laboratorio) setTrabajosLab(data.data || []);
+    } catch {
+      if (sequence === requests.current.laboratorio) toast.error('Error al cargar los trabajos de laboratorio.');
     }
   }, [vistaLab]);
+
+  const cargarAuditoria = useCallback(async () => {
+    const sequence = ++requests.current.auditoria;
+    try {
+      const { data } = await auditoriaService.getFinanciera();
+      if (sequence === requests.current.auditoria) setAuditoriaLogs(data.data || []);
+    } catch { toast.error('Error al cargar el registro de actividad.'); }
+  }, []);
+
+  useEffect(() => {
+    const refresh = event => {
+      if (event?.type === 'storage' && event.key !== FINANCE_EVENT) return;
+      cargar(); cargarGastos(); cargarTrabajosLab();
+      if (showAuditoriaModal) cargarAuditoria();
+    };
+    const visibleRefresh = () => { if (document.visibilityState === 'visible') refresh(); };
+    window.addEventListener('focus', refresh);
+    window.addEventListener('storage', refresh);
+    window.addEventListener(FINANCE_EVENT, refresh);
+    document.addEventListener('visibilitychange', visibleRefresh);
+    const timer = setInterval(visibleRefresh, 30000);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('storage', refresh);
+      window.removeEventListener(FINANCE_EVENT, refresh);
+      document.removeEventListener('visibilitychange', visibleRefresh);
+      clearInterval(timer);
+    };
+  }, [cargar, cargarGastos, cargarTrabajosLab, cargarAuditoria, showAuditoriaModal]);
 
   useEffect(() => { cargarGastos(); }, [cargarGastos]);
   useEffect(() => { cargarTrabajosLab(); }, [cargarTrabajosLab]);
@@ -146,8 +184,6 @@ const FinanzasDashboard = () => {
         toast.success('Gasto registrado.');
       }
       setShowGastoModal(false);
-      await cargarGastos();
-      await cargar();
     } catch (err) {
       toast.error(err.response?.data?.mensaje || 'Error al guardar el gasto.');
     }
@@ -158,8 +194,6 @@ const FinanzasDashboard = () => {
     try {
       await gastosService.eliminar(id);
       toast.success('Gasto anulado.');
-      await cargarGastos();
-      await cargar();
     } catch (err) {
       toast.error(err.response?.data?.mensaje || 'Error al anular el gasto.');
     }
@@ -169,8 +203,6 @@ const FinanzasDashboard = () => {
     try {
       await gastosService.reactivar(id);
       toast.success('Gasto reactivado.');
-      await cargarGastos();
-      await cargar();
     } catch (err) {
       toast.error(err.response?.data?.mensaje || 'Error al reactivar el gasto.');
     }
@@ -184,8 +216,6 @@ const FinanzasDashboard = () => {
       toast.success('Pago a laboratorio registrado.');
       setPagandoLabId(null);
       setMontoPagoLab('');
-      await cargarTrabajosLab();
-      await cargar();
     } catch (err) {
       toast.error(err.response?.data?.mensaje || 'Error al registrar el pago.');
     }
@@ -198,20 +228,14 @@ const FinanzasDashboard = () => {
       toast.success('Penalidad registrada.');
       setShowPenalidadModal(false);
       setFormPenalidad({ doctor_id: '', monto: '', motivo: '', fecha: hoy });
-      await cargar();
     } catch (err) {
       toast.error(err.response?.data?.mensaje || 'Error al registrar la penalidad.');
     }
   };
 
   const abrirAuditoria = async () => {
-    try {
-      const { data } = await auditoriaService.getFinanciera();
-      setAuditoriaLogs(data.data || []);
-      setShowAuditoriaModal(true);
-    } catch (err) {
-      toast.error('Error al cargar el registro de actividad.');
-    }
+    setShowAuditoriaModal(true);
+    await cargarAuditoria();
   };
 
   const filasFiltradas = data?.porDoctor?.filter(d => doctorFiltro === 'todos' || d.doctor_id === doctorFiltro) || [];
@@ -237,7 +261,7 @@ const FinanzasDashboard = () => {
         </button>
       </div>
 
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-8 flex flex-col md:flex-row md:items-end gap-4 flex-wrap">
+      {vista !== 'produccion' && <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-8 flex flex-col md:flex-row md:items-end gap-4 flex-wrap">
         <div>
           <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Desde</label>
           <input type="date" value={desde} onChange={e => setDesde(e.target.value)} className="px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 text-sm" />
@@ -258,28 +282,41 @@ const FinanzasDashboard = () => {
             {data?.porDoctor?.map(d => <option key={d.doctor_id} value={d.doctor_id}>{d.doctor_nombre}</option>)}
           </select>
         </div>
-      </div>
+      </div>}
 
-      <div className="flex gap-2 mb-6 bg-slate-50 p-1 rounded-2xl w-fit">
-        {[{ v: 'resumen', l: 'Resumen', icon: <TrendingUp size={16}/> }, { v: 'gastos', l: 'Gastos', icon: <Wallet size={16}/> }, { v: 'laboratorio', l: 'Laboratorio', icon: <Package size={16}/> }].map(op => (
-          <button key={op.v} onClick={() => setVista(op.v)}
+      <div className="flex flex-wrap gap-2 mb-6 bg-slate-50 p-1 rounded-2xl w-fit max-w-full">
+        {[{ v: 'resumen', l: 'Resumen', icon: <TrendingUp size={16}/> }, { v: 'gastos', l: 'Gastos', icon: <Wallet size={16}/> }, { v: 'laboratorio', l: 'Laboratorio', icon: <Package size={16}/> }, { v: 'produccion', l: 'Producción y comisiones por personal', icon: <Users size={16}/> }].map(op => (
+          <button key={op.v} aria-pressed={vista === op.v} onClick={() => setVista(op.v)}
             className={`px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors ${vista === op.v ? 'bg-white shadow-sm text-clinical-600' : 'text-slate-500 hover:text-slate-700'}`}>
             {op.icon} {op.l}
           </button>
         ))}
       </div>
 
+      {vista === 'produccion' && <Produccion embedded />}
+
       {vista === 'resumen' && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
-            <KpiCard color="bg-clinical-100 text-clinical-600" icon={<DollarSign size={22}/>} label="Total Cobrado" value={`S/ ${parseFloat(data?.totales?.totalCobrado || 0).toFixed(2)}`} />
-            <KpiCard color="bg-purple-100 text-purple-600" icon={<Percent size={22}/>} label="Comisiones (netas)" value={`S/ ${parseFloat(data?.totales?.totalComisionNeta || 0).toFixed(2)}`} />
-            <KpiCard color="bg-orange-100 text-orange-600" icon={<Wallet size={22}/>} label="Costo Laboratorio Pagado" value={`S/ ${parseFloat(data?.costoLaboratorioPagado || 0).toFixed(2)}`} />
-            <KpiCard color="bg-red-100 text-red-600" icon={<FileText size={22}/>} label="Gastos Operativos" value={`S/ ${parseFloat(data?.totalGastosOperativos || 0).toFixed(2)}`} />
-            <KpiCard color={parseFloat(data?.totales?.gananciaNetaReal || 0) >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} icon={<TrendingUp size={22}/>} label="Ganancia Neta Real" value={`S/ ${parseFloat(data?.totales?.gananciaNetaReal || 0).toFixed(2)}`} />
+          {errorResumen && <p role="alert" className="mb-4 text-red-700">{errorResumen} <button className="underline" onClick={cargar}>Reintentar</button></p>}
+          <section aria-label="Movimientos de caja" className="mb-8">
+            <h3 className="text-lg font-bold mb-3">Movimientos de caja del período</h3>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <KpiCard color="bg-teal-100 text-teal-700" icon={<DollarSign size={22}/>} label="Entradas registradas" value={data?.caja ? money(data.caja.ingresos) : 'No disponible'} />
+              <KpiCard color="bg-amber-100 text-amber-700" icon={<Package size={22}/>} label="Pagos a laboratorio" value={data?.caja ? money(data.caja.pagosLaboratorio) : 'No disponible'} />
+              <KpiCard color="bg-red-100 text-red-700" icon={<Wallet size={22}/>} label="Gastos pagados" value={data?.caja ? money(data.caja.gastosOperativos) : 'No disponible'} />
+              <KpiCard color="bg-green-100 text-green-700" icon={<TrendingUp size={22}/>} label="Flujo neto registrado" value={data?.caja ? money(data.caja.flujoNeto) : 'No disponible'} />
+            </div>
+            <div className="mt-3 flex items-center gap-2 flex-wrap"><p className="text-xs text-slate-500">Recargos de tarjeta incluidos: {money(data?.caja?.recargosTarjeta)}. Flujo del período, sin saldo inicial ni pagos no registrados.</p><ConfiguracionPos/></div>
+          </section>
+          <h3 className="text-lg font-bold mb-3">Resultado de producción</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+            <KpiCard color="bg-purple-100 text-purple-600" icon={<Percent size={22}/>} label="Comisiones generadas" value={`S/ ${parseFloat(data?.totales?.totalComisionBruta || 0).toFixed(2)}`} />
+            <KpiCard color="bg-orange-100 text-orange-600" icon={<Wallet size={22}/>} label="Costos externos aplicados" value={data?.totales?.movimientosPorConciliar ? 'Por conciliar' : `S/ ${parseFloat(data?.totales?.costosExternosAplicados || 0).toFixed(2)}`} />
+            <KpiCard color={parseFloat(data?.totales?.gananciaNetaReal || 0) >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} icon={<TrendingUp size={22}/>} label="Resultado tras costos y gastos" value={data?.totales?.movimientosPorConciliar ? 'Por conciliar' : `S/ ${parseFloat(data?.totales?.gananciaNetaReal || 0).toFixed(2)}`} />
           </div>
 
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto">
+            <div className="p-4 border-b text-sm">Costo de tratamientos registrados en el período: <strong>{money(data?.totales?.totalFacturado)}</strong></div>
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                 <tr>
@@ -468,7 +505,7 @@ const FinanzasDashboard = () => {
       )}
 
       {showGastoModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
               <h3 className="font-bold text-lg">{editGastoId ? 'Editar Gasto' : 'Nuevo Gasto'}</h3>
@@ -515,7 +552,7 @@ const FinanzasDashboard = () => {
       )}
 
       {showPenalidadModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="bg-red-600 p-5 text-white flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2"><AlertTriangle size={20}/> Registrar Penalidad</h3>
@@ -555,7 +592,7 @@ const FinanzasDashboard = () => {
       )}
 
       {showAuditoriaModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
             <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2"><History size={20}/> Registro de Actividad Financiera</h3>
@@ -579,8 +616,8 @@ const FinanzasDashboard = () => {
                       <p className="text-sm font-bold text-slate-700 mb-1">{log.accion}</p>
                       {log.detalle_json && (
                         <div className="text-xs text-slate-500 bg-slate-50 rounded-lg p-2 mt-1 space-y-0.5">
-                          {Object.entries(log.detalle_json).map(([k, v]) => (
-                            <p key={k}><span className="font-bold">{k}:</span> {typeof v === 'object' ? JSON.stringify(v) : String(v)}</p>
+                          {activityFields(log.detalle_json).map(([k, v]) => (
+                            <p key={k}><span className="font-bold">{k}:</span> {v}</p>
                           ))}
                         </div>
                       )}
@@ -597,7 +634,7 @@ const FinanzasDashboard = () => {
 };
 
 const KpiCard = ({ color, icon, label, value }) => (
-  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+  <div data-financial-kpi={label} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
     <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${color}`}>{icon}</div>
     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{label}</p>
     <p className="text-lg font-black text-slate-800">{value}</p>

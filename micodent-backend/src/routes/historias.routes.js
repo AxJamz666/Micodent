@@ -3,7 +3,7 @@ const upload  = require('../config/multer');
 const {
   getHistorias, getHistoriaByPaciente,
   guardarAntecedentes,
-  agregarConsulta, registrarPago, eliminarHistoria,
+  eliminarHistoria,
   subirRadiografia, getRadiografias, eliminarRadiografia,
   guardarFirmas, editarConsulta, eliminarConsulta,
   agregarAdendaConsulta, agregarItemOdontograma, agregarAdendaOdontograma,
@@ -13,7 +13,10 @@ const {
 } = require('../controllers/historias.controller');
 
 // ✅ Importar verificarToken Y soloDoctor juntos
-const { verificarToken, soloDoctor } = require('../middleware/auth');
+const { verificarToken, soloDoctor, soloAdmin } = require('../middleware/auth');
+const { agregarConsulta, registrarPago, anularPago, conciliarCostos } = require('../controllers/cobros.controller');
+router.post('/pagos/:pagoId/anular', verificarToken, soloAdmin, anularPago);
+router.post('/consultas/:consultaId/conciliar-costos', verificarToken, soloAdmin, conciliarCostos);
 
 // ── Administrativas (todos los roles) ─────────────────────
 router.get('/',                              verificarToken, getHistorias);

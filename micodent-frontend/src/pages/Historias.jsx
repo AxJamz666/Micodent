@@ -5,6 +5,7 @@ import { pacientesService, historiasService, authService, API_URL } from '../ser
 import { TRATAMIENTOS_DB } from '../utils/tratamientosDb';
 import { Diente } from '../components/Diente';
 import OdontogramaEditor from '../components/OdontogramaEditor';
+import FirmaMiniBlock from '../components/FirmaMiniBlock';
 import { User, ShieldAlert, Save, FileText, CreditCard, Edit, X, Calendar, Home, Activity, Clipboard, Plus, DollarSign, CheckCircle, Clock, Search, Trash2, Eye, ArrowLeft, LayoutGrid, Check, Lock, RotateCcw, History, Image as ImageIcon, UploadCloud, PenTool, ChevronDown, Eraser, Users } from 'lucide-react';
 
 // ==========================================
@@ -1045,23 +1046,7 @@ const handleEliminarRadiografia = async (id) => {
   return null;
 };
   
-const FirmaSelloBlock = ({ firma, sello, nombre, subtitulo, label = 'Firma y Sello' }) => (
-  <div className="flex flex-col items-center w-48 print:w-32">
-    <div className="w-full h-10 print:h-8 flex items-end justify-center">
-      {firma && <img src={firma} alt="Firma" className="max-h-full max-w-full object-contain" />}
-    </div>
-    {sello && (
-      <div className="w-full h-14 print:h-10 flex items-center justify-center -mt-1">
-        <img src={sello} alt="Sello" className="max-h-full max-w-full object-contain opacity-95" />
-      </div>
-    )}
-    <div className="w-full border-t border-slate-800 pt-1.5 text-center mt-1">
-      <p className="font-black text-clinical-700 text-[10px] print:text-[8px] uppercase truncate">{nombre}</p>
-      {subtitulo && <p className="text-[9px] print:text-[7px] text-slate-500">{subtitulo}</p>}
-      <p className="text-[8px] print:text-[6px] font-black text-slate-400 mt-1 uppercase">{label}</p>
-    </div>
-  </div>
-);
+const FirmaSelloBlock = props => <FirmaMiniBlock {...props} />;
 
 const ReportSection = ({ title, children }) => (
   <div className="mb-4 print-compact"><h3 className="font-black text-slate-800 uppercase tracking-widest text-[10px] mb-2 border-b-2 border-slate-200 pb-1">{title}</h3><div className="text-xs text-slate-700">{children}</div></div>

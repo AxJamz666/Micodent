@@ -23,6 +23,7 @@ const MainLayout = () => {
   }, []);
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
     localStorage.removeItem('userNombre');
     localStorage.removeItem('userFullName');
     localStorage.removeItem('userRol');
@@ -50,7 +51,7 @@ const MainLayout = () => {
         </div>
 
         <div className="relative" ref={dropdownRef}>
-          <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-3 border border-slate-200 rounded-2xl py-1.5 px-2 hover:bg-slate-50 transition-all bg-white shadow-sm">
+          <button aria-label="Menú de perfil" aria-expanded={isProfileOpen} onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-3 border border-slate-200 rounded-2xl py-1.5 px-2 hover:bg-slate-50 transition-all bg-white shadow-sm">
             <div className="bg-clinical-500 text-white p-1 rounded-xl"><UserCircle size={24} /></div>
             <span className="text-sm font-bold text-slate-700 hidden sm:block">{shortName}</span>
             <ChevronDown size={14} className={`text-slate-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
@@ -64,6 +65,7 @@ const MainLayout = () => {
               </div>
 
               <div className="px-2 space-y-1">
+                {!isAdmin && role === 'Doctor' && <Link to="/produccion" onClick={() => setIsProfileOpen(false)} className="w-full px-4 py-2.5 text-left text-sm text-slate-600 hover:bg-slate-50 rounded-xl flex items-center gap-3 font-bold"><TrendingUp size={18}/>Mi producción</Link>}
                 <Link to="/perfil" onClick={() => setIsProfileOpen(false)} className="w-full px-4 py-2.5 text-left text-sm text-slate-600 hover:bg-slate-50 rounded-xl flex items-center gap-3 font-bold transition-colors">
                   <User size={18} className="text-slate-400" /> Mi Perfil
                 </Link>

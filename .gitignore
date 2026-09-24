@@ -5,7 +5,13 @@
 !**/.env.example
 **/src/uploads/
 **/*_completo.txt
-**/actualizar-credenciales.js
+# Only the disabled, credential-free legacy notice may be versioned.
+**/credentials.json
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/.npmrc
 **/.idea/
 **/*.log
 **/coverage/
@@ -14,4 +20,5 @@
 .runtime/
 PREPARACION_DEV.json
 *.sql
+!micodent-backend/migrations/*.sql
 *.zip

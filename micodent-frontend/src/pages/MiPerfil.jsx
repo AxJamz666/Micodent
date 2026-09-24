@@ -152,7 +152,7 @@ const MiPerfil = () => {
         canvas.height = img.height * scale;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        setSelloDigital(canvas.toDataURL('image/jpeg', 0.85));
+        setSelloDigital(canvas.toDataURL('image/png'));
       };
       img.src = event.target.result;
     };
@@ -291,9 +291,10 @@ const MiPerfil = () => {
                     <div className="flex flex-col items-center gap-2">
                       <img src={selloDigital} alt="Sello" className="h-28 object-contain border border-slate-200 rounded-xl bg-white p-2" />
                       <label className="text-xs font-bold text-clinical-600 hover:text-clinical-700 cursor-pointer underline">
-                        Cambiar imagen
-                        <input type="file" accept="image/*" className="hidden" onChange={handleSelloUpload} />
+                        Reemplazar sello
+                        <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleSelloUpload} />
                       </label>
+                      <button type="button" onClick={() => setSelloDigital(null)} className="text-sm text-red-700 underline">Eliminar sello</button>
                     </div>
                   ) : (
                     <label className="flex flex-col items-center justify-center gap-2 w-full h-[120px] border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, X, Lock, Printer, FileText, RefreshCw, History } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { historiasService } from '../services/api';
 import PiezaSelector from './PiezaSelector';
 import FirmaMiniBlock from './FirmaMiniBlock';
+import PrintPortal from './PrintPortal';
+import { printDocument } from '../utils/printDocument';
 
 const EXTRAORALES_OPCIONES = [
   { key: 'panoramica', label: 'Panorámica' },
@@ -213,6 +215,22 @@ const FormularioOrden = ({ form, setForm }) => {
 
 const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, esDoctor }) => {
   const [centros, setCentros] = useState([]);
+  const [centrosEstado, setCentrosEstado] = useState('loading');
+  const [imprimiendo, setImprimiendo] = useState(false);
+  const cargarCentros = () => {
+    historiasService.getCentrosReferencia().then(({ data }) => {
+      const rows = Array.isArray(data.data) ? data.data : [];
+      setCentros(rows);
+      setCentrosEstado(rows.length >= 2 && rows.every(c => c.mapa_imagen_url) ? 'ready' : 'missing');
+    }).catch(() => setCentrosEstado('error'));
+  };
+  const imprimir = async () => {
+    if (centrosEstado !== 'ready') return;
+    setImprimiendo(true);
+    try { await printDocument('.orden-print-area'); }
+    catch (error) { toast.error(error.message); }
+    finally { setImprimiendo(false); }
+  };
   const [showNueva, setShowNueva] = useState(false);
   const [form, setForm] = useState(initialFormState());
   const [guardando, setGuardando] = useState(false);
@@ -227,7 +245,7 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
   useEffect(() => {
     // Se usan para el pie de la impresión: ambos centros de referencia salen siempre,
     // el paciente elige a cuál ir — no se elige uno al crear la orden.
-    historiasService.getCentrosReferencia().then(({ data }) => setCentros(data.data || [])).catch(() => {});
+    cargarCentros();
   }, []);
 
   const handleCrear = async (e) => {
@@ -357,7 +375,7 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
       )}
 
       {showNueva && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
             <div className="bg-slate-800 p-5 text-white flex justify-between items-center flex-shrink-0">
               <h3 className="font-bold text-lg">Nueva Orden de Radiografía</h3>
@@ -374,7 +392,7 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
       )}
 
       {ordenAReemitir && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
             <div className="bg-amber-500 p-5 text-white flex justify-between items-center flex-shrink-0">
               <h3 className="font-bold text-lg flex items-center gap-2"><RefreshCw size={18}/> Corregir Orden</h3>
@@ -399,7 +417,7 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
       )}
 
       {historialOrden && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[85vh]">
             <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2"><History size={20}/> Historial de esta Orden</h3>
@@ -438,7 +456,8 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
       )}
 
       {selectedOrden && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <PrintPortal>
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <style>{`
             @page { margin: 0; }
             @media print {
@@ -521,24 +540,24 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
                   firma={selectedOrden.doctor_firma}
                   sello={selectedOrden.doctor_sello}
                   nombre={selectedOrden.doctor_nombre}
-                  subtitulo={selectedOrden.doctor_especialidad ? `${selectedOrden.doctor_especialidad} · COP ${selectedOrden.doctor_cop || ''}` : ''}
+                  subtitulo={[selectedOrden.doctor_especialidad, selectedOrden.doctor_cop && `COP ${selectedOrden.doctor_cop}`].filter(Boolean).join(' · ')}
                 />
               </div>
 
               <div className="border-t border-slate-200 pt-4">
                 <p className="text-center text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Centros de Referencia — Radiología</p>
+                {centrosEstado !== 'ready' && <div role="alert" className="mb-3 text-sm text-red-700 print:hidden">
+                  {centrosEstado === 'loading' ? 'Cargando los mapas de referencia...' : 'Faltan los mapas de los dos locales o no se pudieron cargar. No se imprimirá una orden incompleta.'}
+                  {centrosEstado !== 'loading' && <button type="button" onClick={() => { setCentrosEstado('loading'); cargarCentros(); }} className="underline ml-2">Reintentar</button>}
+                </div>}
                 <div className="grid grid-cols-2 gap-4">
                   {centros.map(centro => (
-                    <div key={`info-${centro.id}`} className="text-center text-[9px] text-slate-500 space-y-1">
+                    <div key={`info-${centro.id}`} className="rx-reference text-center text-[9px] text-slate-500 space-y-1">
                       <p className="font-bold text-slate-600">{centro.nombre} — {centro.sede}</p>
                       <p>{centro.direccion}</p>
                       {centro.celular && <p>Cel. {centro.celular}</p>}
-                    </div>
-                  ))}
-                  {centros.map(centro => (
-                    <div key={`img-${centro.id}`} className="flex justify-center">
                       {centro.mapa_imagen_url && (
-                        <img src={centro.mapa_imagen_url} alt={`Mapa ${centro.sede}`} className="max-w-full max-h-40 object-contain mt-1" />
+                        <img src={centro.mapa_imagen_url} alt={`Mapa ${centro.sede}`} className="mx-auto max-w-full max-h-40 object-contain mt-1" />
                       )}
                     </div>
                   ))}
@@ -548,12 +567,13 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
             </div>
 
             <div className="p-4 border-t border-slate-100 print:hidden flex-shrink-0">
-              <button onClick={() => window.print()} className="w-full py-3 bg-clinical-500 text-white rounded-xl font-bold hover:bg-clinical-600 transition-colors flex items-center justify-center gap-2">
-                <Printer size={18}/> Imprimir
+              <button disabled={imprimiendo || centrosEstado !== 'ready'} onClick={imprimir} className="w-full py-3 bg-clinical-500 text-white rounded-xl font-bold hover:bg-clinical-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                <Printer size={18}/> {imprimiendo ? 'Preparando impresión...' : 'Imprimir'}
               </button>
             </div>
           </div>
         </div>
+        </PrintPortal>
       )}
     </div>
   );

@@ -6,7 +6,8 @@ import {
   Check, Clock, Trash2, Edit, Lock, UploadCloud, Baby, FileSignature
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { pacientesService, historiasService, authService, API_URL } from '../services/api';
+import { pacientesService, historiasService, authService, dashboardService, API_URL } from '../services/api';
+import MetodoPago from '../components/MetodoPago';
 import OdontogramaEditor from '../components/OdontogramaEditor';
 import RecetarioTab from '../components/RecetarioTab';
 import OrdenRadiografiaTab from '../components/OrdenRadiografiaTab';
@@ -158,7 +159,21 @@ const PacienteDetalle = () => {
   const [editEvoId, setEditEvoId] = useState(null);
   const [formNuevoTratamiento, setFormNuevoTratamiento] = useState({ fecha: fechaHoyLima(), descripcion: '', costoTotal: '', abonoInicial: '', estadoClinico: '', tipoComision: 'estandar', cantidadRadiografias: 1, nombreLaboratorio: '', montoLaboratorio: '' });
   const [showAbonoModal, setShowAbonoModal] = useState(false);
+  const paymentBusy = useRef(false);
+  const treatmentBusy = useRef(false);
+  const [savingPayment, setSavingPayment] = useState(false);
+  const [savingTreatment, setSavingTreatment] = useState(false);
+  const [savingReconciliation, setSavingReconciliation] = useState(false);
     const [formAbono, setFormAbono] = useState({ monto: '', metodo: 'Efectivo' });
+  const [posConfig, setPosConfig] = useState(null);
+  useEffect(() => {
+    let active = true;
+    if (showNuevoTratamiento || showAbonoModal) {
+      dashboardService.getPos().then(({data}) => { if (active) setPosConfig(data.data); })
+        .catch(() => { if (active) setPosConfig(null); });
+    }
+    return () => { active = false; };
+  }, [showNuevoTratamiento, showAbonoModal]);
   const [showHistorialModal, setShowHistorialModal] = useState(false);
   const [selectedEvolucion, setSelectedEvolucion] = useState(null);
   const [showAdendaModal, setShowAdendaModal] = useState(false);
@@ -236,7 +251,7 @@ const PacienteDetalle = () => {
 
           setEvoluciones((h.consultas || []).map(c => ({
             id: c.id, fecha: c.fecha_consulta, descripcion: c.descripcion,
-            costoTotal: c.costo_total, pagos: c.pagos || [],
+            costoTotal: c.costo_total, pagos: c.pagos || [], finanzas: c.finanzas,
             estadoClinico: c.estado_clinico || '',
             tipoComision: c.tipo_comision || 'estandar',
             cantidadRadiografias: c.cantidad_radiografias || 0,
@@ -303,7 +318,7 @@ const PacienteDetalle = () => {
       const h = data.data;
       setEvoluciones((h.consultas || []).map(c => ({
         id: c.id, fecha: c.fecha_consulta, descripcion: c.descripcion,
-        costoTotal: c.costo_total, pagos: c.pagos || [],
+        costoTotal: c.costo_total, pagos: c.pagos || [], finanzas: c.finanzas,
         estadoClinico: c.estado_clinico || '',
         tipoComision: c.tipo_comision || 'estandar',
         cantidadRadiografias: c.cantidad_radiografias || 0,
@@ -479,6 +494,8 @@ const PacienteDetalle = () => {
 
   const handleCrearTratamiento = async (e) => {
     e.preventDefault();
+    if (treatmentBusy.current) return;
+    treatmentBusy.current = true; setSavingTreatment(true);
     const costo = parseFloat(formNuevoTratamiento.costoTotal) || 0;
     try {
       if (editEvoId) {
@@ -495,10 +512,13 @@ const PacienteDetalle = () => {
           descripcion: formNuevoTratamiento.descripcion,
           costo_total: costo,
           abono_inicial: abono,
+          metodo_pago: formNuevoTratamiento.metodo || 'Efectivo',
+          pos_revision: posConfig?.revision,
           fecha_consulta: formNuevoTratamiento.fecha,
           estado_clinico: formNuevoTratamiento.estadoClinico,
           tipo_comision: formNuevoTratamiento.tipoComision,
           cantidad_radiografias: formNuevoTratamiento.tipoComision === 'endodoncia' ? (parseInt(formNuevoTratamiento.cantidadRadiografias) || 0) : 0,
+          costo_externo: formNuevoTratamiento.costoExterno || '0',
           laboratorio: formNuevoTratamiento.tipoComision === 'rehabilitacion'
             ? { nombre_laboratorio: formNuevoTratamiento.nombreLaboratorio, monto_total: parseFloat(formNuevoTratamiento.montoLaboratorio) || 0 }
             : null,
@@ -508,6 +528,9 @@ const PacienteDetalle = () => {
       await recargarEvoluciones();
     } catch (err) {
       toast.error(err.response?.data?.mensaje || 'Error al guardar.');
+      return;
+    } finally {
+      treatmentBusy.current = false; setSavingTreatment(false);
     }
     setShowNuevoTratamiento(false);
     setEditEvoId(null);
@@ -527,15 +550,21 @@ const PacienteDetalle = () => {
 
   const handleAbonar = async (e) => {
     e.preventDefault();
+    if (paymentBusy.current) return;
     const abono = parseFloat(formAbono.monto);
     const resta = parseFloat(calcularResta(selectedEvolucion?.costoTotal, selectedEvolucion?.pagos));
-    if (abono <= 0 || abono > resta) { toast.error('Monto inválido.'); return; }
+    if (!Number.isFinite(abono) || abono <= 0 || abono > resta) { toast.error('Monto inválido.'); return; }
+    paymentBusy.current = true; setSavingPayment(true);
     try {
-      await historiasService.registrarPago(selectedEvolucion.id, { monto: abono, metodo_pago: formAbono.metodo });
-      await recargarEvoluciones();
+      await historiasService.registrarPago(selectedEvolucion.id, { monto: abono, metodo_pago: formAbono.metodo, pos_revision: posConfig?.revision });
+      setShowAbonoModal(false);
       toast.success('Abono registrado.');
+      await recargarEvoluciones();
     } catch (err) {
-      toast.error('Error al registrar abono.');
+      toast.error(err.response?.data?.mensaje || 'No se pudo confirmar el abono. Reintenta sin cambiar los datos.');
+      return;
+    } finally {
+      paymentBusy.current = false; setSavingPayment(false);
     }
     setShowAbonoModal(false);
     setFormAbono({ monto: '', metodo: 'Efectivo' });
@@ -935,13 +964,13 @@ const PacienteDetalle = () => {
 
       {/* MODAL: NUEVO / EDITAR TRATAMIENTO */}
       {showNuevoTratamiento && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
               <h3 className="font-bold text-lg">{editEvoId ? 'Editar Tratamiento' : 'Nuevo Tratamiento'}</h3>
               <button onClick={() => { setShowNuevoTratamiento(false); setEditEvoId(null); setFormNuevoTratamiento({ fecha: fechaHoyLima(), descripcion: '', costoTotal: '', abonoInicial: '', estadoClinico: '', tipoComision: 'estandar', cantidadRadiografias: 1, nombreLaboratorio: '', montoLaboratorio: '' }); }} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
             </div>
-            <form onSubmit={handleCrearTratamiento} className="p-6 space-y-5">
+            <form id="tratamiento-form" onSubmit={handleCrearTratamiento} className="p-6 space-y-5">
               <InputV label="Fecha de Inicio" type="date" value={formNuevoTratamiento.fecha} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, fecha: v})} />
               <Field label="Descripción del Tratamiento" value={formNuevoTratamiento.descripcion} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, descripcion: v})} isTextArea rows="2" />
               {!editEvoId && (
@@ -961,6 +990,7 @@ const PacienteDetalle = () => {
                   {formNuevoTratamiento.tipoComision === 'endodoncia' && (
                     <InputV label="Cantidad de Radiografías" placeholder="1" format="num" value={formNuevoTratamiento.cantidadRadiografias} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, cantidadRadiografias: v})} />
                   )}
+                  <InputV label="Otros costos externos (S/)" placeholder="0.00" format="dec" required={false} value={formNuevoTratamiento.costoExterno || ''} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, costoExterno: v})} />
                   {formNuevoTratamiento.tipoComision === 'rehabilitacion' && (
                     <div className="grid grid-cols-2 gap-4 bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
                       <div className="col-span-2">
@@ -980,44 +1010,31 @@ const PacienteDetalle = () => {
                   <InputV label="Abono Inicial (S/)" placeholder="0.00 (opcional)" format="dec" required={false} value={formNuevoTratamiento.abonoInicial} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, abonoInicial: v})} />
                 )}
               </div>
-              <button type="submit" className="w-full py-4 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 shadow-lg transition-all">{editEvoId ? 'Guardar Cambios' : 'Guardar y Firmar'}</button>
+              {!editEvoId && <MetodoPago value={formNuevoTratamiento.metodo} monto={formNuevoTratamiento.abonoInicial} config={posConfig} onChange={metodo=>setFormNuevoTratamiento({...formNuevoTratamiento,metodo})}/>}
             </form>
+            <div data-dialog-footer>
+              <button type="submit" form="tratamiento-form" disabled={savingTreatment || (!editEvoId && formNuevoTratamiento.metodo === 'Tarjeta' && !posConfig)} className="w-full py-3 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-700 transition-all disabled:opacity-50">{savingTreatment ? 'Guardando...' : editEvoId ? 'Guardar Cambios' : 'Guardar y Firmar'}</button>
+            </div>
           </div>
         </div>
       )}
 
       {showAbonoModal && selectedEvolucion && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="bg-green-600 p-5 text-white flex justify-between items-center"><h3 className="font-bold text-lg">Registrar Abono</h3><button onClick={() => setShowAbonoModal(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button></div>
             <form onSubmit={handleAbonar} className="p-6 space-y-5">
               <div className="text-center bg-green-50 p-5 rounded-2xl border border-green-100"><p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-1">Deuda Restante</p><p className="text-4xl font-black text-green-700">S/ {calcularResta(selectedEvolucion.costoTotal, selectedEvolucion.pagos)}</p></div>
               <InputV label="Monto a Abonar (S/)" placeholder="0.00" format="dec" value={formAbono.monto} onChange={v => setFormAbono({...formAbono, monto: v})} />
-              <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Método de Pago</label>
-                <div className="flex gap-2">
-                  {[{ v: 'Efectivo', l: 'Efectivo' }, { v: 'Tarjeta', l: 'Tarjeta (POS)' }].map(op => (
-                    <button key={op.v} type="button" onClick={() => setFormAbono({...formAbono, metodo: op.v})}
-                      className={`flex-1 py-2.5 rounded-xl border text-sm font-bold transition-colors ${formAbono.metodo === op.v ? 'bg-green-50 border-green-300 text-green-700' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
-                      {op.l}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {formAbono.metodo === 'Tarjeta' && parseFloat(formAbono.monto) > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
-                  <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Se cobrará en la tarjeta (incluye 4% recargo POS)</p>
-                  <p className="text-lg font-black text-amber-800">S/ {(parseFloat(formAbono.monto) * 1.04).toFixed(2)}</p>
-                </div>
-              )}
-              <button type="submit" className="w-full py-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition-all">Confirmar Abono</button>
+              <MetodoPago value={formAbono.metodo} monto={formAbono.monto} config={posConfig} onChange={metodo=>setFormAbono({...formAbono,metodo})}/>
+              <button type="submit" disabled={savingPayment || (formAbono.metodo === 'Tarjeta' && !posConfig)} className="w-full py-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition-all disabled:opacity-50">{savingPayment ? 'Confirmando...' : 'Confirmar Abono'}</button>
             </form>
           </div>
         </div>
       )}
 
       {showAdendaModal && selectedEvolucion && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="bg-slate-800 p-5 text-white flex justify-between items-center"><h3 className="font-bold text-lg flex items-center gap-2"><Lock size={18}/> Agregar Corrección</h3><button onClick={() => setShowAdendaModal(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button></div>
             <form onSubmit={handleAgregarAdenda} className="p-6 space-y-5">
@@ -1034,13 +1051,28 @@ const PacienteDetalle = () => {
       )}
 
       {showHistorialModal && selectedEvolucion && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="bg-blue-600 p-5 text-white flex justify-between items-center"><h3 className="font-bold text-lg flex items-center gap-2"><Calendar size={20}/> Historial y Correcciones</h3><button onClick={() => setShowHistorialModal(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button></div>
             <div className="p-6 max-h-96 overflow-y-auto space-y-3">
               <div className="bg-clinical-50 p-4 rounded-2xl border border-clinical-100">
                 <p className="text-xs font-black text-clinical-700 uppercase tracking-widest mb-2">Detalle Clínico</p>
                 <p className="text-sm text-slate-700"><span className="font-bold">Doctor:</span> {selectedEvolucion.doctorNombre || '—'}</p>
+                {esAdmin && selectedEvolucion.finanzas && <dl className="grid grid-cols-3 gap-2 my-3 text-xs">
+                  {[['Costo externo', 'costo_total'], ['Recuperado', 'costo_cubierto'], ['Pendiente', 'costo_pendiente']].map(([label,key]) => <div key={key}><dt>{label}</dt><dd className="font-bold">{selectedEvolucion.finanzas[key] == null ? 'Por conciliar' : `S/ ${Number(selectedEvolucion.finanzas[key]).toFixed(2)}`}</dd></div>)}
+                </dl>}
+                {esAdmin && selectedEvolucion.finanzas?.requiere_conciliacion && <form className="space-y-3 border-t pt-3" onSubmit={async event => {
+                  event.preventDefault(); if(savingReconciliation) return;
+                  const fields=new FormData(event.currentTarget); setSavingReconciliation(true);
+                  try { await historiasService.conciliarCostos(selectedEvolucion.id,{costo_cubierto:fields.get('costo'),motivo:fields.get('motivo')}); setShowHistorialModal(false); await recargarEvoluciones(); toast.success('Conciliación registrada.'); }
+                  catch(error) { toast.error(error.response?.data?.mensaje || 'No se pudo conciliar.'); }
+                  finally { setSavingReconciliation(false); }
+                }}>
+                  <p className="text-sm text-amber-900">Costo histórico pendiente de conciliación</p>
+                  <label className="block text-xs">Costo externo ya recuperado (S/)<input name="costo" type="number" min="0" step="0.01" required className="block w-full border rounded p-2 mt-1" /></label>
+                  <label className="block text-xs">Referencia o respaldo<textarea name="motivo" minLength={5} maxLength={500} required className="block w-full border rounded p-2 mt-1" /></label>
+                  <button disabled={savingReconciliation} className="px-4 py-2 bg-teal-700 text-white rounded text-sm" type="submit">Confirmar conciliación</button>
+                </form>}
                 {selectedEvolucion.estadoClinico && <p className="text-sm text-slate-700 mt-1"><span className="font-bold">Estado clínico:</span> {selectedEvolucion.estadoClinico}</p>}
                 {(esAdmin || selectedEvolucion.doctorId === miUserId) && (
                   <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-clinical-200">
@@ -1064,10 +1096,16 @@ const PacienteDetalle = () => {
                       <div className="bg-green-100 p-2 rounded-full text-green-600"><Check size={16}/></div>
                       <div>
                         <p className="font-bold text-slate-700 text-sm">Abono #{index + 1}</p>
-                        <p className="text-xs text-slate-400">{pago.fechaHora}</p>
+                        <p className="text-xs text-slate-400">{pago.fechaHora || `${pago.fecha_pago} ${pago.hora_pago}`}</p>
                       </div>
                     </div>
                     <p className="font-black text-green-600 text-lg">S/ {parseFloat(pago.monto).toFixed(2)}</p>
+                    {localStorage.getItem('isAdmin') === 'true' && index === selectedEvolucion.pagos.length - 1 && <button type="button" className="text-red-700 text-xs underline" onClick={async () => {
+                      const motivo = window.prompt('Motivo de anulación del abono:');
+                      if (!motivo) return;
+                      try { await historiasService.anularPago(pago.id, motivo); setShowHistorialModal(false); await recargarEvoluciones(); toast.success('Abono anulado.'); }
+                      catch (err) { toast.error(err.response?.data?.mensaje || 'No se pudo anular.'); }
+                    }}>Anular</button>}
                   </div>
                 ))
               )}
@@ -1094,7 +1132,7 @@ const PacienteDetalle = () => {
       )}
 
       {showHCAuditModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
             <div className="bg-slate-800 p-5 text-white flex justify-between items-center"><h3 className="font-bold text-lg flex items-center gap-2"><History size={20}/> Historial de Cambios</h3><button onClick={() => setShowHCAuditModal(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button></div>
             <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
@@ -1126,7 +1164,7 @@ const PacienteDetalle = () => {
       )}
 
       {selectedImage && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/95 backdrop-blur-md animate-fade-in">
+        <div className="dialog-overlay fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/95 backdrop-blur-md animate-fade-in">
           <div className="relative w-full max-w-5xl flex justify-center items-center">
             <button onClick={() => setSelectedImage(null)} className="absolute -top-12 right-0 text-slate-400 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-xl backdrop-blur-md"><X size={32} /></button>
             <img src={getImageSrc(selectedImage)} alt="Radiografía ampliada" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" />

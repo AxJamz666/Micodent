@@ -8,7 +8,7 @@ const getStats = async (req, res) => {
 
     // 2. INGRESOS HOY: Suma todos los pagos registrados con la fecha exacta de hoy
     const [[{ ingresosHoy }]] = await db.query(
-      'SELECT COALESCE(SUM(monto), 0) AS ingresosHoy FROM pagos WHERE fecha_pago = ?',
+      'SELECT COALESCE(SUM(monto + COALESCE(recargo_pos,0)), 0) AS ingresosHoy FROM pagos_vigentes WHERE fecha_pago = ?',
       [hoy]
     );
 
@@ -28,7 +28,7 @@ const getStats = async (req, res) => {
     const [[{ deudores }]] = await db.query(
       `SELECT COUNT(DISTINCT c.historia_id) AS deudores
        FROM consultas c
-       LEFT JOIN (SELECT consulta_id, SUM(monto) AS pagado FROM pagos GROUP BY consulta_id) p 
+       LEFT JOIN (SELECT consulta_id, SUM(monto) AS pagado FROM pagos_vigentes GROUP BY consulta_id) p 
        ON c.id = p.consulta_id
        WHERE c.costo_total > COALESCE(p.pagado, 0)`
     );
@@ -66,18 +66,25 @@ const getUltimasHistorias = async (req, res) => {
 const getDeudores = async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT h.paciente_id AS id, p.nombres, p.apellidos,
-              SUM(c.costo_total) - COALESCE(SUM(pg.pagado), 0) AS deuda_total
+      `SELECT h.paciente_id AS id, p.nombres, p.apellidos, c.id AS consulta_id,
+              c.descripcion,c.fecha_consulta,c.costo_total,COALESCE(pg.pagado,0) AS pagado,
+              c.costo_total - COALESCE(pg.pagado,0) AS pendiente
        FROM historias_clinicas h
        JOIN pacientes p ON h.paciente_id = p.id
        JOIN consultas c ON h.id = c.historia_id
-       LEFT JOIN (SELECT consulta_id, SUM(monto) AS pagado FROM pagos GROUP BY consulta_id) pg 
+       LEFT JOIN (SELECT consulta_id, SUM(monto) AS pagado FROM pagos_vigentes GROUP BY consulta_id) pg 
        ON c.id = pg.consulta_id
-       GROUP BY h.id
-       HAVING deuda_total > 0
-       ORDER BY deuda_total DESC LIMIT 10`
+       WHERE c.costo_total > COALESCE(pg.pagado,0)
+       ORDER BY p.apellidos,p.nombres,p.id,c.fecha_consulta,c.id`
     );
-    res.json({ ok: true, data: rows });
+    const patients = new Map();
+    for (const row of rows) {
+      if (!patients.has(row.id)) patients.set(row.id, {id:row.id,nombres:row.nombres,apellidos:row.apellidos,deuda_centimos:0,tratamientos:[]});
+      const patient = patients.get(row.id);
+      patient.deuda_centimos += Math.round(Number(row.pendiente)*100);
+      patient.tratamientos.push({id:row.consulta_id,descripcion:row.descripcion,fecha:row.fecha_consulta,costo_total:Number(row.costo_total),pagado:Number(row.pagado),pendiente:Number(row.pendiente)});
+    }
+    res.json({ok:true,data:[...patients.values()].map(({deuda_centimos,...patient})=>({...patient,deuda_total:deuda_centimos/100}))});
   } catch (err) {
     console.error("🔴 ERROR EN DEUDORES:", err);
     res.status(500).json({ ok: false, mensaje: 'Error al obtener lista de deudores' });
@@ -103,26 +110,29 @@ const getCitasHoy = async (req, res) => {
 };
 
 const getFinanciero = async (req, res) => {
+  let connection;
   try {
+    connection = await db.getConnection();
+    await connection.query('SET TRANSACTION READ ONLY');
+    await connection.beginTransaction();
     const { desde, hasta } = req.query;
-    const fechaDesde = desde || fechaLima();
-    const fechaHasta = hasta || fechaDesde;
+    const [fechaDesde, fechaHasta] = require('./produccion.controller').dateRange({ desde, hasta });
 
     // Base caja (punto A/C): todo se agrupa por la fecha en que realmente entró/salió el dinero,
     // no por la fecha en que se registró el tratamiento.
-    const [porDoctor] = await db.query(
+    const [porDoctor] = await connection.query(
       `SELECT
          u.id AS doctor_id,
          u.nombre_completo AS doctor_nombre,
          COUNT(DISTINCT p.id) AS pagos_recibidos,
-         COUNT(DISTINCT c.historia_id) AS pacientes_atendidos,
+         COUNT(DISTINCT CASE WHEN p.id IS NOT NULL THEN c.historia_id END) AS pacientes_atendidos,
          COALESCE(SUM(p.monto), 0) AS total_cobrado,
          COALESCE(SUM(p.comision_generada), 0) AS comision_bruta,
          COALESCE((SELECT SUM(pd.monto) FROM penalidades_doctor pd WHERE pd.doctor_id = u.id AND pd.fecha BETWEEN ? AND ?), 0) AS penalidades
        FROM usuarios u
        LEFT JOIN consultas c ON c.doctor_id = u.id
-       LEFT JOIN pagos p ON p.consulta_id = c.id AND p.fecha_pago BETWEEN ? AND ?
-       WHERE u.rol = 'Doctor' AND u.activo = 1
+       LEFT JOIN pagos_vigentes p ON p.consulta_id = c.id AND p.fecha_pago BETWEEN ? AND ?
+       WHERE u.rol = 'Doctor' OR EXISTS(SELECT 1 FROM consultas historial WHERE historial.doctor_id=u.id)
        GROUP BY u.id, u.nombre_completo
        ORDER BY total_cobrado DESC`,
       [fechaDesde, fechaHasta, fechaDesde, fechaHasta]
@@ -141,7 +151,7 @@ const getFinanciero = async (req, res) => {
     });
 
     // Costo de laboratorio realmente pagado en el rango (punto F) — independiente de cuándo se hizo el tratamiento
-    const [[{ costoLaboratorioPagado }]] = await db.query(
+    const [[{ costoLaboratorioPagado }]] = await connection.query(
       `SELECT COALESCE(SUM(monto), 0) AS costoLaboratorioPagado
        FROM pagos_laboratorio WHERE fecha_pago BETWEEN ? AND ?`,
       [fechaDesde, fechaHasta]
@@ -149,7 +159,7 @@ const getFinanciero = async (req, res) => {
 
     // Gastos operativos del rango (punto B) — no incluye laboratorio, que ya se cuenta arriba.
     // Excluye los anulados (soft delete): un gasto anulado no debe afectar la Ganancia Neta Real.
-    const [gastosPorCategoria] = await db.query(
+    const [gastosPorCategoria] = await connection.query(
       `SELECT categoria, COALESCE(SUM(monto), 0) AS total
        FROM gastos_clinica WHERE fecha_pago BETWEEN ? AND ? AND estado = 'activo'
        GROUP BY categoria`,
@@ -157,28 +167,47 @@ const getFinanciero = async (req, res) => {
     );
     const totalGastosOperativos = gastosPorCategoria.reduce((sum, g) => sum + parseFloat(g.total), 0);
 
-    const totalCobrado = porDoctorConNeto.reduce((sum, d) => sum + d.total_cobrado, 0);
+    const [[cash]] = await connection.query(`SELECT COALESCE(SUM(p.monto),0) AS cobrado,COALESCE(SUM(p.recargo_pos),0) AS recargos,
+      COALESCE(SUM(p.comision_generada),0) AS comision,COALESCE(SUM(f.costo_aplicado),0) AS costos,
+      COALESCE(SUM(CASE WHEN f.regla='legacy_pendiente' THEN 1 ELSE 0 END),0) AS pendientes
+      FROM pagos_vigentes p LEFT JOIN finanzas_pagos f ON f.pago_id=p.id WHERE p.fecha_pago BETWEEN ? AND ?`, [fechaDesde,fechaHasta]);
+    const [[quoted]] = await connection.query('SELECT COALESCE(SUM(costo_total),0) AS total FROM consultas WHERE fecha_consulta BETWEEN ? AND ?', [fechaDesde,fechaHasta]);
+    const totalCobrado = Number(cash.cobrado);
     const totalComisionNeta = porDoctorConNeto.reduce((sum, d) => sum + d.comision_neta, 0);
-    const gananciaClinicaAntesGastos = totalCobrado - totalComisionNeta - parseFloat(costoLaboratorioPagado);
+    const gananciaClinicaAntesGastos = Number(cash.pendientes) ? null : totalCobrado - Number(cash.comision) - Number(cash.costos);
     // Sin límite en cero (punto B: un gasto grande puede dejar el mes en negativo)
-    const gananciaNetaReal = gananciaClinicaAntesGastos - totalGastosOperativos;
+    const gananciaNetaReal = gananciaClinicaAntesGastos === null ? null : gananciaClinicaAntesGastos - totalGastosOperativos;
+    // Registered cash flow is separate from allocated costs and unpaid commissions.
+    const toCents = value => Math.round(Number(value) * 100);
+    const ingresosCaja = toCents(cash.cobrado) + toCents(cash.recargos);
+    const gastosCaja = gastosPorCategoria.reduce((sum, g) => sum + toCents(g.total), 0);
+    const salidasCaja = toCents(costoLaboratorioPagado) + gastosCaja;
 
+    await connection.commit();
     res.json({
       ok: true,
       data: {
+        caja: {
+          ingresos: ingresosCaja / 100, recargosTarjeta: toCents(cash.recargos) / 100,
+          pagosLaboratorio: toCents(costoLaboratorioPagado) / 100,
+          gastosOperativos: gastosCaja / 100, salidas: salidasCaja / 100,
+          flujoNeto: (ingresosCaja - salidasCaja) / 100,
+        },
         porDoctor: porDoctorConNeto,
         costoLaboratorioPagado: parseFloat(costoLaboratorioPagado),
         gastosPorCategoria,
         totalGastosOperativos,
-        totales: { totalCobrado, totalComisionNeta, gananciaClinicaAntesGastos, gananciaNetaReal },
+        totales: { totalFacturado: Number(quoted.total), totalCobrado, totalComisionNeta, totalComisionBruta: Number(cash.comision),
+          movimientosPorConciliar: Number(cash.pendientes), costosExternosAplicados: Number(cash.pendientes) ? null : Number(cash.costos), gananciaClinicaAntesGastos, gananciaNetaReal },
         desde: fechaDesde,
         hasta: fechaHasta,
       }
     });
   } catch (err) {
-    console.error("🔴 ERROR EN FINANCIERO:", err);
-    res.status(500).json({ ok: false, mensaje: 'Error al obtener el reporte financiero.' });
-  }
+    if (connection) await connection.rollback();
+
+    res.status(err.status || 500).json({ ok: false, mensaje: err.status ? err.message : 'Error al obtener el reporte financiero.' });
+  } finally { connection?.release(); }
 };
 
 module.exports = {

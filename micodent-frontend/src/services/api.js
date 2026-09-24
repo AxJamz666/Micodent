@@ -1,9 +1,27 @@
 import axios from 'axios';
+import { normalizeResponse } from '../utils/data';
+import { isFinancialMutation, notifyFinanceChange } from '../utils/financeEvents';
 
 const api = axios.create({
-  baseURL: 'http://localhost:4000/api',
+  baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
 });
+
+async function postOnce(url, data) {
+  const bytes = new TextEncoder().encode(JSON.stringify([localStorage.getItem('userId'), url, data]));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const slot = `micodent-pending-${Array.from(new Uint8Array(digest), x => x.toString(16).padStart(2, '0')).join('')}`;
+  const key = sessionStorage.getItem(slot) || crypto.randomUUID();
+  sessionStorage.setItem(slot, key);
+  try {
+    const result = await api.post(url, data, { headers: { 'Idempotency-Key': key } });
+    sessionStorage.removeItem(slot);
+    return result;
+  } catch (error) {
+    if (error.response?.status >= 400 && error.response.status < 500) sessionStorage.removeItem(slot);
+    throw error;
+  }
+}
 
 // Agrega el token JWT a cada petición automáticamente
 api.interceptors.request.use((config) => {
@@ -14,9 +32,13 @@ api.interceptors.request.use((config) => {
 
 // Si el token expira, manda al login
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    response.data = normalizeResponse(response.data);
+    if (response.data?.ok !== false && isFinancialMutation(response.config)) notifyFinanceChange();
+    return response;
+  },
   (error) => {
-    if (error.response?.status === 403 || error.response?.status === 401) {
+    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
       localStorage.clear();
       window.location.href = '/login';
     }
@@ -76,11 +98,13 @@ export const historiasService = {
   reemitirOrdenRadiografia: (id, data)    => api.post(`/historias/ordenes-radiografia/${id}/reemitir`, data),
   eliminarItemOdontograma: (id, motivo)   => api.delete(`/historias/odontograma-items/${id}`, { data: { motivo } }),
   guardarFirmas:      (historiaId, data)  => api.put(`/historias/${historiaId}/firmas`, data),
-  agregarConsulta:    (historiaId, data)  => api.post(`/historias/${historiaId}/consultas`, data),
+  agregarConsulta:    (historiaId, data)  => postOnce(`/historias/${historiaId}/consultas`, data),
   editarConsulta:     (id, data)          => api.put(`/historias/consultas/${id}`, data),
   eliminarConsulta:   (id)                => api.delete(`/historias/consultas/${id}`),
   agregarAdendaConsulta: (id, data)       => api.post(`/historias/consultas/${id}/adendas`, data),
-  registrarPago:      (consultaId, data)  => api.post(`/historias/consultas/${consultaId}/pagos`, data),
+  registrarPago:      (consultaId, data)  => postOnce(`/historias/consultas/${consultaId}/pagos`, data),
+  anularPago:         (pagoId, motivo) => postOnce(`/historias/pagos/${pagoId}/anular`, { motivo }),
+  conciliarCostos:    (consultaId, data) => postOnce(`/historias/consultas/${consultaId}/conciliar-costos`, data),
   getRadiografias:    (historiaId)        => api.get(`/historias/${historiaId}/radiografias`),
   eliminarRadiografia:(id)                => api.delete(`/historias/radiografias/${id}`),
   subirRadiografia:   (historiaId, formData) =>
@@ -94,6 +118,8 @@ export const historiasService = {
 // DASHBOARD
 // ============================================================
 export const dashboardService = {
+  getPos:            () => api.get('/dashboard/configuracion-pos'),
+  setPos:            (data) => api.put('/dashboard/configuracion-pos', data),
   getStats:           () => api.get('/dashboard/stats'),
   getUltimasHistorias:() => api.get('/dashboard/ultimas-historias'),
   getDeudores:        () => api.get('/dashboard/deudores'),
@@ -121,8 +147,8 @@ export const gastosService = {
 export const laboratorioService = {
   getPorConsulta:   (consultaId) => api.get(`/laboratorio/consulta/${consultaId}`),
   getTrabajos:      (estado) => api.get('/laboratorio/trabajos', { params: { estado } }),
-  crearTrabajo:     (consultaId, data) => api.post(`/laboratorio/consulta/${consultaId}`, data),
-  registrarPago:    (trabajoId, data) => api.post(`/laboratorio/${trabajoId}/pagos`, data),
+  crearTrabajo:     (consultaId, data) => postOnce(`/laboratorio/consulta/${consultaId}`, data),
+  registrarPago:    (trabajoId, data) => postOnce(`/laboratorio/${trabajoId}/pagos`, data),
 };
 
 export const auditoriaService = {
@@ -130,4 +156,4 @@ export const auditoriaService = {
 };
 
 export default api;
-export const API_URL = import.meta.env.VITE_API_URL;
+export const API_URL = '';

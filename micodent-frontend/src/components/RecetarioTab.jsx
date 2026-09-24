@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Plus, X, Lock, Printer, FileSignature, RefreshCw, History } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { historiasService } from '../services/api';
 import FirmaMiniBlock from './FirmaMiniBlock';
+import PrintPortal from './PrintPortal';
+import { printDocument } from '../utils/printDocument';
 
 const CampoTexto = ({ label, value, onChange, rows = 3, required = true }) => (
   <div>
@@ -16,6 +18,13 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
   const [formReceta, setFormReceta] = useState({ rp: '', indicaciones: '' });
   const [guardando, setGuardando] = useState(false);
   const [selectedReceta, setSelectedReceta] = useState(null);
+  const [imprimiendo, setImprimiendo] = useState(false);
+  const imprimir = async () => {
+    setImprimiendo(true);
+    try { await printDocument('.receta-print-area'); }
+    catch (error) { toast.error(error.message); }
+    finally { setImprimiendo(false); }
+  };
 
   const [recetaAReemitir, setRecetaAReemitir] = useState(null);
   const [formReemitir, setFormReemitir] = useState({ motivo: '', rp: '', indicaciones: '' });
@@ -127,7 +136,7 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
       )}
 
       {showNueva && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
               <h3 className="font-bold text-lg">Nueva Receta</h3>
@@ -145,7 +154,7 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
       )}
 
       {recetaAReemitir && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="bg-amber-500 p-5 text-white flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2"><RefreshCw size={18}/> Corregir Receta</h3>
@@ -170,7 +179,7 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
       )}
 
       {historialReceta && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[85vh]">
             <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center gap-2"><History size={20}/> Historial de esta Receta</h3>
@@ -215,7 +224,8 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
       )}
 
       {selectedReceta && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <PrintPortal>
+        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <style>{`
             @page { margin: 0; }
             @media print {
@@ -256,7 +266,7 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
                   firma={selectedReceta.doctor_firma}
                   sello={selectedReceta.doctor_sello}
                   nombre={selectedReceta.doctor_nombre}
-                  subtitulo={selectedReceta.doctor_especialidad ? `${selectedReceta.doctor_especialidad} · COP ${selectedReceta.doctor_cop || ''}` : ''}
+                  subtitulo={[selectedReceta.doctor_especialidad, selectedReceta.doctor_cop && `COP ${selectedReceta.doctor_cop}`].filter(Boolean).join(' · ')}
                 />
               </div>
 
@@ -268,12 +278,13 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
             </div>
 
             <div className="p-4 border-t border-slate-100 print:hidden">
-              <button onClick={() => window.print()} className="w-full py-3 bg-clinical-500 text-white rounded-xl font-bold hover:bg-clinical-600 transition-colors flex items-center justify-center gap-2">
-                <Printer size={18}/> Imprimir
+              <button disabled={imprimiendo} onClick={imprimir} className="w-full py-3 bg-clinical-500 text-white rounded-xl font-bold hover:bg-clinical-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                <Printer size={18}/> {imprimiendo ? 'Preparando impresión...' : 'Imprimir'}
               </button>
             </div>
           </div>
         </div>
+        </PrintPortal>
       )}
     </div>
   );
