@@ -12,6 +12,7 @@ Repositorio: https://github.com/AxJamz666/Micodent
 | codex/m02a-secretos | M02-A y preparacion del control profesional en GitHub. |
 | codex/<paquete>-<descripcion> | Un paquete autorizado por rama, no una rama por archivo. |
 | codex/hotfix-clinico-financiero | Candidato funcional RC4; no integrado aun con S1-A/S1-B. |
+| codex/rc4-s1-integracion | RC4 con S1-A conciliado y probado en aislamiento; solo DEV. M02/S1-B pendientes. |
 
 No se crean ramas vacias de trabajo para todas las etapas: las etapas se mapean
 en milestones e issues; las ramas nacen al autorizar su implementacion.
@@ -38,6 +39,10 @@ Los commits futuros usan la identidad local AxJamz666 con correo noreply de
 GitHub; los commits historicos de Codex no se reatribuyen artificialmente.
 
 ## Comprobaciones automaticas
+
+La configuracion CI descrita abajo pertenece a la linea historica de mejoras.
+RC4 y su integracion S1-A todavia no incluyen esos workflows: sus resultados
+son pruebas locales documentadas, NO una ejecucion CI aprobada en GitHub.
 
 MICODENT CI comprueba Secrets, Backend y Frontend, con Node 24.14.0 y acciones
 oficiales fijadas por SHA completo. El token del workflow solo tiene lectura de

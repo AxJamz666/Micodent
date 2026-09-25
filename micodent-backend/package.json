@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "test": "node --test tests/unit/*.test.cjs",
+    "test": "node --test tests/unit/*.test.cjs tests/unit/*.test.js",
     "test:integration": "node tests/hotfix-integration.cjs",
+    "test:security": "node --test --test-concurrency=1 tests/integration/*.test.js",
     "package:frontend": "node scripts/package-frontend.js",
-    "migrate:hotfix": "node scripts/migrate-hotfix.js"
+    "migrate:hotfix": "node scripts/migrate-hotfix.js",
+    "migrate:s1a": "node scripts/migrate-s1a.js"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",
@@ -18,7 +20,8 @@
     "express": "5.2.1",
     "jsonwebtoken": "9.0.3",
     "multer": "2.1.1",
-    "mysql2": "3.22.5"
+    "mysql2": "3.22.5",
+    "rate-limiter-flexible": "11.2.0"
   },
   "devDependencies": {
     "nodemon": "3.1.14"

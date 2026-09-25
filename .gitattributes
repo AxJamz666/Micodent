@@ -1,0 +1,4 @@
+# Migration checksums use exact bytes; never convert their line endings.
+micodent-backend/migrations/*.js -text
+# Published build manifests hash exact bytes, including line endings.
+micodent-backend/public/** -text

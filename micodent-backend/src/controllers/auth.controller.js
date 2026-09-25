@@ -1,102 +1,38 @@
-const db     = require('../config/db');
-const jwt    = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-require('dotenv').config();
+const db = require('../config/db');
+const security = require('../services/security');
+const { sendSecurityError } = require('../utils/securityError');
 
 const login = async (req, res) => {
   try {
-    const { id, password } = req.body;
-
-    if (!id || !password) {
-      return res.status(400).json({
-        ok: false,
-        mensaje: 'ID y contraseña son requeridos.'
-      });
-    }
-
-    const [rows] = await db.query(
-      'SELECT * FROM usuarios WHERE id = ? AND activo = TRUE',
-      [id.toLowerCase().trim()]
-    );
-
-    if (rows.length === 0) {
-      return res.status(401).json({
-        ok: false,
-        mensaje: 'ID de usuario o contraseña incorrectos.'
-      });
-    }
-
-    const usuario = rows[0];
-
-    let passwordValida = false;
-    const esBcrypt = usuario.password_hash.startsWith('$2');
-    if (esBcrypt) {
-      passwordValida = await bcrypt.compare(password, usuario.password_hash);
-    } else {
-      passwordValida = password === usuario.password_hash;
-    }
-
-    if (!passwordValida) {
-      return res.status(401).json({
-        ok: false,
-        mensaje: 'ID de usuario o contraseña incorrectos.'
-      });
-    }
-
-    const token = jwt.sign(
-    {
-        id:          usuario.id,
-        nombre:      usuario.nombre,
-        fullName:    usuario.nombre_completo,
-        rol:         usuario.rol,
-        prefix:      usuario.prefix,
-        gender:      usuario.gender,
-        isAdmin:     usuario.is_admin,
-        nivel:       usuario.nivel || 1,        
-        especialidad:usuario.especialidad || '',
-        cop:         usuario.cop || '',         
-    },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    );
-
-    res.json({
-     ok: true,
-    token,
-    usuario: {
-       id:          usuario.id,
-       nombre:      usuario.nombre,
-           fullName:    usuario.nombre_completo,
-           rol:         usuario.rol,
-           prefix:      usuario.prefix,
-           gender:      usuario.gender,
-           isAdmin:     usuario.is_admin,
-           nivel:       usuario.nivel || 1,        
-           especialidad:usuario.especialidad || '',
-           cop:         usuario.cop || '',         
-         },
-       });
-
-  } catch (err) {
-    console.error('Error en login:', err);
-    res.status(500).json({ ok: false, mensaje: 'Error interno del servidor.' });
-  }
+    const result = await security.login(req.body?.id, req.body?.password);
+    res.json({ ok: true, ...result });
+  } catch (err) { return sendSecurityError(res, err); }
 };
 
 const getMe = async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT id, nombre, nombre_completo, rol, prefix, gender,
-      is_admin, nivel, especialidad, cop, dni, telefono, email, direccion,
-      firma_digital, sello_digital, comision_porcentaje
-      FROM usuarios WHERE id = ?`,
-      [req.usuario.id]
-    );
-    if (rows.length === 0) return res.status(404).json({ ok: false, mensaje: 'Usuario no encontrado.' });
+       is_admin, nivel, especialidad, cop, dni, telefono, email, direccion,
+       firma_digital, sello_digital, comision_porcentaje
+       FROM usuarios WHERE id = ?`, [req.usuario.id]);
+    if (!rows.length) return res.status(401).json({ ok: false, codigo: 'AUTH_SESSION_INVALID', mensaje: 'Inicia sesion nuevamente.' });
     res.json({ ok: true, usuario: rows[0] });
-  } catch (err) {
-    res.status(500).json({ ok: false, mensaje: 'Error interno del servidor.' });
-  }
+  } catch (err) { return sendSecurityError(res, err); }
 };
 
-module.exports = { login, getMe };
+const logout = async (req, res) => {
+  try {
+    await security.logout(req.auth);
+    res.json({ ok: true, mensaje: 'Sesion cerrada.' });
+  } catch (err) { return sendSecurityError(res, err); }
+};
+
+const logoutAll = async (req, res) => {
+  try {
+    await security.logout(req.auth, true);
+    res.json({ ok: true, mensaje: 'Todas tus sesiones fueron cerradas.' });
+  } catch (err) { return sendSecurityError(res, err); }
+};
+
+module.exports = { login, getMe, logout, logoutAll };

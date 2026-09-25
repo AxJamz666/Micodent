@@ -25,6 +25,15 @@ RC4 en una rama local aislada, conservar ambos comportamientos y ejecutar
 regresion de seguridad, clinica, finanzas y arranque. Ninguna etapa ya aceptada
 se considera incorporada a RC4 hasta superar esas pruebas.
 
+Cierre tecnico 2026-09-24: S1-A conciliado con RC4 en
+`codex/rc4-s1-integracion`, version `rc4-s1a-dev`. Se verificaron migracion
+MySQL, preservacion de datos sinteticos, seguridad, finanzas, navegador y
+arranque real en entornos aislados. Ver [informe](RC4_S1A_INTEGRACION.md).
+No se activo en el DEV habitual ni se desplego. El siguiente paquete es
+conciliar M02 sobre esta base, seguido por S1-B; sus avances historicos no se
+consideran incorporados automaticamente. El migrador operativo S1-A sigue
+limitado a MySQL, aunque se verificaron las estructuras y API con MariaDB.
+
 ## Orden de trabajo
 
 | Etapa | Paquete | Resultado y dependencias |

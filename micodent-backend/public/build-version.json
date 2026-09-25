@@ -1,10 +1,10 @@
 {
-  "version": "hotfix-clinico-financiero-rc4",
-  "createdAt": "2026-09-24T16:35:36.415Z",
+  "version": "rc4-s1a-dev",
+  "createdAt": "2026-09-24T21:11:15.512Z",
   "files": [
     {
-      "file": "assets/index-BT8Qvcjj.js",
-      "sha256": "d01b920760b33a2deb32755b9675a962441a9eb3295c1cc1f0c7d7e47686e807"
+      "file": "assets/index-CMBq-N-e.js",
+      "sha256": "dc09e8bc7d1914fa85fafff11dcb81432f781839d189972b89c560f304693830"
     },
     {
       "file": "assets/index-kxBcfKcC.css",
@@ -16,11 +16,11 @@
     },
     {
       "file": "icons.svg",
-      "sha256": "b45fa506195cfcdef406ba9f0c77b36ddc1a7c224040926ec70abc2fdea7b93a"
+      "sha256": "7ca2d67c9c3aebf50cdc8709ee8aacf8cdb8cc7ea6325ea94939caef5da1c53d"
     },
     {
       "file": "index.html",
-      "sha256": "cde1a698ada3e5f235e30a85d062f2922f6fe97cb71ce920d7ae78c8a35b9e8b"
+      "sha256": "d9ead063b24f85b7df0ab7b26f3d7efc2da0e4c5848fac82d77aab5ec8422527"
     },
     {
       "file": "logo.png",

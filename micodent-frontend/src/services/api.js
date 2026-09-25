@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { normalizeResponse } from '../utils/data';
 import { isFinancialMutation, notifyFinanceChange } from '../utils/financeEvents';
+import { clearSession, shouldClearSession } from './session';
 
 const api = axios.create({
   baseURL: '/api',
@@ -38,8 +39,8 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
-      localStorage.clear();
+    if (shouldClearSession(error, localStorage.getItem('token'))) {
+      clearSession();
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -52,6 +53,8 @@ api.interceptors.response.use(
 export const authService = {
   login: (id, password) => api.post('/auth/login', { id, password }),
   getMe: ()             => api.get('/auth/me'),
+  logout: ()            => api.post('/auth/logout'),
+  logoutAll: ()         => api.post('/auth/logout-all'),
 };
 
 // ============================================================

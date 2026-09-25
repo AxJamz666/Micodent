@@ -3,7 +3,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 
 const workspace = path.resolve(__dirname, '../..');
-const version = 'MICODENT-HOTFIX-CLINICO-FINANCIERO-RC4';
+const version = 'MICODENT-RC4-S1A-DEV';
 const destination = path.join(workspace, '.runtime', 'releases', `${version}-${Date.now()}`);
 if (!fs.existsSync(path.join(workspace, 'micodent-frontend/dist/index.html'))) throw new Error('Compila primero el frontend.');
 fs.mkdirSync(destination, { recursive: true });
@@ -29,7 +29,7 @@ for (const [folder, entries] of Object.entries(includes)) {
 }
 copy(path.join(workspace, 'micodent-frontend/dist'), path.join(destination, 'micodent-backend/public'));
 copy(path.join(workspace, 'micodent-backend/public/build-version.json'), path.join(destination, 'micodent-backend/public/build-version.json'));
-for (const entry of ['iniciar_micodent.bat', 'comprobar_micodent.bat', 'micodent-arranque.cjs', 'docs/HOTFIX_RC1.md', 'docs/HOTFIX_RC2.md', 'docs/HOTFIX_RC3.md', 'docs/HOTFIX_RC4.md']) copy(path.join(workspace, entry), path.join(destination, entry));
+for (const entry of ['iniciar_micodent.bat', 'comprobar_micodent.bat', 'micodent-arranque.cjs', 'docs/HOTFIX_RC1.md', 'docs/HOTFIX_RC2.md', 'docs/HOTFIX_RC3.md', 'docs/HOTFIX_RC4.md', 'docs/RC4_S1A_INTEGRACION.md']) copy(path.join(workspace, entry), path.join(destination, entry));
 const files = [];
 function inventory(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -39,7 +39,7 @@ function inventory(dir) {
   }
 }
 inventory(destination);
-const manifest = { version, createdAt: new Date().toISOString(), status: 'Candidato probado con datos sinteticos; no desplegado en clinica', bytes: files.reduce((sum, f) => sum + f.bytes, 0), files };
+const manifest = { version, createdAt: new Date().toISOString(), status: 'Integracion exclusiva DEV; requiere configuracion y migraciones verificadas. No desplegar en clinica.', bytes: files.reduce((sum, f) => sum + f.bytes, 0), files };
 fs.writeFileSync(path.join(destination, 'MANIFEST.json'), JSON.stringify(manifest, null, 2), { flag: 'wx' });
 for (const file of files) {
   const actual = crypto.createHash('sha256').update(fs.readFileSync(path.join(destination, file.path))).digest('hex');

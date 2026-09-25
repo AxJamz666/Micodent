@@ -6,8 +6,10 @@ RC4 consolida el hotfix clinico-financiero y el launcher V4.0.3. Ver
 [cierre RC4](HOTFIX_CIERRE_RC4.md) y [detalle RC4](HOTFIX_RC4.md). El propietario
 autorizo publicar este candidato en su rama y continuar desde el. La publicacion
 no equivale a aceptacion de produccion: E08/E12/E13 siguen parciales. S1-A/S1-B
-permanecen en otra linea y deben reconciliarse con RC4. No se actualizaron
-instalaciones reales ni se abrio PR para este cierre.
+tenian una linea separada. S1-A ya esta reconciliado tecnicamente con RC4 en
+`codex/rc4-s1-integracion`, con pruebas aisladas; ver
+[cierre de integracion](RC4_S1A_INTEGRACION.md). M02 y S1-B siguen pendientes de
+conciliacion. No se actualizaron instalaciones reales ni se abrio PR.
 
 La tabla siguiente conserva el estado historico previo, no certifica el candidato clinico.
 

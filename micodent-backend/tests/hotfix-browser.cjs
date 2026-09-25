@@ -20,7 +20,7 @@ async function run({ base, root, pass }) {
       await page.locator('input').nth(0).fill('qaadmin');await page.locator('input').nth(1).fill('incorrecta');
       let navigations=0; const onNav=frame=>{if(frame===page.mainFrame())navigations++;};page.on('framenavigated',onNav);
       await page.locator('button[type=submit]').click();
-      await page.getByText('ID de usuario o contraseña incorrectos.',{exact:true}).waitFor();
+      await page.getByText('ID de usuario o contrasena incorrectos.',{exact:true}).waitFor();
       assert.equal(navigations,0,'Login 401 must not reload.');page.off('framenavigated',onNav);
       await page.locator('input').nth(1).fill(pass);await page.locator('button[type=submit]').click();
       await page.waitForURL(origin+'/');
@@ -189,10 +189,11 @@ async function run({ base, root, pass }) {
       outcomes.push({mode,login401:'PASS',editarPersonal:'PASS',abono:'PASS',modalViewports:4,selloPNG:'PASS',selloFallback:'PASS',selloHistoria:'PASS',rxMaps:2,rxPrint:'PASS',missingMapsBlocked:'PASS',actividad:'PASS',produccion:'PASS',adminMenu:'PASS',doctorMenu:'PASS',exceptions:errors.length});
       outcomes.at(-1).cajaGastosLaboratorioEntrePestanas='PASS';
       outcomes.at(-1).posInicialYPosterior='PASS';outcomes.at(-1).pendientesPorPaciente='PASS';outcomes.at(-1).alineacionProduccion='PASS';
+      outcomes.at(-1).sesiones = await require('./s1a-browser.cjs')({browser,base,origin,root,mode,pass});
       await context.close();console.log(`PASS navegador ${mode}`);
     }
     fs.writeFileSync(path.join(root,'browser-results.json'),JSON.stringify(outcomes,null,2));
-    await require('./baseline-browser.cjs')({base,root,pass,browser});
+    if (process.env.HOTFIX_COMPARE_BASELINE === '1') await require('./baseline-browser.cjs')({base,root,pass,browser});
   } finally {await browser.close();await vite.close();}
 }
 module.exports={run};

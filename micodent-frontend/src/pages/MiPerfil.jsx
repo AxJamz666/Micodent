@@ -6,6 +6,9 @@ import {
 } from 'lucide-react';
 import { authService, usuariosService } from '../services/api';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { clearMatchingSession } from '../services/session';
+import { passwordPolicyError } from '../utils/passwordPolicy';
 
 // ==========================================
 // PIZARRA DIGITAL PARA DIBUJAR LA FIRMA
@@ -77,6 +80,7 @@ const SignaturePad = ({ onEnd, initialImage }) => {
 };
 
 const MiPerfil = () => {
+  const navigate = useNavigate();
   const [userData,    setUserData]    = useState(null);
   const [loading,     setLoading]     = useState(true);
   const [savingPass,  setSavingPass]  = useState(false);
@@ -117,9 +121,9 @@ const MiPerfil = () => {
     if (securityForm.newPass !== securityForm.confirmPass) {
       toast.error('Las contraseñas nuevas no coinciden.'); return;
     }
-    if (securityForm.newPass.length < 8) {
-      toast.error('Mínimo 8 caracteres.'); return;
-    }
+    const policyError = passwordPolicyError(securityForm.newPass);
+    if (policyError) { toast.error(policyError); return; }
+    const token = localStorage.getItem('token');
     try {
       setSavingPass(true);
       await usuariosService.cambiarPassword({
@@ -128,7 +132,8 @@ const MiPerfil = () => {
       });
       setSecurityForm({ currentPass:'', newPass:'', confirmPass:'' });
       setShowCurrent(false); setShowNew(false); setShowConfirm(false);
-      toast.success('Contraseña actualizada. 🔐');
+      toast.success('Contraseña actualizada. Inicia sesión nuevamente.');
+      if (clearMatchingSession(token)) navigate('/login', { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.mensaje || 'Error al cambiar contraseña.');
     } finally {
@@ -350,7 +355,7 @@ const MiPerfil = () => {
                   <div className="relative">
                     <input required name="newPass" value={securityForm.newPass}
                       onChange={handleSecurityChange}
-                      type={showNew?'text':'password'} minLength="8"
+                      type={showNew?'text':'password'} minLength="15"
                       className="w-full pr-12 px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-clinical-500 bg-slate-50 font-medium"
                     />
                     <button type="button" onClick={()=>setShowNew(!showNew)}
@@ -367,7 +372,7 @@ const MiPerfil = () => {
                   <div className="relative">
                     <input required name="confirmPass" value={securityForm.confirmPass}
                       onChange={handleSecurityChange}
-                      type={showConfirm?'text':'password'} minLength="8"
+                      type={showConfirm?'text':'password'} minLength="15"
                       className="w-full pr-12 px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-clinical-500 bg-slate-50 font-medium"
                     />
                     <button type="button" onClick={()=>setShowConfirm(!showConfirm)}

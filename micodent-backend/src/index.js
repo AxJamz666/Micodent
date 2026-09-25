@@ -113,6 +113,7 @@ app.get('/api/health', async (req, res) => {
     const [[pos]] = await db.query('SELECT revision FROM finanzas_configuracion WHERE id=1');
     await db.query('SELECT pago_id,porcentaje,revision FROM finanzas_pago_pos LIMIT 0');
     if (migrations.length !== 2 || !pos) throw Object.assign(new Error('Pending migration'), { code: 'SCHEMA_PENDING' });
+    await require('../scripts/migrate-s1a').verifyApplied(db);
 
     res.set('Cache-Control', 'no-store');
 
@@ -121,15 +122,12 @@ app.get('/api/health', async (req, res) => {
       status: 'healthy',
       backend: 'online',
       database: 'connected',
-      version: 'hotfix-clinico-financiero-rc4',
+      version: 'rc4-s1a-dev',
       mensaje: 'Micodent esta listo para operar',
       hora: new Date().toLocaleString('es-PE'),
     });
   } catch (error) {
-    console.error(
-      '❌ Health Check - Error MySQL:',
-      error.message
-    );
+    console.error('Micodent health: la base de datos o una migracion no esta disponible.');
 
     res.set('Cache-Control', 'no-store');
 
@@ -138,7 +136,8 @@ app.get('/api/health', async (req, res) => {
       status: 'unhealthy',
       backend: 'online',
       database: 'disconnected',
-      reason: ['ER_NO_SUCH_TABLE', 'ER_BAD_FIELD_ERROR', 'ER_VIEW_INVALID', 'SCHEMA_PENDING'].includes(error.code) ? 'schema_pending' : 'database_unavailable',
+      reason: ['ER_NO_SUCH_TABLE', 'ER_BAD_FIELD_ERROR', 'ER_VIEW_INVALID', 'SCHEMA_PENDING'].includes(error.code)
+        || /^(MIGRATION_|ER_BAD_FIELD_ERROR)/.test(error.message) ? 'schema_pending' : 'database_unavailable',
       mensaje: 'Micodent aun no esta listo para operar',
       hora: new Date().toLocaleString('es-PE'),
     });
@@ -202,15 +201,20 @@ app.use((req, res) => {
 // SERVIDOR
 // ======================================================
 
-if (require.main === module) app.listen(PORT, () => {
-  console.log('');
-  console.log('================================================');
-  console.log('             MICODENT V3');
-  console.log('================================================');
-  console.log(`🚀 Sistema: http://localhost:${PORT}`);
-  console.log(`🛰️ API:     http://localhost:${PORT}/api`);
-  console.log(`❤️ Health:  http://localhost:${PORT}/api/health`);
-  console.log('================================================');
-  console.log('');
+app.use((err, _req, res, _next) => {
+  if (err.type === 'entity.parse.failed' || err.type === 'entity.too.large') {
+    return res.status(err.type === 'entity.too.large' ? 413 : 400).json({ ok: false, mensaje: 'Solicitud invalida.' });
+  }
+  return require('./utils/securityError').sendSecurityError(res, err);
 });
+
+if (require.main === module) {
+  require('../scripts/migrate-s1a').verifyApplied(db).then(() => {
+    app.listen(PORT, '127.0.0.1', () => console.log(`MICODENT DEV disponible en http://localhost:${PORT}`));
+  }).catch(async () => {
+    console.error('MICODENT DEV no inicio: verifica la BD y la migracion S1-A. No se aplicaron cambios automaticos.');
+    await db.end();
+    process.exitCode = 1;
+  });
+}
 module.exports = app;
