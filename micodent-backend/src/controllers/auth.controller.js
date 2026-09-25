@@ -1,11 +1,13 @@
 const db = require('../config/db');
 const security = require('../services/security');
+const browserTransport = require('../config/browserTransport');
 const { sendSecurityError } = require('../utils/securityError');
 
 const login = async (req, res) => {
   try {
     const result = await security.login(req.body?.id, req.body?.password);
-    res.json({ ok: true, ...result });
+    const sesion = browserTransport.issue(res, result.token);
+    res.json({ ok: true, usuario: result.usuario, sesion });
   } catch (err) { return sendSecurityError(res, err); }
 };
 
@@ -17,13 +19,15 @@ const getMe = async (req, res) => {
        firma_digital, sello_digital, comision_porcentaje
        FROM usuarios WHERE id = ?`, [req.usuario.id]);
     if (!rows.length) return res.status(401).json({ ok: false, codigo: 'AUTH_SESSION_INVALID', mensaje: 'Inicia sesion nuevamente.' });
-    res.json({ ok: true, usuario: rows[0] });
+    res.json({ ok: true, usuario: rows[0], sesion: req.browserSession });
   } catch (err) { return sendSecurityError(res, err); }
 };
 
 const logout = async (req, res) => {
   try {
     await security.logout(req.auth);
+    // Revocation is authoritative. A delayed Set-Cookie deletion could erase
+    // a newer login in another tab; leave the now-unusable cookie to expire.
     res.json({ ok: true, mensaje: 'Sesion cerrada.' });
   } catch (err) { return sendSecurityError(res, err); }
 };

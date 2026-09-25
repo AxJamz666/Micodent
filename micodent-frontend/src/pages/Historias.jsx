@@ -441,7 +441,7 @@ const doctorLogueado = localStorage.getItem('userFullName') || 'Usuario Desconoc
       navigate('/historias');
 
     } catch (err) {
-      console.error(err);
+      console.error('No se pudo completar la operacion de historias.');
       toast.error(err.response?.data?.mensaje || 'Error al guardar la historia clínica.');
     } finally {
       setSavingHC(false);

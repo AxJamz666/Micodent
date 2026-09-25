@@ -29,15 +29,15 @@ async function seed(label, level = 1, role = 'Asistente', active = 1, hash = nul
   return id;
 }
 async function request(method, route, token, body) {
-  const response = await fetch(base + route, { method, headers: { 'Content-Type': 'application/json',
-    ...(token ? { Authorization: 'Bearer ' + token } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
-  return { status: response.status, headers: response.headers, body: await response.json() };
+  const client = require('../helpers/cookie-client.cjs');
+  const response = await fetch(base + route, { method, headers: client.headers(base,token), body: body === undefined ? undefined : JSON.stringify(body) });
+  return client.response(response);
 }
 async function login(id, value = password) {
   const result = await request('POST', '/auth/login', null, { id, password: value });
   assert.equal(result.status, 200, 'Synthetic account must authenticate');
-  assert.equal(typeof result.body.token, 'string');
-  return result.body.token;
+  assert.equal(typeof result.token, 'string');
+  return result.token;
 }
 async function credentials(id) {
   const [[row]] = await db.execute('SELECT password_hash,auth_version FROM usuarios WHERE id=?', [id]);
@@ -196,7 +196,7 @@ test('login racing reset cannot leave a usable old-password session', async () =
     request('POST', '/usuarios/reset-password', actor, { targetUserId: id, adminPassword: password, nuevaPassword: newPassword }),
     ...Array.from({ length: 3 }, () => request('POST', '/auth/login', null, { id, password }))]);
   assert.equal(reset.status, 200);
-  for (const r of attempts) if (r.status === 200) assert.equal((await request('GET', '/auth/me', r.body.token)).status, 401);
+  for (const r of attempts) if (r.status === 200) assert.equal((await request('GET', '/auth/me', r.token)).status, 401);
   await login(id, newPassword);
 });
 test('audit failure rolls back password and revocation together', async () => {

@@ -76,10 +76,11 @@ async function run() {
     appServer=app.listen(0,'127.0.0.1'); await once(appServer,'listening');
     const base=`http://127.0.0.1:${appServer.address().port}`;
     async function api(method,url,body,token,key=crypto.randomUUID()) {
-      const response=await fetch(`${base}/api${url}`,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{ }),'Idempotency-Key':key},...(body?{body:JSON.stringify(body)}:{})});
-      return { status:response.status,body:await response.json() };
+      const client = require('./helpers/cookie-client.cjs');
+      const response=await fetch(`${base}/api${url}`,{method,headers:{...client.headers(base,token),'Idempotency-Key':key},...(body?{body:JSON.stringify(body)}:{})});
+      return client.response(response);
     }
-    const tokens={}; for(const id of ['qaadmin','qadoctor','qaotro']) {const r=await api('POST','/auth/login',{id,password:pass});assert.equal(r.status,200);tokens[id]=r.body.token;}
+    const tokens={}; for(const id of ['qaadmin','qadoctor','qaotro']) {const r=await api('POST','/auth/login',{id,password:pass});assert.equal(r.status,200);tokens[id]=r.token;}
     const create=(token,extra={})=>api('POST','/historias/1/consultas',{descripcion:'Tratamiento sintetico',costo_total:'380.00',abono_inicial:'0',fecha_consulta:'2026-09-22',tipo_comision:'estandar',...extra},token);
     let a,b;
     await check('A: cobro 120, comision 30, margen 90',async()=>{

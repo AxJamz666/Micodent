@@ -1,21 +1,24 @@
 import axios from 'axios';
 import { normalizeResponse } from '../utils/data';
 import { isFinancialMutation, notifyFinanceChange } from '../utils/financeEvents';
-import { clearSession, shouldClearSession } from './session';
+import { browserSession } from './browserSession';
 
 const api = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 });
 
 async function postOnce(url, data) {
+  const epoch = browserSession.assertCurrent();
   const bytes = new TextEncoder().encode(JSON.stringify([localStorage.getItem('userId'), url, data]));
   const digest = await crypto.subtle.digest('SHA-256', bytes);
+  browserSession.assertCurrent(epoch);
   const slot = `micodent-pending-${Array.from(new Uint8Array(digest), x => x.toString(16).padStart(2, '0')).join('')}`;
   const key = sessionStorage.getItem(slot) || crypto.randomUUID();
   sessionStorage.setItem(slot, key);
   try {
-    const result = await api.post(url, data, { headers: { 'Idempotency-Key': key } });
+    const result = await api.post(url, data, { sessionExpectedEpoch: epoch, headers: { 'Idempotency-Key': key } });
     sessionStorage.removeItem(slot);
     return result;
   } catch (error) {
@@ -24,24 +27,33 @@ async function postOnce(url, data) {
   }
 }
 
-// Agrega el token JWT a cada petición automáticamente
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (Object.hasOwn(config, 'sessionExpectedEpoch')) browserSession.assertCurrent(config.sessionExpectedEpoch);
+  const context = browserSession.requestContext({ login: config.url === '/auth/login', bootstrap: config.sessionBootstrap === true });
+  config.sessionEpoch = context.epoch;
+  config.headers['X-Micodent-Client'] = 'web';
+  if (context.id) config.headers['X-Micodent-Session'] = context.id;
+  if (context.csrf) config.headers['X-CSRF-Token'] = context.csrf;
+  if (config.sessionBootstrap) config.headers['X-Micodent-Bootstrap'] = '1';
   return config;
 });
 
-// Si el token expira, manda al login
 api.interceptors.response.use(
   (response) => {
+    browserSession.assertCurrent(response.config.sessionEpoch);
     response.data = normalizeResponse(response.data);
     if (response.data?.ok !== false && isFinancialMutation(response.config)) notifyFinanceChange();
     return response;
   },
   (error) => {
-    if (shouldClearSession(error, localStorage.getItem('token'))) {
-      clearSession();
-      window.location.href = '/login';
+    if (axios.isCancel(error)) return Promise.reject(error);
+    if (error.config) {
+      browserSession.assertCurrent(error.config.sessionEpoch);
+      if (['AUTH_SESSION_CHANGED', 'AUTH_CSRF_INVALID'].includes(error.response?.data?.codigo)) {
+        browserSession.changed(error.config.sessionEpoch);
+      } else if (error.response?.status === 401 && error.config.url !== '/auth/login') {
+        browserSession.expire(error.config.sessionEpoch);
+      }
     }
     return Promise.reject(error);
   }
@@ -52,7 +64,8 @@ api.interceptors.response.use(
 // ============================================================
 export const authService = {
   login: (id, password) => api.post('/auth/login', { id, password }),
-  getMe: ()             => api.get('/auth/me'),
+  getMe: ()             => api.get('/auth/me', { timeout: 10000 }),
+  bootstrap: signal    => api.get('/auth/me', { timeout: 10000, signal, sessionBootstrap: true }),
   logout: ()            => api.post('/auth/logout'),
   logoutAll: ()         => api.post('/auth/logout-all'),
 };

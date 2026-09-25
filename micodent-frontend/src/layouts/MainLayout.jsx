@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import { Home, Users, CalendarDays, UserCircle, LogOut, Settings, User, ChevronDown, TrendingUp } from 'lucide-react';
 import { authService } from '../services/api';
-import { clearMatchingSession } from '../services/session';
+import { browserSession } from '../services/browserSession';
 import toast from 'react-hot-toast';
 
 const MainLayout = () => {
@@ -27,15 +27,14 @@ const MainLayout = () => {
   }, []);
 
   const handleLogout = async () => {
-    const token = localStorage.getItem('token');
     setLoggingOut(true);
     try {
+      const epoch = browserSession.assertCurrent();
       await authService.logout();
-      if (clearMatchingSession(token)) navigate('/login', { replace: true });
+      browserSession.end(epoch);
+      navigate('/login', { replace: true });
     } catch (error) {
-      if (error.response?.status === 401) {
-        if (clearMatchingSession(token)) navigate('/login', { replace: true });
-      } else {
+      if (error.response?.status !== 401 && error.code !== 'SESSION_CHANGED') {
         toast.error('No se pudo confirmar el cierre de sesión. Intenta nuevamente.');
       }
     } finally { setLoggingOut(false); }

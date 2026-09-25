@@ -38,7 +38,7 @@ function createSessionService(db, options, audit = auditSecurity) {
       if (typeof token !== 'string' || token.length > 4096) throw invalidSession();
       const claims = jwt.verify(token, options.secret, { algorithms: ['HS256'],
         issuer: options.issuer, audience: options.audience });
-      if (typeof claims.sub !== 'string' || !Number.isInteger(claims.av) || claims.av < 0
+      if (claims.bt !== 2 || typeof claims.sub !== 'string' || !Number.isInteger(claims.av) || claims.av < 0
           || typeof claims.jti !== 'string' || !/^[a-f0-9]{64}$/.test(claims.jti)
           || !Number.isInteger(claims.exp) || !Number.isInteger(claims.iat)) throw invalidSession();
       return { claims, tokenHash: digest(token) };
@@ -78,7 +78,7 @@ function createSessionService(db, options, audit = auditSecurity) {
       if (!user?.activo || user.password_hash !== original.password_hash || user.auth_version !== original.auth_version) {
         throw invalidSession();
       }
-      const token = jwt.sign({ av: user.auth_version }, options.secret, { algorithm: 'HS256',
+      const token = jwt.sign({ av: user.auth_version, bt: 2 }, options.secret, { algorithm: 'HS256',
         subject: user.id, jwtid: crypto.randomBytes(32).toString('hex'),
         issuer: options.issuer, audience: options.audience, expiresIn: options.expiresIn });
       const { exp } = jwt.decode(token);

@@ -14,6 +14,11 @@ conciliacion en aquel cierre. M02-A ya esta conciliado en la rama
 contencion global M02-B siguen pendientes. No se actualizaron instalaciones
 reales ni se abrio PR.
 
+Actualizacion 2026-09-25: S1-B conciliado tecnicamente con RC4, sin activacion
+habitual ni despliegue. [Cierre S1-B](RC4_S1B_CIERRE.md) registra la prueba
+compilada, la incidencia del proxy Vite y su repeticion correcta. La aceptacion
+historica y la tabla siguiente no sustituyen la aceptacion de esta combinacion.
+
 La tabla siguiente conserva el estado historico previo, no certifica el candidato clinico.
 
 Repositorio privado AxJamz666/Micodent. Etapa 0 de preparacion + etapas 1-17.

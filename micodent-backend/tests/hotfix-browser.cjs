@@ -7,12 +7,14 @@ async function run({ base, root, pass }) {
   const { chromium } = require(process.env.HOTFIX_PLAYWRIGHT);
   const front = path.resolve(__dirname, '../../micodent-frontend');
   const { createServer } = await import(pathToFileURL(path.join(front,'node_modules/vite/dist/node/index.js')));
-  const vite = await createServer({ root:front, server:{ host:'127.0.0.1',port:0,proxy:{ '/api':base,'/uploads':base } } });
+  const vite = await createServer({ root:front, server:{ host:'127.0.0.1',port:0,proxy:{
+    '/api':{target:base,changeOrigin:false},'/uploads':{target:base,changeOrigin:false} } } });
   await vite.listen();
   const browser = await chromium.launch({channel:'msedge',headless:true});
   const outcomes=[];
   try {
     for (const [mode,origin] of [['build',base],['dev',`http://127.0.0.1:${vite.httpServer.address().port}`]]) {
+      if (process.env.HOTFIX_BROWSER_MODE && process.env.HOTFIX_BROWSER_MODE !== mode) continue;
       const context=await browser.newContext({viewport:{width:1366,height:768}});
       const page=await context.newPage();
       const errors=[];page.on('pageerror',err=>errors.push(err.message));
@@ -190,7 +192,9 @@ async function run({ base, root, pass }) {
       outcomes.at(-1).cajaGastosLaboratorioEntrePestanas='PASS';
       outcomes.at(-1).posInicialYPosterior='PASS';outcomes.at(-1).pendientesPorPaciente='PASS';outcomes.at(-1).alineacionProduccion='PASS';
       outcomes.at(-1).sesiones = await require('./s1a-browser.cjs')({browser,base,origin,root,mode,pass});
-      await context.close();console.log(`PASS navegador ${mode}`);
+      await context.close();
+      fs.writeFileSync(path.join(root,'browser-results.json'),JSON.stringify(outcomes,null,2));
+      console.log(`PASS navegador ${mode}`);
     }
     fs.writeFileSync(path.join(root,'browser-results.json'),JSON.stringify(outcomes,null,2));
     if (process.env.HOTFIX_COMPARE_BASELINE === '1') await require('./baseline-browser.cjs')({base,root,pass,browser});

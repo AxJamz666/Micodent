@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
 
 const db = require('./config/db');
+const browserTransport = require('./config/browserTransport');
 
 // ======================================================
 // RUTAS
@@ -34,16 +34,10 @@ const FRONTEND_BUILD = path.join(__dirname, '../public');
 // CORS
 // ======================================================
 
+app.use('/api', browserTransport.boundary);
 app.use(
   cors({
-    origin: [
-      'http://localhost:4000',
-      'http://127.0.0.1:4000',
-      'http://localhost:5173',
-      'http://127.0.0.1:5173',
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-    ],
+    origin: browserTransport.origins,
     credentials: true,
   })
 );
@@ -122,7 +116,7 @@ app.get('/api/health', async (req, res) => {
       status: 'healthy',
       backend: 'online',
       database: 'connected',
-      version: 'rc4-s1a-dev',
+      version: 'rc4-s1b-dev',
       mensaje: 'Micodent esta listo para operar',
       hora: new Date().toLocaleString('es-PE'),
     });

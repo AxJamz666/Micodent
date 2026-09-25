@@ -25,7 +25,7 @@ module.exports = async ({ conn, base }) => {
       try {
         const response = await fetch(`http://127.0.0.1:${port}/api/health`, { signal: AbortSignal.timeout(1000) });
         const body = await response.json();
-        if (response.ok && body.version === 'rc4-s1a-dev') { healthy = true; break; }
+        if (response.ok && body.version === 'rc4-s1b-dev') { healthy = true; break; }
       } catch { /* The child may still be starting. */ }
       await delay(100);
     }

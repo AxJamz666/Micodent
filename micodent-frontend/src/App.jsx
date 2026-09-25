@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
@@ -11,24 +10,26 @@ import Historias from './pages/Historias';
 import Agenda from './pages/Agenda';
 import FinanzasDashboard from './pages/FinanzasDashboard';
 import Produccion from './pages/Produccion';
+import SessionBoundary from './components/SessionBoundary';
+import { useSession } from './services/browserSession';
 
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('userNombre');
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  const { user } = useSession();
+  if (!user) return <Navigate to="/login" replace />;
   return children;
 };
 
 const AdminRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('userNombre');
-  const isAdmin = localStorage.getItem('isAdmin') === 'true';
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (!isAdmin) return <Navigate to="/" replace />;
+  const { user } = useSession();
+  if (!user) return <Navigate to="/login" replace />;
+  if (!user.isAdmin) return <Navigate to="/" replace />;
   return children;
 };
 
 function App() {
   return (
     <BrowserRouter>
+      <SessionBoundary>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
@@ -48,6 +49,7 @@ function App() {
           } />
         </Route>
       </Routes>
+      </SessionBoundary>
     </BrowserRouter>
   );
 }

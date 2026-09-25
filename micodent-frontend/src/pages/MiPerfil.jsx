@@ -7,7 +7,7 @@ import {
 import { authService, usuariosService } from '../services/api';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { clearMatchingSession } from '../services/session';
+import { browserSession } from '../services/browserSession';
 import { passwordPolicyError } from '../utils/passwordPolicy';
 
 // ==========================================
@@ -123,8 +123,8 @@ const MiPerfil = () => {
     }
     const policyError = passwordPolicyError(securityForm.newPass);
     if (policyError) { toast.error(policyError); return; }
-    const token = localStorage.getItem('token');
     try {
+      const epoch = browserSession.assertCurrent();
       setSavingPass(true);
       await usuariosService.cambiarPassword({
         passwordActual: securityForm.currentPass,
@@ -133,7 +133,8 @@ const MiPerfil = () => {
       setSecurityForm({ currentPass:'', newPass:'', confirmPass:'' });
       setShowCurrent(false); setShowNew(false); setShowConfirm(false);
       toast.success('Contraseña actualizada. Inicia sesión nuevamente.');
-      if (clearMatchingSession(token)) navigate('/login', { replace: true });
+      browserSession.end(epoch);
+      navigate('/login', { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.mensaje || 'Error al cambiar contraseña.');
     } finally {
