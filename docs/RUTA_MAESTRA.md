@@ -34,6 +34,12 @@ conciliar M02 sobre esta base, seguido por S1-B; sus avances historicos no se
 consideran incorporados automaticamente. El migrador operativo S1-A sigue
 limitado a MySQL, aunque se verificaron las estructuras y API con MariaDB.
 
+Continuacion M02 2026-09-24: controles de secretos conciliados sobre RC4 + S1-A
+en `codex/rc4-m02-secretos`. Ver [cierre M02](RC4_M02_CIERRE.md).
+Incluye detector, plantillas y empaquetado protegido, sin rotar ninguna clave.
+La contencion/rotacion global por instalacion permanece pendiente. Siguiente
+paquete de codigo: conciliar S1-B, preservando las funciones de RC4.
+
 ## Orden de trabajo
 
 | Etapa | Paquete | Resultado y dependencias |

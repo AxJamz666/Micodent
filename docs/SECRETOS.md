@@ -24,11 +24,11 @@ respaldo. Los cambios de contrasena deben usar los flujos autenticados de S1-A.
 | Backend .env | DB_PASSWORD | Secreto privado de la cuenta DB de esta instalacion. |
 | Backend .env | JWT_SECRET | Secreto privado de firma; independiente por entorno en la futura rotacion. |
 | Backend .env | DB_HOST, DB_PORT, DB_NAME, DB_USER, PORT, JWT_EXPIRES_IN | Configuracion; no copiar ciegamente entre instalaciones. |
-| Frontend .env | VITE_API_BASE_URL | URL publica REST con /api. |
-| Frontend .env | VITE_API_URL | URL publica de origen para archivos clinicos; sin /api. |
+| Control local | MICODENT_SECRET_REFERENCES | Rutas absolutas de referencias privadas, separadas por el delimitador del sistema. Solo lectura, no configura el backend. |
+| Frontend RC4 | Sin variables VITE_* necesarias | API e imagenes usan el mismo origen; proxy de desarrollo en vite.config.js. |
 
-La coexistencia de ambas URL refleja el codigo actual y no se modifica en
-M02-A. V3 resolvera configuracion por instalacion y mismo origen. VITE_* no es
+Las variables de URL descritas en la linea anterior a RC4 ya no son necesarias
+en esta rama. No reintroducir endpoints obsoletos desde plantillas antiguas. VITE_* no es
 un lugar para secretos: sus valores usados por el frontend pueden incluirse
 en el JavaScript servido al navegador.
 
@@ -41,15 +41,21 @@ npm run security:check
 npm run security:history
 ```
 
-El primer comando revisa archivos de trabajo, build, logs de DEV y contenido
-del indice Git. El segundo anade el historial Git local disponible. Ambos
+El primer comando revisa archivos de trabajo, build y contenido
+del indice Git. Excluye .runtime, uploads y dependencias privados. El segundo
+anade todos los antecesores de HEAD, no ramas ajenas que no se publicaran. Ambos
 comparan en memoria los secretos del .env backend; nunca los imprimen ni los
 envian a un servicio externo. No consultan MySQL ni acceden a las laptops.
 Requieren que el .env privado de este DEV este disponible como referencia.
+Un worktree sin .env usa MICODENT_SECRET_REFERENCES para leer en memoria el
+archivo privado existente sin copiarlo ni modificarlo. En Windows varias rutas
+se separan con punto y coma. Una referencia ausente o incompleta bloquea el
+control; no se sustituye por --patterns-only para publicar o empaquetar.
 
-GitHub CI utiliza --patterns-only de forma explicita, sin recibir secretos de
+La linea historica de GitHub CI utiliza --patterns-only, sin recibir secretos de
 instalaciones. Su reporte indica knownSecretComparison=false. Ese modo no
 sustituye la comparacion local de secretos conocidos antes de compartir.
+Esta rama RC4 aun no incorpora esos workflows; sus pruebas son locales.
 
 Salida 0: sin coincidencias para las comprobaciones efectuadas.
 Salida 1: hallazgos que necesitan revision; no compartir ese artefacto.
@@ -57,8 +63,16 @@ Salida 2: comprobacion incompleta; no interpretarla como una aprobacion.
 La salida solo incluye rutas, lineas, reglas y conteos, sin fragmentos de codigo.
 
 El backend tiene private=true para impedir publicacion accidental con npm.
-prepack ejecuta la comprobacion con historial, pero NO instala un hook de Git
-ni configura CI. Copiar una carpeta manualmente no ejecuta este control.
+prepack ejecuta la comprobacion con historial. El empaquetador package-hotfix.cjs
+tambien la exige antes de crear la entrega y examina su contenido despues de
+copiarlo. No instala un hook Git ni configura CI. Copiar una carpeta manualmente
+no ejecuta este control. Un paquete con fallos no se declara apto ni se comparte.
+
+Los SQL bloqueados incluyen dumps. Solo se permiten las rutas exactas de las
+dos migraciones financieras RC4 y su contenido SHA-256 revisado, normalizando
+unicamente CRLF/LF. No basta cambiar el nombre de un dump. Una modificacion de
+esas migraciones exige revision humana antes de actualizar la referencia del
+detector; nunca cambiarla solo para silenciar un fallo.
 
 ## Compartir codigo con una IA o colaborador
 

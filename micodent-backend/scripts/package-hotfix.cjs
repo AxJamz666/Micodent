@@ -1,13 +1,24 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const secretCheck = require('./check-secrets');
+
+// Fail before creating a deliverable unless local reference and history checks succeed.
+let knownSecrets;
+try {
+  knownSecrets = secretCheck.loadKnownSecrets();
+  if (secretCheck.run(['--history']) !== 0) process.exit(1);
+} catch {
+  console.error('PACKAGE_SECURITY_CHECK_FAILED: no se genero un paquete.');
+  process.exit(1);
+}
 
 const workspace = path.resolve(__dirname, '../..');
 const version = 'MICODENT-RC4-S1A-DEV';
 const destination = path.join(workspace, '.runtime', 'releases', `${version}-${Date.now()}`);
 if (!fs.existsSync(path.join(workspace, 'micodent-frontend/dist/index.html'))) throw new Error('Compila primero el frontend.');
 fs.mkdirSync(destination, { recursive: true });
-const excluded = name => name === 'node_modules' || name === 'uploads' || name === '.git' || name === '.runtime' || name.startsWith('.env') || /(?:_completo\.txt|\.log|\.zip|\.pem|\.key|credentials\.json)$/i.test(name);
+const excluded = name => name === 'node_modules' || name === 'uploads' || name === '.git' || name === '.runtime' || (name.startsWith('.env') && name !== '.env.example') || /(?:_completo\.txt|\.log|\.zip|\.pem|\.key|credentials\.json)$/i.test(name);
 function copy(source, target) {
   if (excluded(path.basename(source))) return;
   const stat = fs.lstatSync(source);
@@ -21,15 +32,17 @@ function copy(source, target) {
   }
 }
 const includes = {
-  'micodent-backend': ['src', 'scripts', 'migrations', 'tests', 'package.json', 'package-lock.json'],
-  'micodent-frontend': ['src', 'public', 'tests', 'package.json', 'package-lock.json', 'index.html', 'vite.config.js', 'tailwind.config.js', 'postcss.config.js', 'eslint.config.js'],
+  'micodent-backend': ['src', 'scripts', 'migrations', 'tests', '.env.example', 'actualizar-credenciales.js', 'package.json', 'package-lock.json'],
+  'micodent-frontend': ['src', 'public', 'tests', '.env.example', 'package.json', 'package-lock.json', 'index.html', 'vite.config.js', 'tailwind.config.js', 'postcss.config.js', 'eslint.config.js'],
 };
 for (const [folder, entries] of Object.entries(includes)) {
   for (const entry of entries) copy(path.join(workspace, folder, entry), path.join(destination, folder, entry));
 }
 copy(path.join(workspace, 'micodent-frontend/dist'), path.join(destination, 'micodent-backend/public'));
 copy(path.join(workspace, 'micodent-backend/public/build-version.json'), path.join(destination, 'micodent-backend/public/build-version.json'));
-for (const entry of ['iniciar_micodent.bat', 'comprobar_micodent.bat', 'micodent-arranque.cjs', 'docs/HOTFIX_RC1.md', 'docs/HOTFIX_RC2.md', 'docs/HOTFIX_RC3.md', 'docs/HOTFIX_RC4.md', 'docs/RC4_S1A_INTEGRACION.md']) copy(path.join(workspace, entry), path.join(destination, entry));
+for (const entry of ['iniciar_micodent.bat', 'comprobar_micodent.bat', 'micodent-arranque.cjs', 'docs/HOTFIX_RC1.md', 'docs/HOTFIX_RC2.md', 'docs/HOTFIX_RC3.md', 'docs/HOTFIX_RC4.md', 'docs/RC4_S1A_INTEGRACION.md', 'docs/RC4_M02_CIERRE.md', 'docs/SECRETOS.md']) copy(path.join(workspace, entry), path.join(destination, entry));
+const inspection = secretCheck.scanDirectory(destination, { knownSecrets, artifact: true });
+if (inspection.findings.length) throw new Error('PACKAGE_CONTENT_REJECTED: copia incompleta no apta para compartir.');
 const files = [];
 function inventory(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

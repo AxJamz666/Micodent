@@ -9,7 +9,10 @@ no equivale a aceptacion de produccion: E08/E12/E13 siguen parciales. S1-A/S1-B
 tenian una linea separada. S1-A ya esta reconciliado tecnicamente con RC4 en
 `codex/rc4-s1-integracion`, con pruebas aisladas; ver
 [cierre de integracion](RC4_S1A_INTEGRACION.md). M02 y S1-B siguen pendientes de
-conciliacion. No se actualizaron instalaciones reales ni se abrio PR.
+conciliacion en aquel cierre. M02-A ya esta conciliado en la rama
+`codex/rc4-m02-secretos`; ver [resultado](RC4_M02_CIERRE.md). S1-B y la
+contencion global M02-B siguen pendientes. No se actualizaron instalaciones
+reales ni se abrio PR.
 
 La tabla siguiente conserva el estado historico previo, no certifica el candidato clinico.
 

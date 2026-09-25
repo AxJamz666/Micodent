@@ -13,6 +13,7 @@ Repositorio: https://github.com/AxJamz666/Micodent
 | codex/<paquete>-<descripcion> | Un paquete autorizado por rama, no una rama por archivo. |
 | codex/hotfix-clinico-financiero | Candidato funcional RC4; no integrado aun con S1-A/S1-B. |
 | codex/rc4-s1-integracion | RC4 con S1-A conciliado y probado en aislamiento; solo DEV. M02/S1-B pendientes. |
+| codex/rc4-m02-secretos | Controles M02-A y empaquetado protegido sobre RC4 + S1-A, sin nueva rotacion. |
 
 No se crean ramas vacias de trabajo para todas las etapas: las etapas se mapean
 en milestones e issues; las ramas nacen al autorizar su implementacion.

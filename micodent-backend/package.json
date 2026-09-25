@@ -11,7 +11,10 @@
     "test:security": "node --test --test-concurrency=1 tests/integration/*.test.js",
     "package:frontend": "node scripts/package-frontend.js",
     "migrate:hotfix": "node scripts/migrate-hotfix.js",
-    "migrate:s1a": "node scripts/migrate-s1a.js"
+    "migrate:s1a": "node scripts/migrate-s1a.js",
+    "security:check": "node scripts/check-secrets.js",
+    "security:history": "node scripts/check-secrets.js --history",
+    "prepack": "node scripts/check-secrets.js --history"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",
