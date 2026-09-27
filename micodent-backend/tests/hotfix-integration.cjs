@@ -72,6 +72,8 @@ async function run() {
     Object.assign(process.env,{ DB_HOST:'127.0.0.1',DB_PORT:String(port),DB_USER:'dev_micodent',DB_PASSWORD:password,DB_NAME:'micodent_dev',JWT_SECRET:crypto.randomBytes(40).toString('hex'),JWT_EXPIRES_IN:'1h' });
     const s1a = require('./s1a-hotfix-integration.cjs');
     const securityIdentity = await s1a.prepare({conn,root,bin,port,dataDir,mysql8,password,check});
+    const clinicalFiles = process.env.HOTFIX_FILES_TEST === '1' ? require('./clinical-files-integration.cjs') : null;
+    if (clinicalFiles) await clinicalFiles.prepare({conn,root});
     const app=require('../src/index'); pool=require('../src/config/db');
     appServer=app.listen(0,'127.0.0.1'); await once(appServer,'listening');
     const base=`http://127.0.0.1:${appServer.address().port}`;
@@ -230,6 +232,7 @@ async function run() {
     fs.writeFileSync(path.join(root,'results.json'),JSON.stringify({ version:instance.version,results },null,2));
     console.log(`Evidencia sintetica: ${root}`);
     if (process.env.HOTFIX_BROWSER_TEST === '1') await require('./hotfix-browser.cjs').run({ base, root, pass });
+    if (clinicalFiles) await clinicalFiles.run({base,root,pass,api,tokens,check});
     await check('S1-A: arranque real y health rechazan una migracion de seguridad incorrecta', async () => {
       await require('./s1a-startup.cjs')({conn,base});
     });

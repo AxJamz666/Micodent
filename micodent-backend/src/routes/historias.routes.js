@@ -15,6 +15,10 @@ const {
 // ✅ Importar verificarToken Y soloDoctor juntos
 const { verificarToken, soloDoctor, soloAdmin } = require('../middleware/auth');
 const { agregarConsulta, registrarPago, anularPago, conciliarCostos } = require('../controllers/cobros.controller');
+const { clinicalFileHandler } = require('../services/clinicalFiles');
+router.get('/radiografias/:id/archivo', verificarToken, clinicalFileHandler({
+  db: require('../config/db'), root: require('node:path').join(__dirname, '../uploads'),
+}));
 router.post('/pagos/:pagoId/anular', verificarToken, soloAdmin, anularPago);
 router.post('/consultas/:consultaId/conciliar-costos', verificarToken, soloAdmin, conciliarCostos);
 

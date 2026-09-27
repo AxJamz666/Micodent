@@ -59,10 +59,10 @@ app.use(
 // ARCHIVOS SUBIDOS
 // ======================================================
 
-app.use(
-  '/uploads',
-  express.static(path.join(__dirname, 'uploads'))
-);
+app.use('/uploads', (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.status(404).json({ ok: false, mensaje: 'Recurso no disponible.' });
+});
 
 // ======================================================
 // API MICODENT
@@ -116,7 +116,7 @@ app.get('/api/health', async (req, res) => {
       status: 'healthy',
       backend: 'online',
       database: 'connected',
-      version: 'rc4-s1b-dev',
+      version: 'rc4-m03a-dev',
       mensaje: 'Micodent esta listo para operar',
       hora: new Date().toLocaleString('es-PE'),
     });

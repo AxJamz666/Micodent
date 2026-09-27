@@ -41,12 +41,15 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => {
     browserSession.assertCurrent(response.config.sessionEpoch);
-    response.data = normalizeResponse(response.data);
+    if (response.config.responseType !== 'blob') response.data = normalizeResponse(response.data);
     if (response.data?.ok !== false && isFinancialMutation(response.config)) notifyFinanceChange();
     return response;
   },
-  (error) => {
+  async (error) => {
     if (axios.isCancel(error)) return Promise.reject(error);
+    if (error.response?.data instanceof Blob && error.response.data.type.includes('application/json') && error.response.data.size < 65536) {
+      try { error.response.data = JSON.parse(await error.response.data.text()); } catch { /* Keep the original HTTP status. */ }
+    }
     if (error.config) {
       browserSession.assertCurrent(error.config.sessionEpoch);
       if (['AUTH_SESSION_CHANGED', 'AUTH_CSRF_INVALID'].includes(error.response?.data?.codigo)) {

@@ -6,7 +6,8 @@ import {
   Check, Clock, Trash2, Edit, Lock, UploadCloud, Baby, FileSignature
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { pacientesService, historiasService, authService, dashboardService, API_URL } from '../services/api';
+import { pacientesService, historiasService, authService, dashboardService } from '../services/api';
+import ClinicalImage from '../components/ClinicalImage';
 import MetodoPago from '../components/MetodoPago';
 import OdontogramaEditor from '../components/OdontogramaEditor';
 import RecetarioTab from '../components/RecetarioTab';
@@ -20,12 +21,6 @@ const ESTADO_HC_CONFIG = {
 
 const fechaHoyLima = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
 
-const getImageSrc = (rad) => {
-  if (!rad) return '';
-  if (rad.imageBase64) return rad.imageBase64;
-  if (rad.url_archivo) return `${API_URL}${rad.url_archivo}`;
-  return '';
-};
 
 const calculateAge = (fecha) => {
   if (!fecha) return 0;
@@ -813,7 +808,7 @@ const PacienteDetalle = () => {
                 radiografias.map(rad => (
                   <div key={rad.id} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden group">
                     <div className="relative h-64 bg-black flex items-center justify-center cursor-pointer" onClick={() => setSelectedImage(rad)}>
-                      <img src={getImageSrc(rad)} alt="Placa" className="max-h-full max-w-full object-contain" />
+                      <ClinicalImage record={rad} alt="Placa" className="max-h-full max-w-full object-contain" />
                       <button onClick={(e) => { e.stopPropagation(); handleEliminarRadiografia(rad.id); }} className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
                     </div>
                     <div className="p-4 bg-slate-50">
@@ -1167,7 +1162,7 @@ const PacienteDetalle = () => {
         <div className="dialog-overlay fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/95 backdrop-blur-md animate-fade-in">
           <div className="relative w-full max-w-5xl flex justify-center items-center">
             <button onClick={() => setSelectedImage(null)} className="absolute -top-12 right-0 text-slate-400 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-xl backdrop-blur-md"><X size={32} /></button>
-            <img src={getImageSrc(selectedImage)} alt="Radiografía ampliada" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" />
+            <ClinicalImage record={selectedImage} alt="Radiografía ampliada" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" />
           </div>
         </div>
       )}

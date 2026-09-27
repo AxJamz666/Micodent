@@ -15,6 +15,7 @@ Repositorio: https://github.com/AxJamz666/Micodent
 | codex/rc4-s1-integracion | RC4 con S1-A conciliado y probado en aislamiento; solo DEV. M02/S1-B pendientes. |
 | codex/rc4-m02-secretos | Controles M02-A y empaquetado protegido sobre RC4 + S1-A, sin nueva rotacion. |
 | codex/rc4-s1b-sesiones | Cookies/CSRF y sesiones por pestana sobre RC4 + S1-A + M02-A; verificado en aislamiento, no activado. |
+| codex/rc4-m03a-archivos-privados | Lectura privada y vistas de anexos sobre RC4 + S1-B; cierre parcial de E04, no activado. M03-B pendiente. |
 
 No se crean ramas vacias de trabajo para todas las etapas: las etapas se mapean
 en milestones e issues; las ramas nacen al autorizar su implementacion.

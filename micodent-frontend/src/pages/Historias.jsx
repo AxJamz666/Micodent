@@ -1,7 +1,8 @@
 import toast from 'react-hot-toast';
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { pacientesService, historiasService, authService, API_URL } from '../services/api';
+import { pacientesService, historiasService, authService } from '../services/api';
+import ClinicalImage from '../components/ClinicalImage';
 import { TRATAMIENTOS_DB } from '../utils/tratamientosDb';
 import { Diente } from '../components/Diente';
 import OdontogramaEditor from '../components/OdontogramaEditor';
@@ -31,13 +32,6 @@ const safeString = (val) => String(val || '').toLowerCase();
 const fechaHoyLima = () =>
   new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
 
-// Construye la URL de imagen correctamente
-const getImageSrc = (rad) => {
-  if (!rad) return '';
-  if (rad.imageBase64) return rad.imageBase64;
-  if (rad.url_archivo) return `${API_URL}${rad.url_archivo}`;
-  return '';
-};
 
 // ==========================================
 // COMPONENTE: PIZARRA DIGITAL (FIRMA)
@@ -878,6 +872,12 @@ const handleEliminarRadiografia = async (id) => {
     const tratamientosAsignadosGuardados = tratamientosAsignados || [];
 
     const handleImprimir = () => {
+      if (document.querySelector('.hoja-impresion [data-clinical-state="error"]')) {
+        toast.error('Hay anexos que no se pudieron cargar. Reintenta antes de imprimir.'); return;
+      }
+      if (document.querySelector('.hoja-impresion [data-clinical-state="loading"], .hoja-impresion [data-clinical-state="decoding"]')) {
+        toast.error('Espera a que terminen de cargar los anexos antes de imprimir.'); return;
+      }
       const docName = `${hInfo.nro_historia}_${pInfo.apellidos}_${pInfo.nombres}`.replace(/\s+/g, '_');
       document.title = docName;
       window.print();
@@ -1030,7 +1030,7 @@ const handleEliminarRadiografia = async (id) => {
               {radiografias.map((rad, idx) => (
                 <div key={rad.id} className="border border-slate-300 rounded-xl overflow-hidden print:break-inside-avoid mb-4">
                   <div className="bg-black p-2 flex justify-center items-center h-64 print:h-[120mm]">
-                    <img src={getImageSrc(rad)} alt={`Anexo ${idx+1}`} className="max-h-full max-w-full object-contain" />
+                    <ClinicalImage record={rad} alt={`Anexo ${idx+1}`} className="max-h-full max-w-full object-contain" />
                   </div>
                   <div className="bg-slate-100 p-2 text-center border-t border-slate-300">
                     <p className="font-bold text-xs text-slate-800 uppercase tracking-widest">{rad.descripcion || `Imagen Anexa ${idx+1}`}</p>

@@ -1,14 +1,14 @@
 {
-  "version": "rc4-s1b-dev",
-  "createdAt": "2026-09-25T03:16:42.846Z",
+  "version": "rc4-m03a-dev",
+  "createdAt": "2026-09-27T18:53:23.553Z",
   "files": [
     {
-      "file": "assets/index-BE1E_iUW.css",
-      "sha256": "3c263429c84c90ea1da01ad9850584e10ad436c0a6aca55749d0afc46aeb1c91"
+      "file": "assets/index-Ckdm0tM0.css",
+      "sha256": "8212b85ba603d500185b2cff39d7451718bbedbc48bd08086e3b7c9cd3669680"
     },
     {
-      "file": "assets/index-mLJLLzPj.js",
-      "sha256": "2b52956181972feee64c046e42dba77273e5ec6ca10c14b3a16c7d4308bda119"
+      "file": "assets/index-vxD8CkAA.js",
+      "sha256": "0784a3335b9b433bdcabc55cc695ada19894e104a2b1915fe2c16a8d00f51243"
     },
     {
       "file": "favicon.svg",
@@ -20,7 +20,7 @@
     },
     {
       "file": "index.html",
-      "sha256": "9c2b38657736a7c43ec5e7b46a3502472d080ea14639f64af3a29e5f928736ea"
+      "sha256": "c2097eaab05f22da70cbfd6b2511194e6ed8b7f9eaefab2ea2e32ab67f3a4dcf"
     },
     {
       "file": "logo.png",

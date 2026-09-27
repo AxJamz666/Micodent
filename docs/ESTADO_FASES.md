@@ -19,6 +19,10 @@ habitual ni despliegue. [Cierre S1-B](RC4_S1B_CIERRE.md) registra la prueba
 compilada, la incidencia del proxy Vite y su repeticion correcta. La aceptacion
 historica y la tabla siguiente no sustituyen la aceptacion de esta combinacion.
 
+Actualizacion 2026-09-27: M03-A implementado y probado en aislamiento sobre
+RC4 + S1-B; [cierre de lectura protegida](RC4_M03A_CIERRE.md). No activado.
+E04 permanece abierta: M03-B (cargas y eliminacion recuperable) pendiente.
+
 La tabla siguiente conserva el estado historico previo, no certifica el candidato clinico.
 
 Repositorio privado AxJamz666/Micodent. Etapa 0 de preparacion + etapas 1-17.

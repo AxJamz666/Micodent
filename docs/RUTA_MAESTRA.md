@@ -1,6 +1,6 @@
 # MICODENT - Ruta maestra de mejora
 
-Actualizada: 2026-09-25. Entorno autorizado: MICODENT_DEV y copias aisladas.
+Actualizada: 2026-09-27. Entorno autorizado: MICODENT_DEV y copias aisladas.
 Esta ruta consolida el orden de trabajo acordado; no autoriza por si sola los
 paquetes posteriores. Cada paquete necesita alcance, respaldo, pruebas,
 reversion y aprobacion propios. No se modifican las laptops ni el piloto.
@@ -45,6 +45,12 @@ Cierre tecnico S1-B 2026-09-25: conciliado y probado sobre esta base en
 pestana y regresion RC4 verificadas en aislamiento; ver [informe](RC4_S1B_CIERRE.md).
 No activado en DEV habitual ni aceptado clinicamente. Siguiente paquete: M03;
 HTTPS/LAN, MariaDB operativo y validacion por laptop siguen pendientes.
+
+Cierre tecnico M03-A 2026-09-27: lectura protegida de archivos sobre RC4 + S1-B,
+en `codex/rc4-m03a-archivos-privados`, version `rc4-m03a-dev`. Galeria y anexos
+verificados en aislamiento; ver [informe](RC4_M03A_CIERRE.md). Sin activacion
+habitual. E04/M03 permanece abierta: siguen pendientes M03-B (validacion de
+cargas y eliminacion recuperable), inventario historico y pruebas de capacidad.
 
 ## Orden de trabajo
 
