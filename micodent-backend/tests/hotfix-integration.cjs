@@ -170,6 +170,34 @@ async function run() {
       assert.equal(Number(afterRecipe.total),Number(beforeRecipe.total));
       assert.equal(Number(afterOrder.total),Number(beforeOrder.total));
     });
+    await check('Consentimiento: actualizar una firma conserva la otra y la auditoria es atomica', async()=>{
+      const path='/historias/1/firmas';
+      const patient='data:image/png;base64,cGFjaWVudGUx';
+      const doctor='data:image/png;base64,ZG9jdG9y';
+      assert.equal((await api('PUT',path,{firma_paciente_data:patient,firma_doctor_data:doctor},tokens.qadoctor)).status,200);
+      const updated='data:image/png;base64,cGFjaWVudGUy';
+      assert.equal((await api('PUT',path,{firma_paciente_data:updated},tokens.qadoctor)).status,200);
+      const [[saved]]=await conn.query('SELECT firma_paciente_data,firma_doctor_data FROM firmas_consentimiento WHERE historia_id=1');
+      assert.equal(saved.firma_paciente_data,updated);
+      assert.equal(saved.firma_doctor_data,doctor);
+      const count=async()=>{
+        const [[row]]=await conn.query("SELECT COUNT(*) AS total FROM auditoria_historias WHERE historia_id=1 AND accion='Actualizó las firmas de consentimiento informado.'");
+        return Number(row.total);
+      };
+      const before=await count();
+      assert.equal((await api('PUT',path,{firma_paciente_data:updated},tokens.qadoctor)).status,200);
+      assert.equal(await count(),before);
+      await conn.query("CREATE TRIGGER qa_block_consent_audit BEFORE INSERT ON auditoria_historias FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='QA audit unavailable'");
+      try {
+        assert.equal((await api('PUT',path,{firma_paciente_data:patient},tokens.qadoctor)).status,500);
+      } finally {
+        await conn.query('DROP TRIGGER qa_block_consent_audit');
+      }
+      const [[preserved]]=await conn.query('SELECT firma_paciente_data,firma_doctor_data FROM firmas_consentimiento WHERE historia_id=1');
+      assert.equal(preserved.firma_paciente_data,updated);
+      assert.equal(preserved.firma_doctor_data,doctor);
+      assert.equal(await count(),before);
+    });
     const create=(token,extra={})=>api('POST','/historias/1/consultas',{descripcion:'Tratamiento sintetico',costo_total:'380.00',abono_inicial:'0',fecha_consulta:'2026-09-22',tipo_comision:'estandar',...extra},token);
     let a,b;
     await check('A: cobro 120, comision 30, margen 90',async()=>{

@@ -594,43 +594,55 @@ const restaurarRadiografia = async (req, res) => {
 
 // PUT /api/historias/:historiaId/firmas — guardar firmas digitales
 const guardarFirmas = async (req, res) => {
+  let conn;
   try {
-    const { historiaId }          = req.params;
-    const { firma_paciente_data, firma_doctor_data } = req.body;
-    
+    const { historiaId } = req.params;
+    const body = req.body || {};
     const fecha = fechaLima();
     const hora = horaLimaCorta();
 
-    const [existe] = await db.query(
-      'SELECT id FROM firmas_consentimiento WHERE historia_id = ?', [historiaId]
-    );
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+    const [rows] = await conn.query(
+      'SELECT id, firma_paciente_data, firma_doctor_data FROM firmas_consentimiento WHERE historia_id = ? FOR UPDATE',
+      [historiaId]);
+    const current = rows[0];
+    const paciente = Object.hasOwn(body, 'firma_paciente_data') ? body.firma_paciente_data : current?.firma_paciente_data ?? null;
+    const doctor = Object.hasOwn(body, 'firma_doctor_data') ? body.firma_doctor_data : current?.firma_doctor_data ?? null;
+    const changed = !current || paciente !== current.firma_paciente_data || doctor !== current.firma_doctor_data;
 
-    if (existe.length > 0) {
-      await db.query(
+    if (current && changed) {
+      await conn.query(
         `UPDATE firmas_consentimiento SET
           firma_paciente_data = ?, firma_doctor_data = ?, fecha_firma = ?
          WHERE historia_id = ?`,
-        [firma_paciente_data, firma_doctor_data, fecha, historiaId]
+        [paciente, doctor, fecha, historiaId]
       );
-    } else {
-      await db.query(
+    } else if (!current) {
+      await conn.query(
         `INSERT INTO firmas_consentimiento
           (historia_id, firma_paciente_data, firma_doctor_data, fecha_firma)
          VALUES (?, ?, ?, ?)`,
-        [historiaId, firma_paciente_data, firma_doctor_data, fecha]
+        [historiaId, paciente, doctor, fecha]
       );
     }
 
-    await db.query(
-      `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
-       VALUES (?, ?, ?, ?, ?)`,
-      [historiaId, req.usuario.id, 'Actualizó las firmas de consentimiento informado.', fecha, hora]
-    );
+    if (changed) {
+      await conn.query(
+        `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
+         VALUES (?, ?, ?, ?, ?)`,
+        [historiaId, req.usuario.id, 'Actualizó las firmas de consentimiento informado.', fecha, hora]
+      );
+    }
 
+    await conn.commit();
     res.json({ ok: true, mensaje: 'Firmas guardadas correctamente.' });
   } catch (err) {
-    console.error(err);
+    if (conn) await conn.rollback().catch(() => {});
+    console.error('CLINICAL_CONSENT_SAVE_FAILED', err.code || 'UNKNOWN');
     res.status(500).json({ ok: false, mensaje: 'Error al guardar firmas.' });
+  } finally {
+    conn?.release();
   }
 };
 
