@@ -12,10 +12,10 @@ modelo no altera las pruebas, respaldos, aceptaciones ni limites de despliegue.
 | E03 | Cookies y CSRF, S1-B | Probada en aislamiento; validacion operativa pendiente | GPT-6 Sol |
 | E04 | Archivos clinicos | M03-A/B probados; inventario y aceptacion pendientes | GPT-6 Sol |
 | E05 | Autorizacion y usuarios | M06-A probado; decisiones de acceso fino pendientes | GPT-6 Astra |
-| E06 | Clinica y trazabilidad | M07-A/B/C probados; M07-D en curso; resto pendiente | GPT-6 Astra |
+| E06 | Clinica y trazabilidad | M07-A/B/C probados; M07-D pausado y guardado; resto pendiente | GPT-6 Astra |
 | E07 | Permiso especifico de Edy | No iniciada | GPT-6 Sol |
 | E08 | Finanzas | Correcciones RC4 puntuales; auditoria integral pendiente | GPT-6 Astra |
-| E09 | Agenda y API | No iniciada como etapa | GPT-6 Sol |
+| E09 | Agenda y API | M16 en curso; M19 pendiente | GPT-6 Sol |
 | E10 | Base de datos y rendimiento | No iniciada como etapa | GPT-6 Sol |
 | E11 | Proteccion del trabajo y mantenimiento | No iniciada como etapa | GPT-6 Sol |
 | E12 | Diseno y experiencia premium | Mejoras puntuales RC4; revision integral pendiente | GPT-6 Sol |
@@ -36,11 +36,13 @@ dos modelos como requisito. El propietario puede elegir otro modelo; registrar
 su decision y trabajar con ese modelo hasta cerrar o pausar la etapa. Al
 cambiar de etapa, repetir el aviso y esperar nueva confirmacion.
 
-Estamos en E06/M07-D (anulacion no destructiva del odontograma). M07-A/B/C
-estan implementados y probados solo en aislamiento. El propietario confirmo
-"astra lista continua" y despues pidio reanudar E06 con la asignacion de cuatro
-etapas Astra. M07-E (versiones de firmas) sigue despues. No aplicar migraciones
-a la instalacion habitual ni tocar instalaciones clinicas por este documento.
+E06/M07-D (anulacion no destructiva del odontograma) quedo pausada y guardada
+en la rama local `codex/rc4-m07-trazabilidad`, commit `d8522d1`; requiere QA
+final antes de retomarla. El propietario pidio continuar una etapa Sol y
+confirmo GPT-6 Sol para E09/M16 (Agenda y API). Esta etapa usa la rama local
+`codex/e09-agenda-api`; M19 y la aceptacion siguen pendientes. No aplicar
+migraciones a la instalacion habitual ni tocar instalaciones clinicas por este
+documento.
 
 Las recomendaciones de modelo son juicio de trabajo, no una garantia de
 seguridad, exactitud o disponibilidad de tokens. Respaldos, pruebas,

@@ -117,7 +117,7 @@ app.get('/api/health', async (req, res) => {
       status: 'healthy',
       backend: 'online',
       database: 'connected',
-      version: 'rc4-m03b-dev',
+      version: 'rc4-e09-dev',
       mensaje: 'Micodent esta listo para operar',
       hora: new Date().toLocaleString('es-PE'),
     });

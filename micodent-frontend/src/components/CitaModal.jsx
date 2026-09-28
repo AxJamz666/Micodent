@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Search, Check, Ban, UserX, RotateCcw, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -28,6 +28,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
   const [resultadosBusqueda, setResultadosBusqueda] = useState([]);
   const [guardando, setGuardando] = useState(false);
   const [cambiandoEstado, setCambiandoEstado] = useState(false);
+  const mutationBusy = useRef(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -86,9 +87,11 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (mutationBusy.current) return;
     if (!form.nombre_contacto || !form.celular_contacto || !form.doctor_id || !form.fecha || !form.hora_inicio) {
       toast.error('Completa todos los campos obligatorios.'); return;
     }
+    mutationBusy.current = true;
     try {
       setGuardando(true);
       if (esEdicion) {
@@ -103,11 +106,14 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
     } catch (err) {
       toast.error(err.response?.data?.mensaje || 'Error al guardar la cita.');
     } finally {
+      mutationBusy.current = false;
       setGuardando(false);
     }
   };
 
   const cambiarEstado = async (nuevoEstado) => {
+    if (mutationBusy.current) return;
+    mutationBusy.current = true;
     try {
       setCambiandoEstado(true);
       await citasService.actualizarEstado(citaExistente.id, nuevoEstado);
@@ -115,8 +121,9 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
       await onGuardado();
       onClose();
     } catch (err) {
-      toast.error('Error al actualizar el estado.');
+      toast.error(err.response?.data?.mensaje || 'Error al actualizar el estado.');
     } finally {
+      mutationBusy.current = false;
       setCambiandoEstado(false);
     }
   };
@@ -129,7 +136,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
       <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
         <div className="bg-clinical-600 p-5 text-white flex justify-between items-center flex-shrink-0">
           <h3 className="font-bold text-lg">{esEdicion ? 'Detalle de la Cita' : 'Nueva Cita'}</h3>
-          <button onClick={onClose} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+          <button onClick={onClose} disabled={guardando || cambiandoEstado} className="hover:bg-white/20 p-1.5 rounded-full transition-colors disabled:opacity-50" aria-label="Cerrar cita"><X size={20}/></button>
         </div>
 
         {esEdicion && (
@@ -137,12 +144,12 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
             <span className={`text-xs font-black uppercase tracking-widest ${estadoCfg.text}`}>{estadoCfg.label}</span>
             {citaExistente.estado === 'agendada' ? (
               <div className="flex gap-1.5">
-                <button type="button" disabled={cambiandoEstado} onClick={() => cambiarEstado('atendida')} className="text-[11px] font-bold bg-green-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-green-700 flex items-center gap-1"><Check size={12}/> Atendida</button>
-                <button type="button" disabled={cambiandoEstado} onClick={() => cambiarEstado('no_asistio')} className="text-[11px] font-bold bg-red-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-red-600 flex items-center gap-1"><UserX size={12}/> No Asistió</button>
-                <button type="button" disabled={cambiandoEstado} onClick={() => cambiarEstado('cancelada')} className="text-[11px] font-bold bg-slate-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-slate-600 flex items-center gap-1"><Ban size={12}/> Cancelar</button>
+                <button type="button" disabled={guardando || cambiandoEstado} onClick={() => cambiarEstado('atendida')} className="text-[11px] font-bold bg-green-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-green-700 flex items-center gap-1"><Check size={12}/> Atendida</button>
+                <button type="button" disabled={guardando || cambiandoEstado} onClick={() => cambiarEstado('no_asistio')} className="text-[11px] font-bold bg-red-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-red-600 flex items-center gap-1"><UserX size={12}/> No Asistió</button>
+                <button type="button" disabled={guardando || cambiandoEstado} onClick={() => cambiarEstado('cancelada')} className="text-[11px] font-bold bg-slate-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-slate-600 flex items-center gap-1"><Ban size={12}/> Cancelar</button>
               </div>
             ) : (
-              <button type="button" disabled={cambiandoEstado} onClick={() => cambiarEstado('agendada')} className="text-[11px] font-bold bg-white/80 text-slate-700 px-2.5 py-1.5 rounded-lg hover:bg-white flex items-center gap-1"><RotateCcw size={12}/> Revertir a Agendada</button>
+              <button type="button" disabled={guardando || cambiandoEstado} onClick={() => cambiarEstado('agendada')} className="text-[11px] font-bold bg-white/80 text-slate-700 px-2.5 py-1.5 rounded-lg hover:bg-white flex items-center gap-1"><RotateCcw size={12}/> Revertir a Agendada</button>
             )}
           </div>
         )}
@@ -239,7 +246,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
             </div>
           </div>
 
-          <button type="submit" disabled={guardando} className="w-full py-4 bg-clinical-500 text-white rounded-xl font-bold hover:bg-clinical-600 shadow-lg transition-all disabled:opacity-50">
+          <button type="submit" disabled={guardando || cambiandoEstado} className="w-full py-4 bg-clinical-500 text-white rounded-xl font-bold hover:bg-clinical-600 shadow-lg transition-all disabled:opacity-50">
             {guardando ? 'Guardando...' : esEdicion ? 'Guardar Cambios' : 'Agendar Cita'}
           </button>
         </form>

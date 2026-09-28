@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Plus, CalendarDays } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { citasService, usuariosService } from '../services/api';
@@ -14,6 +14,7 @@ const Agenda = () => {
   const [doctores, setDoctores] = useState([]);
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const requestId = useRef(0);
 
   const [showModal, setShowModal] = useState(false);
   const [citaSeleccionada, setCitaSeleccionada] = useState(null);
@@ -29,6 +30,7 @@ const Agenda = () => {
   }, []);
 
   const cargarCitas = useCallback(async () => {
+    const current = ++requestId.current;
     try {
       setLoading(true);
       let desde, hasta;
@@ -44,11 +46,14 @@ const Agenda = () => {
         hasta = formatearFechaISO(dias[dias.length - 1]);
       }
       const { data } = await citasService.getAll(desde, hasta);
-      setCitas(data.data || []);
+      if (current === requestId.current) setCitas(data.data || []);
     } catch {
-      toast.error('Error al cargar las citas.');
+      if (current === requestId.current) {
+        setCitas([]);
+        toast.error('Error al cargar las citas.');
+      }
     } finally {
-      setLoading(false);
+      if (current === requestId.current) setLoading(false);
     }
   }, [fechaActual, vista]);
 

@@ -5,6 +5,12 @@ const { pathToFileURL } = require('node:url');
 
 async function run({ base, root, pass, conn }) {
   const { chromium } = require(process.env.HOTFIX_PLAYWRIGHT);
+  if (process.env.HOTFIX_BROWSER_MODE === 'agenda') {
+    const browser = await chromium.launch({channel:'msedge',headless:true});
+    try { await require('./agenda-browser.cjs')({ browser, base, root, pass }); }
+    finally { await browser.close(); }
+    return;
+  }
   const front = path.resolve(__dirname, '../../micodent-frontend');
   const { createServer } = await import(pathToFileURL(path.join(front,'node_modules/vite/dist/node/index.js')));
   const vite = await createServer({ root:front, server:{ host:'127.0.0.1',port:0,proxy:{
