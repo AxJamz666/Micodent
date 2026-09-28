@@ -1,6 +1,7 @@
 const security = require('../services/security');
 const browserTransport = require('../config/browserTransport');
 const { sendSecurityError } = require('../utils/securityError');
+const { CAPABILITY, hasCapability } = require('../services/accessPolicy');
 
 const verificarToken = async (req, res, next) => {
   try {
@@ -14,12 +15,12 @@ const verificarToken = async (req, res, next) => {
 };
 
 const soloAdmin = (req, res, next) => {
-  if (!req.usuario?.isAdmin) return res.status(403).json({ ok: false, codigo: 'AUTH_FORBIDDEN', mensaje: 'Se requieren permisos de administrador.' });
+  if (!hasCapability(req.usuario, CAPABILITY.ADMIN)) return res.status(403).json({ ok: false, codigo: 'AUTH_FORBIDDEN', mensaje: 'Se requieren permisos de administrador.' });
   next();
 };
 
 const soloDoctor = (req, res, next) => {
-  if (req.usuario?.rol !== 'Doctor') return res.status(403).json({ ok: false, codigo: 'AUTH_FORBIDDEN', mensaje: 'Solo el medico tratante puede modificar datos clinicos.' });
+  if (!hasCapability(req.usuario, CAPABILITY.CLINICAL_WRITE)) return res.status(403).json({ ok: false, codigo: 'AUTH_FORBIDDEN', mensaje: 'Solo el medico tratante puede modificar datos clinicos.' });
   next();
 };
 

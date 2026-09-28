@@ -1,6 +1,6 @@
 const actions = new Set(['LOGIN_OK', 'LOGIN_FAILED', 'LOGOUT', 'LOGOUT_ALL',
   'PASSWORD_CHANGED', 'PASSWORD_RESET', 'PASSWORD_CHECK_FAILED', 'RATE_LIMITED',
-  'USER_CREATED', 'USER_SECURITY_CHANGED']);
+  'USER_CREATED', 'USER_SECURITY_CHANGED', 'USER_DEACTIVATED', 'USER_REACTIVATED']);
 
 async function auditSecurity(conn, action, actor = null, target = null) {
   if (!actions.has(action)) throw new Error('INVALID_SECURITY_EVENT');

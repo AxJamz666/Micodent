@@ -9,11 +9,17 @@ const { once } = require('node:events');
 
 // The harness initializes its own MariaDB data directory. Never reads application .env.
 async function run() {
-  const disk = fs.statfsSync(path.resolve(__dirname, '../..'));
+  const customQaBase = process.env.HOTFIX_QA_BASE;
+  assert(!customQaBase || path.isAbsolute(customQaBase), 'The isolated QA base must be an absolute path.');
+  const qaBase = customQaBase || path.resolve(__dirname, '../../.runtime');
+  assert(!customQaBase || (fs.existsSync(qaBase) && fs.statSync(qaBase).isDirectory()),
+    'The isolated QA base directory must exist.');
+  const disk = fs.statfsSync(fs.existsSync(qaBase) ? qaBase : path.dirname(qaBase));
   const requiredFree = process.env.HOTFIX_ENGINE === 'mysql8' ? 2 * 1024 ** 3 : 1024 ** 3;
   assert(disk.bavail * disk.bsize >= requiredFree, 'Espacio insuficiente para otra instancia de prueba. No se crearon archivos ni procesos.');
-  const root = path.resolve(__dirname, '../../.runtime', `qa-${Date.now()}`);
-  fs.mkdirSync(root, { recursive: true });
+  if (!fs.existsSync(qaBase)) fs.mkdirSync(qaBase);
+  const root = path.join(qaBase, `qa-${Date.now()}`);
+  fs.mkdirSync(root);
   const dataDir = path.join(root, 'database');
   const mysql8 = process.env.HOTFIX_ENGINE === 'mysql8';
   const bin = mysql8 ? process.env.HOTFIX_MYSQL_BIN : process.env.HOTFIX_MARIADB_BIN;
@@ -271,7 +277,7 @@ async function run() {
     await require('./pos-debt-integration.cjs')({api,conn,tokens,create,check,migrate});
     fs.writeFileSync(path.join(root,'results.json'),JSON.stringify({ version:instance.version,results },null,2));
     console.log(`Evidencia sintetica: ${root}`);
-    if (process.env.HOTFIX_BROWSER_TEST === '1') await require('./hotfix-browser.cjs').run({ base, root, pass });
+    if (process.env.HOTFIX_BROWSER_TEST === '1') await require('./hotfix-browser.cjs').run({ base, root, pass, conn });
     if (clinicalFiles) await clinicalFiles.run({base,root,pass,api,tokens,check});
     await check('S1-A: arranque real y health rechazan una migracion de seguridad incorrecta', async () => {
       await require('./s1a-startup.cjs')({conn,base});

@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 
-async function run({ base, root, pass }) {
+async function run({ base, root, pass, conn }) {
   const { chromium } = require(process.env.HOTFIX_PLAYWRIGHT);
   const front = path.resolve(__dirname, '../../micodent-frontend');
   const { createServer } = await import(pathToFileURL(path.join(front,'node_modules/vite/dist/node/index.js')));
@@ -13,11 +13,45 @@ async function run({ base, root, pass }) {
   const browser = await chromium.launch({channel:'msedge',headless:true});
   const outcomes=[];
   try {
+    if (process.env.HOTFIX_BROWSER_MODE === 'access') {
+      await conn.query(`INSERT INTO usuarios (id,password_hash,nombre,nombre_completo,rol,nivel,is_admin,activo)
+        SELECT 'qa_inactive_access',password_hash,'QA','Cuenta inactiva sintetica','Asistente',1,0,0
+        FROM usuarios WHERE id='qaadmin'`);
+      const origin = `http://127.0.0.1:${vite.httpServer.address().port}`;
+      const context = await browser.newContext({viewport:{width:1366,height:768}});
+      try {
+        const page = await context.newPage();
+        await page.goto(`${origin}/login`);
+        await page.locator('input').nth(0).fill('qaadmin');
+        await page.locator('input').nth(1).fill(pass);
+        await page.locator('button[type=submit]').click();
+        await page.waitForURL(origin+'/');
+        await page.goto(`${origin}/administracion-personal`);
+        const row = page.locator('[data-user-id="qa_inactive_access"]');
+        await row.getByText('Acceso desactivado').waitFor();
+        await row.getByTitle('Reactivar acceso').click();
+        const modal = page.locator('.dialog-overlay').filter({has:page.getByRole('heading',{name:'Reactivar acceso'})});
+        await modal.locator('input[type=password]').nth(0).fill(pass);
+        await modal.locator('input[type=password]').nth(1).fill('Clave nueva de prueba 2026!');
+        await modal.locator('input[type=password]').nth(2).fill('Clave nueva de prueba 2026!');
+        await page.screenshot({path:path.join(root,'access-reactivacion.png')});
+        const restored = page.waitForResponse(r=>r.url().endsWith('/api/usuarios/qa_inactive_access/reactivar') && r.request().method()==='POST');
+        await modal.getByRole('button',{name:'Reactivar acceso'}).click();
+        assert.equal((await restored).status(),200);
+        await row.getByTitle('Restablecer contraseña').waitFor();
+        assert.equal(await row.getByText('Acceso desactivado').count(),0);
+        fs.writeFileSync(path.join(root,'browser-results.json'),JSON.stringify([{mode:'access',reactivacion:'PASS'}],null,2));
+        console.log('PASS navegador reactivacion');
+      } finally { await context.close(); }
+      return;
+    }
     for (const [mode,origin] of [['build',base],['dev',`http://127.0.0.1:${vite.httpServer.address().port}`]]) {
       if (process.env.HOTFIX_BROWSER_MODE && process.env.HOTFIX_BROWSER_MODE !== mode) continue;
       const context=await browser.newContext({viewport:{width:1366,height:768}});
       const page=await context.newPage();
       const errors=[];page.on('pageerror',err=>errors.push(err.message));
+      const failedResponses=[];
+      page.on('response',response=>{if(response.status()>=400) failedResponses.push({path:new URL(response.url()).pathname,status:response.status()});});
       await page.goto(`${origin}/login`);
       await page.locator('input').nth(0).fill('qaadmin');await page.locator('input').nth(1).fill('incorrecta');
       let navigations=0; const onNav=frame=>{if(frame===page.mainFrame())navigations++;};page.on('framenavigated',onNav);
@@ -89,8 +123,18 @@ async function run({ base, root, pass }) {
       assert.equal(transparency.alpha,0);assert(transparency.png);
       await page.getByRole('button',{name:'Guardar Firma y Sello',exact:true}).click();
       await page.getByText('Firma y sello guardados correctamente.',{exact:true}).waitFor();
-      await page.goto(`${origin}/pacientes/1?tab=ordenes`);
-      await page.getByRole('button',{name:'Órdenes Rx',exact:true}).click();
+      const rxNavigation = await page.goto(`${origin}/pacientes/1?tab=ordenes`);
+      try {
+        await page.getByRole('button',{name:'Órdenes Rx',exact:true}).click({timeout:10000});
+      } catch (error) {
+        await page.screenshot({path:path.join(root,`${mode}-rx-navigation-failed.png`)});
+        fs.writeFileSync(path.join(root,`${mode}-rx-navigation.json`),JSON.stringify({
+          path:new URL(page.url()).pathname,navStatus:rxNavigation?.status(),errors,
+          failedResponses,rootLength:await page.locator('#root').evaluate(el=>el.innerHTML.length).catch(()=>null),
+        },null,2));
+        console.error(`Rx navigation failed at ${new URL(page.url()).pathname}`);
+        throw error;
+      }
       await page.getByRole('button',{name:'Nueva Orden',exact:true}).click();
       const rx=page.locator('.dialog-overlay').filter({has:page.getByRole('heading',{name:'Nueva Orden de Radiografía'})});
       await rx.getByText('Panorámica',{exact:true}).click();

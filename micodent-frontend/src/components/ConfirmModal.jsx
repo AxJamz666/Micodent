@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertTriangle, Trash2, RotateCcw } from 'lucide-react';
 
 const ConfirmModal = ({
@@ -7,6 +6,7 @@ const ConfirmModal = ({
   message,
   onConfirm,
   onCancel,
+  busy = false,
   confirmText = 'Confirmar',
   cancelText = 'Cancelar',
   type = 'danger'
@@ -46,15 +46,17 @@ const ConfirmModal = ({
           <div className="flex gap-3 w-full">
             <button
               onClick={onCancel}
-              className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-colors"
+              disabled={busy}
+              className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50"
             >
               {cancelText}
             </button>
             <button
               onClick={onConfirm}
-              className={`flex-1 py-3.5 text-white rounded-2xl font-bold transition-all shadow-lg ${btn}`}
+              disabled={busy}
+              className={`flex-1 py-3.5 text-white rounded-2xl font-bold transition-all shadow-lg disabled:opacity-50 ${btn}`}
             >
-              {confirmText}
+              {busy ? 'Guardando...' : confirmText}
             </button>
           </div>
         </div>

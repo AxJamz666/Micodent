@@ -79,6 +79,9 @@ const editarUsuario = async (req, res) => {
       if (!actor.is_admin || (!self && actor.nivel <= target.nivel)) {
         throw new SecurityError(403, 'AUTH_FORBIDDEN', 'No puedes editar a un usuario de igual o mayor nivel.');
       }
+      if (self && rol !== target.rol) {
+        throw new SecurityError(403, 'AUTH_FORBIDDEN', 'No puedes cambiar tu propio rol.');
+      }
       const requestedLevel = nivel === undefined ? target.nivel : Number(nivel);
       if (!self && ![1, 2].includes(requestedLevel)) throw new SecurityError(400, 'INVALID_LEVEL', 'Nivel de acceso invalido.');
       const finalLevel = self || actor.nivel < 3 ? target.nivel : requestedLevel;
@@ -102,38 +105,25 @@ const editarUsuario = async (req, res) => {
 // DELETE /api/usuarios/:id
 const eliminarUsuario = async (req, res) => {
   try {
-    const { id }     = req.params;
-    const adminNivel = req.usuario.nivel || 1;
-    const adminId    = req.usuario.id;
-
-    // No puede eliminarse a sí mismo
-    if (id === adminId) {
-      return res.status(403).json({ ok: false, mensaje: 'No puedes eliminar tu propio acceso.' });
-    }
-
-    // Obtener nivel del target
-    const [targetRows] = await db.query('SELECT nivel, nombre_completo FROM usuarios WHERE id = ?', [id]);
-    if (targetRows.length === 0) {
-      return res.status(404).json({ ok: false, mensaje: 'Usuario no encontrado.' });
-    }
-
-    const targetNivel = targetRows[0].nivel;
-
-    // Solo puede eliminar usuarios de MENOR nivel
-    if (adminNivel <= targetNivel) {
-      return res.status(403).json({
-        ok: false,
-        mensaje: targetNivel >= 3
-          ? 'No se puede eliminar a un Superadministrador del sistema.'
-          : 'No puedes eliminar a un usuario de igual o mayor nivel que el tuyo.'
-      });
-    }
-
-    await db.query('UPDATE usuarios SET activo=0 WHERE id = ?', [id]);
-    res.json({ ok: true, mensaje: 'Usuario eliminado correctamente.' });
-  } catch (err) {
-    res.status(500).json({ ok: false, mensaje: 'Error al eliminar usuario.' });
-  }
+    const id = passwords.normalizeUserId(req.params.id);
+    await security.transaction(async conn => {
+      const locked = new Map();
+      for (const userId of [...new Set([req.usuario.id, id])].sort()) {
+        locked.set(userId, await security.loadUser(conn, userId, true));
+      }
+      const actor = await security.assertSession(conn, req.auth, locked.get(req.usuario.id));
+      const target = locked.get(id);
+      if (!target) throw new SecurityError(404, 'USER_NOT_FOUND', 'Usuario no encontrado.');
+      if (!actor.is_admin || actor.id === target.id || actor.nivel <= target.nivel) {
+        throw new SecurityError(403, 'AUTH_FORBIDDEN', 'No puedes desactivar el acceso de este usuario.');
+      }
+      if (!target.activo) throw new SecurityError(409, 'USER_INACTIVE', 'El acceso ya esta desactivado.');
+      await conn.execute('UPDATE usuarios SET activo = 0 WHERE id = ?', [target.id]);
+      await security.revokeUser(conn, target.id);
+      await auditSecurity(conn, 'USER_DEACTIVATED', actor.id, target.id);
+    });
+    res.json({ ok: true, mensaje: 'Acceso desactivado correctamente.' });
+  } catch (err) { return sendSecurityError(res, err); }
 };
 
 // PUT /api/usuarios/cambiar-password
@@ -149,6 +139,13 @@ const resetPassword = async (req, res) => {
   try {
     await security.resetPassword(req.auth, req.body?.targetUserId, req.body?.adminPassword, req.body?.nuevaPassword);
     res.json({ ok: true, mensaje: 'Contrasena restablecida. Las sesiones anteriores fueron revocadas.' });
+  } catch (err) { return sendSecurityError(res, err); }
+};
+
+const reactivarUsuario = async (req, res) => {
+  try {
+    await security.reactivateUser(req.auth, req.params.id, req.body?.adminPassword, req.body?.nuevaPassword);
+    res.json({ ok: true, mensaje: 'Acceso reactivado con una contrasena nueva.' });
   } catch (err) { return sendSecurityError(res, err); }
 };
 
@@ -183,5 +180,5 @@ const getDoctores = async (req, res) => {
 
 module.exports = {
   getUsuarios, crearUsuario, editarUsuario, eliminarUsuario,
-  cambiarPassword, resetPassword, actualizarFirmaSello, getDoctores
+  cambiarPassword, resetPassword, reactivarUsuario, actualizarFirmaSello, getDoctores
 };

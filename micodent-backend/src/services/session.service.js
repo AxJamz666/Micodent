@@ -125,7 +125,7 @@ function createSessionService(db, options, audit = auditSecurity) {
     });
   }
 
-  async function resetPassword(auth, rawId, adminPassword, next) {
+  async function changeOtherPassword(auth, rawId, adminPassword, next, reactivate) {
     const targetId = passwords.normalizeUserId(rawId);
     passwords.validateCurrentPassword(adminPassword);
     passwords.validateNewPassword(next);
@@ -148,13 +148,20 @@ function createSessionService(db, options, audit = auditSecurity) {
       if (!actor.is_admin || actor.id === target.id || actor.nivel <= target.nivel) {
         throw new SecurityError(403, 'AUTH_FORBIDDEN', 'No puedes restablecer la contrasena de este usuario.');
       }
-      await conn.execute('UPDATE usuarios SET password_hash = ? WHERE id = ?', [hash, target.id]);
+      if (reactivate && target.activo) throw new SecurityError(409, 'USER_ACTIVE', 'El acceso ya esta activo.');
+      if (reactivate) await conn.execute('UPDATE usuarios SET password_hash = ?, activo = 1 WHERE id = ?', [hash, target.id]);
+      else await conn.execute('UPDATE usuarios SET password_hash = ? WHERE id = ?', [hash, target.id]);
       await revokeUser(conn, target.id);
-      await audit(conn, 'PASSWORD_RESET', actor.id, target.id);
+      await audit(conn, reactivate ? 'USER_REACTIVATED' : 'PASSWORD_RESET', actor.id, target.id);
     });
   }
 
-  return { login, authenticate, logout, changePassword, resetPassword, transaction, loadUser, assertSession, revokeUser };
+  const resetPassword = (auth, rawId, adminPassword, next) =>
+    changeOtherPassword(auth, rawId, adminPassword, next, false);
+  const reactivateUser = (auth, rawId, adminPassword, next) =>
+    changeOtherPassword(auth, rawId, adminPassword, next, true);
+
+  return { login, authenticate, logout, changePassword, resetPassword, reactivateUser, transaction, loadUser, assertSession, revokeUser };
 }
 
 module.exports = { createSessionService, publicUser };

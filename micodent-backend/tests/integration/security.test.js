@@ -153,6 +153,92 @@ test('editing owner profile preserves level 3 and current session', async () => 
   const me = await request('GET', '/auth/me', token);
   assert.equal(me.status, 200); assert.equal(me.body.usuario.nivel, 3); assert.equal(me.body.usuario.is_admin, 1);
 });
+test('administrator cannot grant a clinical role to their own account', async () => {
+  const token = await login(admin);
+  const body = { nombre: 'Prueba', nombre_completo: 'Cuenta sintetica S1A', prefix: '', gender: 'o',
+    rol: 'Doctor', dni: null, telefono: null, email: null, especialidad: 'General', cop: '', direccion: '', nivel: 2 };
+  const result = await request('PUT', '/usuarios/' + admin, token, body);
+  assert.equal(result.status, 403);
+  const [[row]] = await db.execute('SELECT rol,nivel,is_admin FROM usuarios WHERE id=?', [admin]);
+  assert.equal(row.rol, 'Administradora'); assert.equal(row.nivel, 2); assert.equal(row.is_admin, 1);
+  assert.equal((await request('GET', '/auth/me', token)).status, 200);
+});
+test('route permissions remain distinct for assistant, doctor and administrator', async () => {
+  const doctor = await seed('route_doctor', 1, 'Doctor');
+  const assistantToken = await login(staff), doctorToken = await login(doctor), adminToken = await login(admin);
+  for (const route of ['/usuarios', '/gastos', '/dashboard/financiero', '/auditoria-financiera']) {
+    assert.equal((await request('GET', route, assistantToken)).status, 403, route);
+    assert.equal((await request('GET', route, doctorToken)).status, 403, route);
+  }
+  for (const token of [assistantToken, adminToken]) {
+    assert.equal((await request('PUT', '/historias/1/antecedentes', token, {})).status, 403);
+    assert.equal((await request('POST', '/historias/1/consultas', token, {})).status, 403);
+  }
+  assert.equal((await request('GET', '/dashboard/produccion', assistantToken)).status, 403);
+  assert.equal((await request('GET', '/dashboard/produccion?doctor=' + owner, doctorToken)).status, 403);
+  assert.equal((await request('GET', '/dashboard/produccion', doctorToken)).status, 200);
+  assert.equal((await request('GET', '/dashboard/financiero', adminToken)).status, 200);
+  for (const route of ['/pacientes', '/citas', '/usuarios/doctores']) {
+    assert.equal((await request('GET', route, assistantToken)).status, 200, route);
+  }
+});
+test('deactivation enforces hierarchy, revokes sessions and preserves historical user', async () => {
+  const target = await seed('deactivate', 1, 'Doctor');
+  const [created] = await db.execute(`INSERT INTO consultas
+    (historia_id,descripcion,costo_total,fecha_consulta,doctor_id,tipo_comision,comision_porcentaje_aplicado)
+    VALUES (1,'Tratamiento sintetico de seguridad',100,'2026-09-22',?,'estandar',25)`, [target]);
+  const targetToken = await login(target), adminToken = await login(admin), ownerToken = await login(owner);
+  assert.equal((await request('DELETE', '/usuarios/' + owner, adminToken)).status, 403);
+  assert.equal((await request('DELETE', '/usuarios/' + admin, adminToken)).status, 403);
+  assert.equal((await request('DELETE', '/usuarios/' + prefix + 'missing', adminToken)).status, 404);
+  const result = await request('DELETE', '/usuarios/' + target, ownerToken);
+  assert.equal(result.status, 200);
+  assert.equal((await request('GET', '/auth/me', targetToken)).status, 401);
+  assert.equal((await request('POST', '/auth/login', null, { id: target, password })).status, 401);
+  assert.equal((await request('DELETE', '/usuarios/' + target, ownerToken)).status, 409);
+  const [[user]] = await db.execute('SELECT activo,auth_version FROM usuarios WHERE id=?', [target]);
+  assert.equal(user.activo, 0); assert.equal(user.auth_version, 1);
+  const [[event]] = await db.execute("SELECT COUNT(*) AS total FROM seguridad_eventos WHERE accion='USER_DEACTIVATED' AND usuario_id=? AND objetivo_id=?", [owner, target]);
+  assert.equal(Number(event.total), 1);
+  const production = await request('GET', '/dashboard/produccion?desde=2026-09-22&hasta=2026-09-22&doctor=' + target, ownerToken);
+  assert.equal(production.status, 200);
+  assert.ok(production.body.data.rows.some(row => row.consulta_id === created.insertId && row.doctor_id === target));
+});
+test('reactivation requires a higher-level administrator and a new password', async () => {
+  const target = await seed('reactivate', 1, 'Doctor', 0);
+  const equal = await seed('inactive_admin', 2, 'Administradora', 0);
+  const actor = await login(owner), lower = await login(admin);
+  const body = { adminPassword: password, nuevaPassword: newPassword };
+  const route = '/usuarios/' + target + '/reactivar';
+  const before = await credentials(target);
+  assert.equal((await request('POST', '/auth/login', null, { id: target, password })).status, 401);
+  assert.equal((await request('POST', route, lower, { ...body, adminPassword: 'incorrecta' })).status, 400);
+  assert.equal((await request('POST', '/usuarios/' + equal + '/reactivar', lower, body)).status, 403);
+  assert.equal((await request('POST', route, actor, { ...body, nuevaPassword: 'short' })).status, 400);
+  assert.deepEqual(await credentials(target), before);
+  assert.equal((await request('POST', route, actor, body)).status, 200);
+  assert.equal((await request('POST', route, actor, body)).status, 409);
+  assert.equal((await request('POST', '/auth/login', null, { id: target, password })).status, 401);
+  const newToken = await login(target, newPassword);
+  assert.equal((await request('GET', '/auth/me', newToken)).status, 200);
+  const [[user]] = await db.execute('SELECT activo,auth_version FROM usuarios WHERE id=?', [target]);
+  assert.equal(user.activo, 1); assert.equal(user.auth_version, 1);
+  const [[event]] = await db.execute("SELECT COUNT(*) AS total FROM seguridad_eventos WHERE accion='USER_REACTIVATED' AND usuario_id=? AND objetivo_id=?", [owner, target]);
+  assert.equal(Number(event.total), 1);
+});
+test('reactivation rolls back activation and credentials when its audit fails', async () => {
+  const target = await seed('reactivate_audit', 1, 'Asistente', 0);
+  const token = await login(owner);
+  const { auth } = await security.authenticate(token);
+  const before = await credentials(target);
+  const failing = createSessionService(db, tokenOptions(), async () => { throw new Error('SIMULATED_AUDIT_FAILURE'); });
+  await assert.rejects(failing.reactivateUser(auth, target, password, newPassword), /SIMULATED_AUDIT_FAILURE/);
+  const [[user]] = await db.execute('SELECT activo FROM usuarios WHERE id=?', [target]);
+  assert.equal(user.activo, 0);
+  assert.deepEqual(await credentials(target), before);
+  const [[event]] = await db.execute("SELECT COUNT(*) AS total FROM seguridad_eventos WHERE accion='USER_REACTIVATED' AND objetivo_id=?", [target]);
+  assert.equal(Number(event.total), 0);
+});
 test('creation enforces password policy and level boundaries', async () => {
   const token = await login(owner); const id = prefix + 'created';
   const data = { id, nombre: 'Prueba', nombre_completo: 'Cuenta sintetica', rol: 'Asistente', nivel: 1, password: 'short' };

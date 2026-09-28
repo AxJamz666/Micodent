@@ -84,6 +84,7 @@ export const usuariosService = {
   getDoctores: ()         => api.get('/usuarios/doctores'),
   eliminar: (id)          => api.delete(`/usuarios/${id}`),
   resetPassword: (data) => api.post('/usuarios/reset-password', data),
+  reactivar: (id, data) => api.post(`/usuarios/${id}/reactivar`, data),
   actualizarFirmaSello: (data) => api.put('/usuarios/mi-firma-sello', data),
 };
 

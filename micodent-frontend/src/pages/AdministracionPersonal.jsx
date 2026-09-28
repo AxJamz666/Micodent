@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   UserPlus, ShieldAlert, Edit, Trash2, Save, X,
-  Eye, EyeOff, Search, KeyRound, ShieldCheck, Crown
+  Eye, EyeOff, Search, KeyRound, ShieldCheck, Crown, RotateCcw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../components/ConfirmModal';
 import { usuariosService } from '../services/api';
 import { passwordPolicyError } from '../utils/passwordPolicy';
+import { useSession } from '../services/browserSession';
 
 // Etiquetas visuales por nivel
 const NIVEL_CONFIG = {
@@ -21,12 +22,15 @@ const AdministracionPersonal = () => {
   const [editingId,  setEditingId]  = useState(null);
   const [showPass,   setShowPass]   = useState(false);
   const [loading,    setLoading]    = useState(true);
+  const [reloadUsers, setReloadUsers] = useState(0);
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen:false, title:'', message:'', onConfirm:null, type:'danger'
   });
+  const [savingDeactivate, setSavingDeactivate] = useState(false);
+  const deactivationInFlight = useRef(false);
 
-  const [resetModal,    setResetModal]    = useState({ isOpen:false, targetUser:null });
+  const [resetModal,    setResetModal]    = useState({ isOpen:false, targetUser:null, reactivate:false });
   const [resetPassForm, setResetPassForm] = useState({
     adminPassword:'', newPassword:'', confirmPassword:''
   });
@@ -41,24 +45,26 @@ const AdministracionPersonal = () => {
     gender:'o', nivel: 1, comision_porcentaje: '',
   });
 
-  // Datos del usuario logueado
-  const isAdmin     = localStorage.getItem('isAdmin') === 'true';
-  const myNivel     = parseInt(localStorage.getItem('userNivel') || '1');
-  const myId        = localStorage.getItem('userId') || '';
+  const { user } = useSession();
+  const isAdmin = Boolean(user?.isAdmin);
+  const myNivel = Number(user?.nivel) || 1;
+  const myId = user?.id || '';
 
-  const cargarUsuarios = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data } = await usuariosService.getAll();
-      setUsers(Array.isArray(data.data) ? data.data : []);
-    } catch {
-      toast.error('Error al cargar el personal.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const cargarUsuarios = () => {
+    setLoading(true);
+    setReloadUsers(value => value + 1);
+  };
 
-  useEffect(() => { cargarUsuarios(); }, [cargarUsuarios]);
+  useEffect(() => {
+    let active = true;
+    usuariosService.getAll()
+      .then(({ data }) => {
+        if (active) setUsers(Array.isArray(data.data) ? data.data : []);
+      })
+      .catch(() => { if (active) toast.error('Error al cargar el personal.'); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [reloadUsers]);
 
   const handleChange = (e) => {
     let { name, value } = e.target;
@@ -147,44 +153,56 @@ const AdministracionPersonal = () => {
   };
 
   // ✅ PUNTO 2: Lógica de eliminación basada en jerarquía de nivel
-  const canDelete = (targetUser) => {
-    if (targetUser.id === myId) return false;              // No autoeliminar
-    return myNivel > (targetUser.nivel || 1);              // Solo nivel inferior
-  };
+  const canManage = (targetUser) => targetUser.id !== myId && myNivel > (targetUser.nivel || 1);
+  const canDeactivate = (targetUser) => targetUser.activo && canManage(targetUser);
 
   const handleDelete = (user) => {
-    if (!canDelete(user)) {
+    if (!canDeactivate(user)) {
       toast.error(
         user.nivel >= 3
-          ? 'No se puede eliminar a un Superadministrador.'
+          ? 'No se puede desactivar a un Superadministrador.'
           : user.id === myId
-            ? 'No puedes eliminar tu propio acceso.'
-            : 'No puedes eliminar a un usuario de igual o mayor nivel.'
+            ? 'No puedes desactivar tu propio acceso.'
+            : !user.activo
+              ? 'Este acceso ya esta desactivado.'
+              : 'No puedes desactivar a un usuario de igual o mayor nivel.'
       );
       return;
     }
     setConfirmModal({
-      isOpen:true, type: user.nivel >= 2 ? 'warning' : 'danger',
-      title: '¿Eliminar acceso?',
-      message: `Se eliminará permanentemente el acceso de "${user.nombre_completo}". Esta acción no se puede deshacer.`,
+      isOpen:true, type:'warning',
+      title: '¿Desactivar acceso?',
+      message: `Se desactivará el acceso de "${user.nombre_completo}" y se cerrarán sus sesiones. Su historial clínico y financiero se conservará.`,
       onConfirm: async () => {
+        if (deactivationInFlight.current) return;
+        deactivationInFlight.current = true;
+        setSavingDeactivate(true);
         try {
           await usuariosService.eliminar(user.id);
           setConfirmModal(prev=>({...prev,isOpen:false}));
-          toast.success('Acceso eliminado.'); cargarUsuarios();
+          toast.success('Acceso desactivado.'); cargarUsuarios();
         } catch (err) {
-          toast.error(err.response?.data?.mensaje || 'Error al eliminar.');
+          toast.error(err.response?.data?.mensaje || 'Error al desactivar el acceso.');
+        } finally {
+          deactivationInFlight.current = false;
+          setSavingDeactivate(false);
         }
       },
     });
   };
 
   const handleOpenReset = (user) => {
-    if (!canDelete(user)) { // misma lógica: solo puedes resetear a quienes puedes eliminar
-      toast.error('No tienes permiso para resetear la contraseña de este usuario.'); return;
+    if (!canManage(user)) {
+      toast.error('No tienes permiso para gestionar el acceso de este usuario.'); return;
     }
-    setResetModal({ isOpen:true, targetUser:user });
+    setResetModal({ isOpen:true, targetUser:user, reactivate:!user.activo });
     setResetPassForm({ adminPassword:'', newPassword:'', confirmPassword:'' });
+    setShowAdminPass(false); setShowNewPass(false); setShowConfPass(false);
+  };
+
+  const closeCredentialModal = () => {
+    setResetPassForm({ adminPassword:'', newPassword:'', confirmPassword:'' });
+    setResetModal({ isOpen:false, targetUser:null, reactivate:false });
     setShowAdminPass(false); setShowNewPass(false); setShowConfPass(false);
   };
 
@@ -197,15 +215,14 @@ const AdministracionPersonal = () => {
     if (policyError) { toast.error(policyError); return; }
     try {
       setSavingReset(true);
-      await usuariosService.resetPassword({
-        targetUserId:  resetModal.targetUser.id,
-        nuevaPassword: resetPassForm.newPassword,
-        adminPassword: resetPassForm.adminPassword,
-      });
-      setResetModal({ isOpen:false, targetUser:null });
-      toast.success(`Contraseña de "${resetModal.targetUser.nombre_completo}" reseteada. 🔐`);
+      const credentials = { nuevaPassword: resetPassForm.newPassword, adminPassword: resetPassForm.adminPassword };
+      if (resetModal.reactivate) await usuariosService.reactivar(resetModal.targetUser.id, credentials);
+      else await usuariosService.resetPassword({ targetUserId: resetModal.targetUser.id, ...credentials });
+      closeCredentialModal();
+      toast.success(resetModal.reactivate ? 'Acceso reactivado con contraseña nueva.' : 'Contraseña restablecida.');
+      cargarUsuarios();
     } catch (err) {
-      toast.error(err.response?.data?.mensaje || 'Error al resetear.');
+      toast.error(err.response?.data?.mensaje || 'No se pudo completar la operación.');
     } finally {
       setSavingReset(false);
     }
@@ -233,24 +250,26 @@ const AdministracionPersonal = () => {
       <ConfirmModal
         isOpen={confirmModal.isOpen} title={confirmModal.title}
         message={confirmModal.message} type={confirmModal.type}
-        confirmText="Sí, eliminar" cancelText="Cancelar"
+        confirmText="Sí, desactivar" cancelText="Cancelar"
+        busy={savingDeactivate}
         onConfirm={confirmModal.onConfirm}
         onCancel={()=>setConfirmModal(prev=>({...prev,isOpen:false}))}
       />
 
-      {/* MODAL RESET CONTRASEÑA */}
+      {/* Restablecimiento y reactivacion usan la misma verificacion administrativa. */}
       {resetModal.isOpen && (
         <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-pop-in">
             <div className="bg-amber-500 p-5 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2"><KeyRound size={20}/> Resetear Contraseña</h3>
-              <button onClick={()=>setResetModal({isOpen:false,targetUser:null})} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+              <h3 className="font-bold text-lg flex items-center gap-2">{resetModal.reactivate ? <RotateCcw size={20}/> : <KeyRound size={20}/>} {resetModal.reactivate ? 'Reactivar acceso' : 'Restablecer contraseña'}</h3>
+              <button type="button" onClick={closeCredentialModal} disabled={savingReset} aria-label="Cerrar" className="hover:bg-white/20 p-1.5 rounded-full transition-colors disabled:opacity-50"><X size={20}/></button>
             </div>
             <form onSubmit={handleResetPassword} className="p-6 space-y-5">
               <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl">
-                <p className="text-sm font-bold text-amber-800">Reseteando contraseña de:</p>
+                <p className="text-sm font-bold text-amber-800">{resetModal.reactivate ? 'Reactivando a:' : 'Nueva contraseña para:'}</p>
                 <p className="text-lg font-black text-amber-900 mt-1">{resetModal.targetUser?.nombre_completo}</p>
                 <p className="text-xs text-amber-700 mt-1 font-mono">ID: {resetModal.targetUser?.id}</p>
+                {resetModal.reactivate && <p className="text-xs text-amber-800 mt-2">La contraseña anterior dejará de funcionar. Los registros históricos se conservarán.</p>}
               </div>
               <div>
                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Tu contraseña de administrador</label>
@@ -293,11 +312,11 @@ const AdministracionPersonal = () => {
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={()=>setResetModal({isOpen:false,targetUser:null})}
-                  className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors">Cancelar</button>
+                <button type="button" onClick={closeCredentialModal} disabled={savingReset}
+                  className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50">Cancelar</button>
                 <button type="submit" disabled={savingReset}
                   className="flex-[2] py-3 bg-amber-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-amber-600 transition-colors shadow-lg disabled:opacity-50">
-                  <ShieldCheck size={18}/> {savingReset?'Reseteando...':'Resetear Contraseña'}
+                  <ShieldCheck size={18}/> {savingReset ? 'Guardando...' : resetModal.reactivate ? 'Reactivar acceso' : 'Restablecer contraseña'}
                 </button>
               </div>
             </form>
@@ -315,7 +334,7 @@ const AdministracionPersonal = () => {
         {/* LISTA */}
         <div className="lg:col-span-5 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col h-[750px]">
           <h3 className="font-bold text-lg mb-4 border-b pb-3 flex items-center gap-2">
-            <ShieldAlert size={20} className="text-slate-400"/> Personal Activo
+            <ShieldAlert size={20} className="text-slate-400"/> Personal
           </h3>
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18}/>
@@ -331,7 +350,7 @@ const AdministracionPersonal = () => {
                 : filteredUsers.map(u => {
                     const nivelCfg = NIVEL_CONFIG[u.nivel] || NIVEL_CONFIG[1];
                     return (
-                      <div key={u.id}
+                      <div key={u.id} data-user-id={u.id}
                         className={`p-4 border rounded-2xl flex flex-col gap-3 transition-colors ${editingId===u.id?'border-clinical-500 bg-clinical-50':'bg-slate-50 hover:border-clinical-200'}`}>
                         <div className="flex justify-between items-start">
                           <div>
@@ -339,6 +358,7 @@ const AdministracionPersonal = () => {
                               {u.nivel >= 3 && <Crown size={14} className="text-purple-500"/>}
                               {u.nombre_completo}
                             </p>
+                          {!u.activo && <p className="text-xs font-semibold text-red-700 mt-1">Acceso desactivado</p>}
                           <p className="text-xs text-slate-500 mt-1">
                           {u.rol==='Doctor'?`COP: ${u.cop||'S/N'} · Comisión: ${u.comision_porcentaje ? u.comision_porcentaje+'%' : 'sin definir'}`:`Cel: ${u.telefono||'-'}`}
                         </p>
@@ -357,17 +377,17 @@ const AdministracionPersonal = () => {
                                 <Edit size={15}/>
                               </button>
                             )}
-                            {/* Resetear contraseña */}
+                            {/* Activos: restablecer; inactivos: reactivar con clave nueva. */}
                             {myNivel > (u.nivel||1) && u.id!==myId && (
                               <button onClick={()=>handleOpenReset(u)}
-                                className="p-1.5 text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors" title="Resetear contraseña">
-                                <KeyRound size={15}/>
+                                className="p-1.5 text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors" title={u.activo ? 'Restablecer contraseña' : 'Reactivar acceso'}>
+                                {u.activo ? <KeyRound size={15}/> : <RotateCcw size={15}/>}
                               </button>
                             )}
-                            {/* Eliminar: solo si puedo según jerarquía */}
-                            {canDelete(u) && (
+                            {/* Desactivar: solo si puedo segun jerarquia */}
+                            {canDeactivate(u) && (
                               <button onClick={()=>handleDelete(u)}
-                                className="p-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors" title="Eliminar">
+                                className="p-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors" title="Desactivar acceso">
                                 <Trash2 size={15}/>
                               </button>
                             )}
@@ -440,7 +460,7 @@ const AdministracionPersonal = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 rounded-2xl border border-slate-100 bg-clinical-50/40">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Rol en Clínica</label>
-                <select name="rol" value={formData.rol} onChange={handleChange}
+                <select name="rol" value={formData.rol} onChange={handleChange} disabled={editingId === myId}
                   className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white">
                   <option value="Asistente">Asistente</option>
                   <option value="Doctor">Doctor</option>

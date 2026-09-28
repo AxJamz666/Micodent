@@ -5,6 +5,7 @@ const path = require('node:path');
 const { uploadDir } = require('../config/multer');
 const { validStagedFile } = require('../services/clinicalUpload');
 const { storedName } = require('../services/clinicalFiles');
+const { CAPABILITY, hasCapability } = require('../services/accessPolicy');
 
 
 const { agregarConsulta, registrarPago } = require('./cobros.controller');
@@ -122,7 +123,7 @@ const getHistoriaByPaciente = async (req, res) => {
         [consulta.id]
       );
       consulta.pagos = pagos;
-      if (req.usuario.isAdmin) {
+      if (hasCapability(req.usuario, CAPABILITY.ADMIN)) {
         const total = await require('../services/finanzas').externalTotal(db, consulta) / 100;
         const [[covered]] = await db.query(`SELECT COALESCE(SUM(f.costo_aplicado),0) AS total
           FROM finanzas_pagos f JOIN pagos_vigentes p ON p.id=f.pago_id WHERE p.consulta_id=?`, [consulta.id]);
@@ -515,7 +516,7 @@ const subirRadiografia = async (req, res) => {
 const getRadiografias = async (req, res) => {
   try {
     const archivadas = req.query.archivadas === '1';
-    if (archivadas && !req.usuario.isAdmin) return res.status(403).json({ ok: false, mensaje: 'Se requieren permisos de administrador.' });
+    if (archivadas && !hasCapability(req.usuario, CAPABILITY.ADMIN)) return res.status(403).json({ ok: false, mensaje: 'Se requieren permisos de administrador.' });
     const [rows] = await db.query(
       `SELECT r.*, u.nombre_completo AS subido_por_nombre, a.anulada_en, a.anulada_por
        FROM radiografias r

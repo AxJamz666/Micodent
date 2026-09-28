@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const { fechaLima } = require('../utils/fecha');
+const { CAPABILITY, hasCapability } = require('../services/accessPolicy');
 
 function dateRange(query) {
   const desde = query.desde || fechaLima(), hasta = query.hasta || desde;
@@ -11,8 +12,8 @@ function dateRange(query) {
 async function getProduccion(req, res) {
   let connection;
   try {
-    const admin = req.usuario.isAdmin;
-    if (!admin && req.usuario.rol !== 'Doctor') return res.status(403).json({ ok: false, mensaje: 'Acceso no autorizado.' });
+    const admin = hasCapability(req.usuario, CAPABILITY.PRODUCTION_ALL);
+    if (!hasCapability(req.usuario, CAPABILITY.PRODUCTION_READ)) return res.status(403).json({ ok: false, mensaje: 'Acceso no autorizado.' });
     if (!admin && req.query.doctor && req.query.doctor !== req.usuario.id) return res.status(403).json({ ok: false, mensaje: 'Solo puedes consultar tu propia producción.' });
     const doctor = admin ? req.query.doctor || null : req.usuario.id;
     const [desde, hasta] = dateRange(req.query);
