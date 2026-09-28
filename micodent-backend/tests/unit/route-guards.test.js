@@ -15,6 +15,11 @@ const usuarios = require('../../src/routes/usuarios.routes');
 const gastos = require('../../src/routes/gastos.routes');
 const dashboard = require('../../src/routes/dashboard.routes');
 const historias = require('../../src/routes/historias.routes');
+const auth = require('../../src/routes/auth.routes');
+const pacientes = require('../../src/routes/pacientes.routes');
+const citas = require('../../src/routes/citas.routes');
+const laboratorio = require('../../src/routes/laboratorio.routes');
+const auditoria = require('../../src/routes/auditoria.routes');
 
 function routes(router) {
   const entries = new Map();
@@ -85,4 +90,16 @@ test('clinical routes retain authentication and their existing doctor/admin boun
     if (doctorOnly.has(key)) assert.equal(handlers[1], soloDoctor, key);
     if (adminOnly.has(key)) assert.equal(handlers[1], soloAdmin, key);
   }
+});
+
+test('every remaining workflow route requires authentication, except login', () => {
+  let count = 0;
+  for (const [name, router] of Object.entries({ auth, pacientes, citas, laboratorio, auditoria })) {
+    for (const [key, handlers] of routes(router)) {
+      count++;
+      if (name === 'auth' && key === 'POST /login') continue;
+      assert.equal(handlers[0], verificarToken, `${name}: ${key}`);
+    }
+  }
+  assert.equal(count, 20);
 });

@@ -34,6 +34,10 @@ propietario: GPT-6 Sol. La E06/M07-D quedo pausada en `d8522d1`, otra rama.
   cerrar el modal y limpia de inmediato los resultados antiguos. La prueba de
   navegador invierte el orden de dos respuestas para impedir que se ofrezca un
   paciente obsoleto.
+- La prueba de estructura cubre las 70 rutas de los routers REST y verifica
+  que todas conservan autenticacion, salvo el login publico. `ping` y `health`
+  son rutas operativas separadas. Las capacidades
+  especificas por rol siguen sujetas a E05/E06/E07 y no se modificaron aqui.
 
 No se cambia el esquema ni se ejecuta una migracion. No se ha modificado la
 base `micodent` ni las instalaciones piloto o familiares. El backend DEV
@@ -44,7 +48,7 @@ ejecutaron en una base MySQL temporal y con registros sinteticos.
 
 | Prueba | Resultado |
 | --- | --- |
-| Backend unitario | 85/85 |
+| Backend unitario | 86/86 |
 | Frontend unitario | 23/23 |
 | Build frontend y copia verificada al backend | Correctos |
 | Integracion MySQL aislada | Alta/edicion/reactivacion concurrentes, rollback, historicos, busqueda limitada, login 413 y regresion clinico-financiera correctos |
