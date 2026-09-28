@@ -20,7 +20,7 @@ No se ha enviado la continuacion M06/M07 ni E09 a GitHub.
 | E06 Clinica y trazabilidad | Pausada: M07-A/B/C probados; M07-D guardado en otra rama, aun sin QA final | Anulacion no destructiva, versiones de firmas, identidad de emision, M08/M09/M11 |
 | E07 Edy | No iniciada | Paquete propio tras E05/E06; ninguna capacidad concedida |
 | E08 Finanzas | RC4 resolvio defectos concretos | Auditoria integral e invariantes historicos pendientes |
-| E09 Agenda/API | M16 en curso y probado en aislamiento; sin despliegue | M19: contratos/limites generales y aceptacion; ver E09_AGENDA_API_AVANCE.md |
+| E09 Agenda/API | M16 probado en aislamiento; M19 en curso; sin despliegue | Contratos/limites generales y aceptacion; ver E09_AGENDA_API_AVANCE.md |
 | E10 BD/rendimiento | No iniciada como etapa | Indices, restricciones y migraciones controladas |
 | E11 Trabajo/mantenimiento | No iniciada como etapa | Prevencion de perdida de formularios y modularidad |
 | E12 UX/UI | Mejoras RC4 puntuales | Revision integral de vistas y accesibilidad |

@@ -20,6 +20,7 @@ module.exports = async ({ api, conn, tokens, check }) => {
       { paciente_id: 'not-id' }, { doctor_id: 'missing' }, { paciente_id: 999999 },
     ];
     for (const entry of invalid) assert.equal((await create(entry)).status, 400, JSON.stringify(entry));
+    assert.equal((await create({ motivo_consulta: 'x'.repeat(70 * 1024) })).status, 413);
     for (const url of ['/citas?desde=2026-02-30', '/citas?desde=2026-10-16&hasta=2026-10-15',
       '/citas?doctorId=']) {
       assert.equal((await api('GET', url, null, tokens.qaadmin)).status, 400);

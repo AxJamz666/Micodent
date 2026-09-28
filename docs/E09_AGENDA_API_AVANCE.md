@@ -20,6 +20,8 @@ propietario: GPT-6 Sol. La E06/M07-D quedo pausada en `d8522d1`, otra rama.
 - La copia del frontend compilado usa archivos regulares y comprueba hashes;
   se conserva el comportamiento de mantener chunks antiguos para pestanas
   abiertas durante una actualizacion.
+- M19 inicia con un limite de 64 KB para el cuerpo de solicitudes de agenda,
+  sin modificar el limite general requerido por otros modulos clinicos.
 
 No se cambia el esquema ni se ejecuta una migracion. No se ha modificado la
 base `micodent` ni las instalaciones piloto o familiares. El backend DEV
@@ -38,7 +40,8 @@ ejecutaron en una base MySQL temporal y con registros sinteticos.
 | Escaner de secretos | Codigo sin hallazgos; dos enlaces locales `node_modules` reportados como `SYMLINK_REQUIRES_REVIEW` |
 
 Evidencia de navegador: `E:\MICODENT_QA\qa-1790638172779`.
-Ultima regresion backend: `E:\MICODENT_QA\qa-1790638314812`.
+Ultima regresion backend, incluido rechazo 413 de agenda:
+`E:\MICODENT_QA\qa-1790638495023`.
 El escaneo no certifica todo el entorno por esos enlaces locales, que no estan
 versionados ni forman parte del paquete. Antes de publicar, comprobar el indice
 de Git y ejecutar la verificacion sobre un arbol sin dichos enlaces.
@@ -49,6 +52,10 @@ de Git y ejecutar la verificacion sobre un arbol sin dichos enlaces.
   formatos de respuesta que el frontend ya consume. El GET historico de citas
   conserva rangos amplios por compatibilidad; evaluar paginacion o limites con
   un contrato nuevo y mediciones antes de restringirlo.
+- Inventariar por grupo las 70 rutas REST actuales antes de imponer limites
+  comunes: archivos clinicos, pagos e informes tienen tamanos y riesgos
+  distintos. Mantener el contrato `{ ok, data/mensaje }` donde ya existe y
+  agregar pruebas negativas de tamano, rango, identificador y permisos.
 - Revalidar sobre la configuracion definitiva de MySQL/XAMPP y aceptar el
   flujo de agenda con usuarios de prueba antes de cualquier actualizacion.
 - Hacer respaldo y plan de reversion por instalacion al promover este paquete;
