@@ -92,7 +92,7 @@ export const usuariosService = {
 // PACIENTES
 // ============================================================
 export const pacientesService = {
-  getAll:       (search, incluirArchivados, limit) => api.get('/pacientes', { params: { search, incluirArchivados, limit } }),
+  getAll:       (search, incluirArchivados, limit, signal) => api.get('/pacientes', { params: { search, incluirArchivados, limit }, signal }),
   getById:      (id)       => api.get(`/pacientes/${id}`),
   getAuditoria: (id)       => api.get(`/pacientes/${id}/auditoria`),
   crear:        (data)     => api.post('/pacientes', data),

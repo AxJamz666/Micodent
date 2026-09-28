@@ -27,6 +27,10 @@ propietario: GPT-6 Sol. La E06/M07-D quedo pausada en `d8522d1`, otra rama.
   solicita seis resultados al servidor. Sin `limit`, el contrato anterior
   permanece igual. Esta medida reduce el trafico de Agenda, pero no reemplaza
   la futura paginacion ni elimina el costo de buscar con `LIKE`.
+- El buscador de Agenda cancela consultas anteriores al cambiar el texto o
+  cerrar el modal y limpia de inmediato los resultados antiguos. La prueba de
+  navegador invierte el orden de dos respuestas para impedir que se ofrezca un
+  paciente obsoleto.
 
 No se cambia el esquema ni se ejecuta una migracion. No se ha modificado la
 base `micodent` ni las instalaciones piloto o familiares. El backend DEV
@@ -41,11 +45,11 @@ ejecutaron en una base MySQL temporal y con registros sinteticos.
 | Frontend unitario | 23/23 |
 | Build frontend y copia verificada al backend | Correctos |
 | Integracion MySQL aislada | Alta/edicion/reactivacion concurrentes, rollback, historicos, busqueda limitada, login 413 y regresion clinico-financiera correctos |
-| Navegador sobre build compilado | Alta, conflicto 409, busqueda `limit=6` y modal movil correctos |
+| Navegador sobre build compilado | Alta, conflicto 409, busqueda `limit=6`, respuesta tardia y modal movil correctos |
 | Escaner de secretos | Codigo sin hallazgos; dos enlaces locales `node_modules` reportados como `SYMLINK_REQUIRES_REVIEW` |
 
-Evidencia de navegador: `E:\MICODENT_QA\qa-1790638797959`.
-Ultima regresion backend: `E:\MICODENT_QA\qa-1790638885192`.
+Evidencia de navegador y ultima regresion backend:
+`E:\MICODENT_QA\qa-1790639285949`.
 El escaneo no certifica todo el entorno por esos enlaces locales, que no estan
 versionados ni forman parte del paquete. Antes de publicar, comprobar el indice
 de Git y ejecutar la verificacion sobre un arbol sin dichos enlaces.

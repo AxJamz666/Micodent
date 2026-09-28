@@ -61,17 +61,18 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
   }, [isOpen, citaExistente, prefill]);
 
   useEffect(() => {
-    if (!busquedaPaciente || busquedaPaciente.length < 2) { setResultadosBusqueda([]); return; }
+    if (!isOpen || busquedaPaciente.trim().length < 2) { setResultadosBusqueda([]); return; }
+    const controller = new AbortController();
     const delay = setTimeout(async () => {
       try {
-        const { data } = await pacientesService.getAll(busquedaPaciente, undefined, 6);
-        setResultadosBusqueda((data.data || []).slice(0, 6));
+        const { data } = await pacientesService.getAll(busquedaPaciente.trim(), undefined, 6, controller.signal);
+        if (!controller.signal.aborted) setResultadosBusqueda((data.data || []).slice(0, 6));
       } catch {
-        setResultadosBusqueda([]);
+        if (!controller.signal.aborted) setResultadosBusqueda([]);
       }
     }, 300);
-    return () => clearTimeout(delay);
-  }, [busquedaPaciente]);
+    return () => { clearTimeout(delay); controller.abort(); };
+  }, [busquedaPaciente, isOpen]);
 
   const seleccionarPaciente = (p) => {
     setForm(prev => ({ ...prev, paciente_id: p.id, nombre_contacto: `${p.apellidos}, ${p.nombres}`, celular_contacto: p.celular || '' }));
@@ -173,7 +174,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
             ) : (
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16}/>
-                <input type="text" value={busquedaPaciente} onChange={e => setBusquedaPaciente(e.target.value)}
+                <input type="text" value={busquedaPaciente} onChange={e => { setBusquedaPaciente(e.target.value); setResultadosBusqueda([]); }}
                   placeholder="Buscar por nombre o DNI..."
                   className="w-full pl-9 pr-3 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 text-sm" />
                 {resultadosBusqueda.length > 0 && (

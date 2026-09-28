@@ -1,14 +1,14 @@
 {
   "version": "rc4-e09-dev",
-  "createdAt": "2026-09-28T23:39:32.882Z",
+  "createdAt": "2026-09-28T23:47:52.318Z",
   "files": [
+    {
+      "file": "assets/index-BHFxrB2Y.js",
+      "sha256": "4bde0a12c007cccab1322d85b4517b01a27c06678f2be1df97bc6e4bc31d6ab7"
+    },
     {
       "file": "assets/index-BHMZeoye.css",
       "sha256": "feacc54b5a280f546fb0dd8616c4a6346ff79a50fc52b714727edf17af656ab5"
-    },
-    {
-      "file": "assets/index-CBb5KVD2.js",
-      "sha256": "4b30c532f0115cc8231f2b2c291d48ff3d9cdcca918a7eedc542c85dc9334336"
     },
     {
       "file": "favicon.svg",
@@ -20,7 +20,7 @@
     },
     {
       "file": "index.html",
-      "sha256": "679a9a0273a0f116100ac896fff82966b4c7ed8f52e83fa8bbc168d2fa319214"
+      "sha256": "2925b83f78248fab6d41c043a0b065a1c72f5be1b29d01e96d34a4967b450b54"
     },
     {
       "file": "logo.png",

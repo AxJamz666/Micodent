@@ -31,6 +31,36 @@ module.exports = async ({ browser, base, root, pass }) => {
     await modal.locator('input').nth(0).fill('Sintetico');
     assert.equal((await search).status(), 200);
     await modal.locator('input').nth(0).fill('');
+    let oldStartedResolve, releaseOld, oldDoneResolve;
+    const oldStarted = new Promise(resolve => { oldStartedResolve = resolve; });
+    const oldRelease = new Promise(resolve => { releaseOld = resolve; });
+    const oldDone = new Promise(resolve => { oldDoneResolve = resolve; });
+    const patient = (id, name) => JSON.stringify({ ok: true, data: [{ id, nombres: name, apellidos: 'QA', dni: String(id).padStart(8, '0') }] });
+    const searchRoute = async route => {
+      const term = new URL(route.request().url()).searchParams.get('search');
+      if (term === 'Primera QA') {
+        oldStartedResolve();
+        await oldRelease;
+        try { await route.fulfill({ status: 200, contentType: 'application/json', body: patient(501, 'Primera') }); }
+        catch { /* The aborted request may no longer accept a response. */ }
+        finally { oldDoneResolve(); }
+      } else if (term === 'Segunda QA') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: patient(502, 'Segunda') });
+      } else await route.continue();
+    };
+    await page.route('**/api/pacientes?**', searchRoute);
+    const searchInput = modal.locator('input').nth(0);
+    await searchInput.fill('Primera QA');
+    await oldStarted;
+    try {
+      await searchInput.fill('Segunda QA');
+      await modal.getByText('QA, Segunda', { exact: true }).waitFor();
+    } finally { releaseOld(); await oldDone; }
+    await page.waitForTimeout(100);
+    assert.equal(await modal.getByText('QA, Primera', { exact: true }).count(), 0);
+    assert.equal(await modal.getByText('QA, Segunda', { exact: true }).count(), 1);
+    await page.unroute('**/api/pacientes?**', searchRoute);
+    await searchInput.fill('');
     const created = page.waitForResponse(r => r.url().endsWith('/api/citas') && r.request().method() === 'POST');
     await modal.getByRole('button', { name: 'Agendar Cita' }).click();
     assert.equal((await created).status(), 201);
