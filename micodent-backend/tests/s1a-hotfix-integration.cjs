@@ -104,4 +104,4 @@ function regression({ root, identity }) {
   assert.equal(result.status, 0, 'Revisar s1a-security-tests.log local');
 }
 
-module.exports = { prepare, regression };
+module.exports = { prepare, regression, snapshot };

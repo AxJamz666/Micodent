@@ -1,10 +1,10 @@
 const router  = require('express').Router();
-const upload  = require('../config/multer');
+const { upload } = require('../config/multer');
 const {
   getHistorias, getHistoriaByPaciente,
   guardarAntecedentes,
   eliminarHistoria,
-  subirRadiografia, getRadiografias, eliminarRadiografia,
+  subirRadiografia, getRadiografias, eliminarRadiografia, restaurarRadiografia,
   guardarFirmas, editarConsulta, eliminarConsulta,
   agregarAdendaConsulta, agregarItemOdontograma, agregarAdendaOdontograma,
   eliminarItemOdontograma, reactivarHistoria,
@@ -31,8 +31,14 @@ router.delete('/consultas/:id',              verificarToken, soloDoctor, elimina
 router.post('/consultas/:consultaId/pagos',  verificarToken, registrarPago);
 router.post('/consultas/:id/adendas',        verificarToken, soloDoctor, agregarAdendaConsulta);
 router.get('/:historiaId/radiografias',      verificarToken, getRadiografias);
-router.post('/:historiaId/radiografias',     verificarToken, upload.single('imagen'), subirRadiografia);
+router.post('/:historiaId/radiografias', verificarToken, (req, res, next) => {
+  upload.single('imagen')(req, res, error => {
+    if (error) return res.status(400).json({ ok: false, mensaje: 'Archivo no válido o mayor de 10 MB.' });
+    next();
+  });
+}, subirRadiografia);
 router.delete('/radiografias/:id',           verificarToken, eliminarRadiografia);
+router.post('/radiografias/:id/restaurar',    verificarToken, soloAdmin, restaurarRadiografia);
 router.delete('/paciente/:pacienteId',       verificarToken, eliminarHistoria);
 router.put('/paciente/:pacienteId/reactivar', verificarToken, reactivarHistoria);
 

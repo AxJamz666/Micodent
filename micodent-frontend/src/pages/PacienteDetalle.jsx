@@ -3,11 +3,12 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   User, ArrowLeft, Printer, History, Activity, FileText, ShieldAlert,
   Image as ImageIcon, CreditCard, PenTool, Save, Plus, X, Calendar,
-  Check, Clock, Trash2, Edit, Lock, UploadCloud, Baby, FileSignature
+  Check, Clock, Trash2, Edit, Lock, UploadCloud, Baby, FileSignature, Archive, ArchiveRestore
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { pacientesService, historiasService, authService, dashboardService } from '../services/api';
 import ClinicalImage from '../components/ClinicalImage';
+import { useSession } from '../services/browserSession';
 import MetodoPago from '../components/MetodoPago';
 import OdontogramaEditor from '../components/OdontogramaEditor';
 import RecetarioTab from '../components/RecetarioTab';
@@ -102,6 +103,7 @@ const SignaturePad = ({ onEnd, initialImage }) => {
 };
 
 const PacienteDetalle = () => {
+  const { user: verifiedUser } = useSession();
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -142,6 +144,9 @@ const PacienteDetalle = () => {
   const [radiografias, setRadiografias] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [subiendoImagen, setSubiendoImagen] = useState(false);
+  const [archivadas, setArchivadas] = useState([]);
+  const [mostrarArchivadas, setMostrarArchivadas] = useState(false);
+  const [cargandoArchivadas, setCargandoArchivadas] = useState(false);
 
   // Recetario
   const [recetas, setRecetas] = useState([]);
@@ -474,14 +479,41 @@ const PacienteDetalle = () => {
   };
 
   const handleEliminarRadiografia = async (radId) => {
-    if (!window.confirm('¿Eliminar esta placa?')) return;
+    if (!window.confirm('¿Anular esta placa? Se conservará para su recuperación.')) return;
     try {
       await historiasService.eliminarRadiografia(radId);
       setRadiografias(prev => prev.filter(r => r.id !== radId));
-      toast.success('Placa eliminada.');
+      if (mostrarArchivadas) {
+        const res = await historiasService.getRadiografias(hcId, true);
+        setArchivadas(res.data.data);
+      }
+      toast.success('Placa anulada.');
     } catch (err) {
-      toast.error('Error al eliminar placa.');
+      toast.error(err.response?.data?.mensaje || 'Error al anular placa.');
     }
+  };
+
+  const toggleArchivadas = async () => {
+    if (mostrarArchivadas) { setMostrarArchivadas(false); return; }
+    setCargandoArchivadas(true);
+    try {
+      const res = await historiasService.getRadiografias(hcId, true);
+      setArchivadas(res.data.data);
+      setMostrarArchivadas(true);
+    } catch (err) { toast.error(err.response?.data?.mensaje || 'No se pudieron cargar los anexos anulados.'); }
+    finally { setCargandoArchivadas(false); }
+  };
+
+  const restaurarAnexo = async id => {
+    try {
+      await historiasService.restaurarRadiografia(id);
+      const [activos, inactivos] = await Promise.all([
+        historiasService.getRadiografias(hcId), historiasService.getRadiografias(hcId, true),
+      ]);
+      setRadiografias(activos.data.data);
+      setArchivadas(inactivos.data.data);
+      toast.success('Anexo restaurado.');
+    } catch (err) { toast.error(err.response?.data?.mensaje || 'No se pudo restaurar el anexo.'); }
   };
 
   const calcularTotalPagado = (pagos) => Array.isArray(pagos) ? pagos.reduce((sum, p) => sum + parseFloat(p?.monto || 0), 0) : 0;
@@ -809,7 +841,7 @@ const PacienteDetalle = () => {
                   <div key={rad.id} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden group">
                     <div className="relative h-64 bg-black flex items-center justify-center cursor-pointer" onClick={() => setSelectedImage(rad)}>
                       <ClinicalImage record={rad} alt="Placa" className="max-h-full max-w-full object-contain" />
-                      <button onClick={(e) => { e.stopPropagation(); handleEliminarRadiografia(rad.id); }} className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16}/></button>
+                      <button type="button" title="Anular anexo" aria-label="Anular anexo" onClick={(e) => { e.stopPropagation(); handleEliminarRadiografia(rad.id); }} className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"><Trash2 size={16}/></button>
                     </div>
                     <div className="p-4 bg-slate-50">
                       <input type="text" placeholder="Ej. Radiografía Panorámica Inicial..." className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-clinical-500 text-sm font-bold text-slate-700" value={rad.descripcion} onChange={(e) => setRadiografias(prev => prev.map(r => r.id === rad.id ? { ...r, descripcion: e.target.value } : r))} />
@@ -818,6 +850,21 @@ const PacienteDetalle = () => {
                 ))
               )}
             </div>
+            {verifiedUser?.isAdmin && hcId && <div className="border-t border-slate-200 pt-4">
+              <button type="button" onClick={toggleArchivadas} disabled={cargandoArchivadas}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-clinical-600 disabled:opacity-50">
+                <Archive size={16}/>{mostrarArchivadas ? 'Ocultar anexos anulados' : 'Ver anexos anulados'}
+              </button>
+              {mostrarArchivadas && <div className="mt-3 space-y-2">
+                {archivadas.length === 0 && <p className="text-sm text-slate-500">No hay anexos anulados.</p>}
+                {archivadas.map(rad => <div key={rad.id} className="flex flex-wrap items-center justify-between gap-3 border border-slate-200 p-3 text-sm">
+                  <span>{rad.descripcion || 'Anexo'} · {rad.anulada_en?.slice(0, 10) || 'Sin fecha'}</span>
+                  <button type="button" onClick={() => restaurarAnexo(rad.id)} className="inline-flex items-center gap-2 text-clinical-600 font-semibold">
+                    <ArchiveRestore size={16}/> Restaurar
+                  </button>
+                </div>)}
+              </div>}
+            </div>}
           </div>
         )}
 

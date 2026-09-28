@@ -23,6 +23,10 @@ Actualizacion 2026-09-27: M03-A implementado y probado en aislamiento sobre
 RC4 + S1-B; [cierre de lectura protegida](RC4_M03A_CIERRE.md). No activado.
 E04 permanece abierta: M03-B (cargas y eliminacion recuperable) pendiente.
 
+Actualizacion 2026-09-27: M03-B implementado y probado sobre la rama RC4,
+[cierre de archivos clinicos](RC4_M03B_CIERRE.md). E04 queda en aceptacion
+funcional: sin despliegue, inventario historico de cada instalacion pendiente.
+
 La tabla siguiente conserva el estado historico previo, no certifica el candidato clinico.
 
 Repositorio privado AxJamz666/Micodent. Etapa 0 de preparacion + etapas 1-17.

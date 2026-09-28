@@ -23,7 +23,9 @@ function clinicalFileHandler({ db, root }) {
     try {
       if (!/^[1-9][0-9]*$/.test(req.params.id) || !Number.isSafeInteger(Number(req.params.id))) throw missing();
       const [rows] = await db.execute(`SELECT r.url_archivo FROM radiografias r
-        INNER JOIN historias_clinicas h ON h.id=r.historia_id WHERE r.id=?`, [req.params.id]);
+        INNER JOIN historias_clinicas h ON h.id=r.historia_id
+        LEFT JOIN radiografias_anulaciones a ON a.radiografia_id=r.id AND a.restaurada_en IS NULL
+        WHERE r.id=? AND a.radiografia_id IS NULL`, [req.params.id]);
       if (rows.length !== 1) throw missing();
       const name = storedName(rows[0].url_archivo);
       const directory = await fs.promises.lstat(root);

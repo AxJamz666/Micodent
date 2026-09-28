@@ -22,6 +22,10 @@ async function prepare({conn,root}) {
   // Only this disposable process reads files from its synthetic storage directory.
   require.cache[moduleId].exports = { ...original,
     clinicalFileHandler: options => original.clinicalFileHandler({...options,root:storage}) };
+  const uploadModule = require.resolve('../src/config/multer');
+  const uploadConfig = require(uploadModule);
+  require.cache[uploadModule].exports = { ...uploadConfig,
+    upload: uploadConfig.createUpload(storage), uploadDir: storage };
   fixture = {storage,records};
 }
 
@@ -39,6 +43,66 @@ async function run({base,root,pass,api,tokens,check}) {
       const wrong={...client.headers(base,tokens.qaadmin),Cookie:client.headers(base,tokens.qadoctor).Cookie};
       assert.equal((await fetch(url,{headers:wrong})).status,409);
     }
+  });
+  await check('M03-B: carga verificada, anulación sin borrado y restauración administrativa', async () => {
+    const headers = token => {
+      const value = client.headers(base, token);
+      delete value['Content-Type'];
+      return value;
+    };
+    const upload = async (bytes, filename, mime, historyId = 1) => {
+      const form = new FormData();
+      form.append('imagen', new Blob([bytes], { type: mime }), filename);
+      form.append('descripcion', 'Anexo sintetico nuevo');
+      return fetch(base + `/api/historias/${historyId}/radiografias`, {
+        method: 'POST', headers: headers(tokens.qaadmin), body: form,
+      });
+    };
+    const before = fs.readdirSync(fixture.storage).sort();
+    assert.equal((await upload(Buffer.from('<html>falso</html>'), 'falso.png', 'image/png')).status, 400);
+    assert.deepEqual(fs.readdirSync(fixture.storage).sort(), before);
+    assert.equal((await upload(fixture.records[0].bytes, 'falso.png.exe', 'image/png')).status, 400);
+    assert.equal((await upload(fixture.records[0].bytes, 'falso.png', 'application/pdf')).status, 400);
+    assert.equal((await upload(fixture.records[0].bytes, 'clinica.png', 'image/png', 99999)).status, 404);
+    assert.deepEqual(fs.readdirSync(fixture.storage).sort(), before);
+    const accepted = await upload(fixture.records[0].bytes, 'clinica.png', 'image/png');
+    assert.equal(accepted.status, 201);
+    const body = await accepted.json();
+    const filename = body.url_archivo.split('/').at(-1);
+    assert.match(filename, /^rad_[0-9a-f-]{36}\.png$/);
+    const pathname = path.join(fixture.storage, filename);
+    assert.equal(hash(fs.readFileSync(pathname)), hash(fixture.records[0].bytes));
+    assert.equal(fs.readdirSync(path.join(fixture.storage, '.staging')).length, 0);
+    const fileUrl = `/historias/radiografias/${body.radiografiaId}/archivo`;
+    const read = () => fetch(base + '/api' + fileUrl, { headers: client.headers(base, tokens.qaadmin) });
+    assert.equal((await read()).status, 200);
+    assert.equal((await api('DELETE', `/historias/radiografias/${body.radiografiaId}`, null, tokens.qaadmin)).status, 200);
+    assert.equal((await read()).status, 404);
+    assert.equal((await api('DELETE', `/historias/radiografias/${body.radiografiaId}`, null, tokens.qaadmin)).status, 409);
+    assert.equal((await api('POST', `/historias/radiografias/${body.radiografiaId}/restaurar`, {}, tokens.qadoctor)).status, 403);
+    assert.equal((await api('GET', '/historias/1/radiografias?archivadas=1', null, tokens.qadoctor)).status, 403);
+    assert.equal(hash(fs.readFileSync(pathname)), hash(fixture.records[0].bytes));
+    const archived = await api('GET', '/historias/1/radiografias?archivadas=1', null, tokens.qaadmin);
+    assert(archived.body.data.some(row => row.id === body.radiografiaId));
+    fs.renameSync(pathname, pathname + '.temporarily-missing');
+    try {
+      assert.equal((await api('POST', `/historias/radiografias/${body.radiografiaId}/restaurar`, {}, tokens.qaadmin)).status, 409);
+    } finally { fs.renameSync(pathname + '.temporarily-missing', pathname); }
+    assert.equal((await api('POST', `/historias/radiografias/${body.radiografiaId}/restaurar`, {}, tokens.qaadmin)).status, 200);
+    assert.equal((await read()).status, 200);
+    assert.equal(hash(fs.readFileSync(pathname)), hash(fixture.records[0].bytes));
+    assert.equal((await api('DELETE', `/historias/radiografias/${body.radiografiaId}`, null, tokens.qaadmin)).status, 200);
+    fixture.archivedId = body.radiografiaId;
+    const inventory = await require('../scripts/audit-clinical-files').inventory({db:require('../src/config/db'),root:fixture.storage});
+    assert.equal(inventory.clean,true);
+    assert.equal(inventory.records,3);
+    const orphan = path.join(fixture.storage, 'orphan-synthetic.png');
+    fs.writeFileSync(orphan, fixture.records[0].bytes, {flag:'wx'});
+    try {
+      const found = await require('../scripts/audit-clinical-files').inventory({db:require('../src/config/db'),root:fixture.storage});
+      assert.equal(found.orphan,1);
+      assert.equal(found.clean,false);
+    } finally { fs.unlinkSync(orphan); }
   });
   if(process.env.HOTFIX_PLAYWRIGHT) {
     const {chromium}=require(process.env.HOTFIX_PLAYWRIGHT);
@@ -81,6 +145,17 @@ async function run({base,root,pass,api,tokens,check}) {
         await page.goto(origin+'/pacientes/1?tab=radiografias');
         await page.getByAltText('Placa',{exact:true}).evaluate(img=>img.decode());
         await page.screenshot({path:path.join(root,mode+'-archivos-mobile.png')});
+        await page.getByRole('button',{name:'Ver anexos anulados'}).click();
+        await page.getByRole('button',{name:'Restaurar'}).click();
+        await page.waitForFunction(()=>document.querySelectorAll('button[aria-label="Anular anexo"]').length===3);
+        page.once('dialog',dialog=>dialog.accept());
+        const deleteResponse = page.waitForResponse(r=>r.request().method()==='DELETE' && /\/historias\/radiografias\/\d+$/.test(new URL(r.url()).pathname));
+        await page.getByRole('button',{name:'Anular anexo'}).first().click();
+        const deleted = await deleteResponse;
+        assert.equal(deleted.status(),200,`Anulacion UI: HTTP ${deleted.status()}`);
+        await page.waitForTimeout(500);
+        const remaining = await page.locator('button[aria-label="Anular anexo"]').count();
+        assert.equal(remaining,2,`La galeria debe volver a sus dos anexos iniciales; botones visibles: ${remaining}`);
         const fileRequest=page.waitForRequest(r=>r.url().endsWith('/archivo'));
         await page.getByAltText('Placa',{exact:true}).click();
         const request=await fileRequest;

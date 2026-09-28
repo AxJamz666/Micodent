@@ -14,7 +14,7 @@ try {
 }
 
 const workspace = path.resolve(__dirname, '../..');
-const version = 'MICODENT-RC4-M03A-DEV';
+const version = 'MICODENT-RC4-M03B-DEV';
 const destination = path.join(workspace, '.runtime', 'releases', `${version}-${Date.now()}`);
 if (!fs.existsSync(path.join(workspace, 'micodent-frontend/dist/index.html'))) throw new Error('Compila primero el frontend.');
 fs.mkdirSync(destination, { recursive: true });
@@ -43,6 +43,7 @@ copy(path.join(workspace, 'micodent-backend/public/build-version.json'), path.jo
 for (const entry of ['iniciar_micodent.bat', 'comprobar_micodent.bat', 'micodent-arranque.cjs', 'docs/HOTFIX_RC1.md', 'docs/HOTFIX_RC2.md', 'docs/HOTFIX_RC3.md', 'docs/HOTFIX_RC4.md', 'docs/RC4_S1A_INTEGRACION.md', 'docs/RC4_M02_CIERRE.md', 'docs/SECRETOS.md']) copy(path.join(workspace, entry), path.join(destination, entry));
 copy(path.join(workspace, 'docs/RC4_S1B_CIERRE.md'), path.join(destination, 'docs/RC4_S1B_CIERRE.md'));
 copy(path.join(workspace, 'docs/RC4_M03A_CIERRE.md'), path.join(destination, 'docs/RC4_M03A_CIERRE.md'));
+copy(path.join(workspace, 'docs/RC4_M03B_CIERRE.md'), path.join(destination, 'docs/RC4_M03B_CIERRE.md'));
 const inspection = secretCheck.scanDirectory(destination, { knownSecrets, artifact: true });
 if (inspection.findings.length) throw new Error('PACKAGE_CONTENT_REJECTED: copia incompleta no apta para compartir.');
 const files = [];

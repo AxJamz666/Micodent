@@ -52,6 +52,14 @@ verificados en aislamiento; ver [informe](RC4_M03A_CIERRE.md). Sin activacion
 habitual. E04/M03 permanece abierta: siguen pendientes M03-B (validacion de
 cargas y eliminacion recuperable), inventario historico y pruebas de capacidad.
 
+Cierre tecnico M03-B 2026-09-27: cargas validadas, anulacion/restauracion
+transaccional e inventario de archivos sobre la misma linea RC4, en
+`codex/rc4-m03b-carga-anulacion`, version `rc4-m03b-dev`. Ver
+[informe M03-B](RC4_M03B_CIERRE.md). E04 esta implementada y verificada en
+aislamiento; requiere aceptacion, inventario historico y activacion controlada
+por instalacion. Proxima etapa de codigo: M06 autorizacion y usuarios. Las
+cuestiones de respaldo operativo y capacidad siguen en etapas 10, 14 y 16.
+
 ## Orden de trabajo
 
 | Etapa | Paquete | Resultado y dependencias |

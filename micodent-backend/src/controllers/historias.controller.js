@@ -1,5 +1,10 @@
 const { fechaLima, horaLima, horaLimaCorta } = require('../utils/fecha');
 const db = require('../config/db');
+const fs = require('node:fs/promises');
+const path = require('node:path');
+const { uploadDir } = require('../config/multer');
+const { validStagedFile } = require('../services/clinicalUpload');
+const { storedName } = require('../services/clinicalFiles');
 
 
 const { agregarConsulta, registrarPago } = require('./cobros.controller');
@@ -140,7 +145,9 @@ const getHistoriaByPaciente = async (req, res) => {
       [historia[0].id]
     );
     const [radiografias] = await db.query(
-      'SELECT * FROM radiografias WHERE historia_id = ? ORDER BY creado_en DESC',
+      `SELECT r.* FROM radiografias r
+       LEFT JOIN radiografias_anulaciones a ON a.radiografia_id=r.id AND a.restaurada_en IS NULL
+       WHERE r.historia_id = ? AND a.radiografia_id IS NULL ORDER BY r.creado_en DESC`,
       [historia[0].id]
     );
 
@@ -450,32 +457,45 @@ const reactivarHistoria = async (req, res) => {
 
 // POST /api/historias/:historiaId/radiografias — subir imagen
 const subirRadiografia = async (req, res) => {
+  let conn;
+  let publishedPath;
+  let commitStarted = false;
   try {
     const { historiaId } = req.params;
     const { descripcion, tipo } = req.body;
-
-    if (!req.file) {
-      return res.status(400).json({ ok: false, mensaje: 'No se recibió ningún archivo.' });
+    if (!req.file) return res.status(400).json({ ok: false, mensaje: 'No se recibió ningún archivo.' });
+    if (!/^[1-9][0-9]*$/.test(historiaId) || !Number.isSafeInteger(Number(historiaId))
+        || typeof descripcion !== 'string' && descripcion !== undefined
+        || typeof tipo !== 'string' && tipo !== undefined
+        || (descripcion?.length || 0) > 1000 || (tipo?.length || 0) > 50) {
+      return res.status(400).json({ ok: false, mensaje: 'Datos del anexo no válidos.' });
     }
-
+    if (!await validStagedFile(req.file)) return res.status(400).json({ ok: false, mensaje: 'El contenido no coincide con el formato permitido.' });
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+    const [historia] = await conn.execute('SELECT id FROM historias_clinicas WHERE id=? FOR UPDATE', [historiaId]);
+    if (!historia.length) { await conn.rollback(); conn.release(); conn = null; return res.status(404).json({ ok: false, mensaje: 'Historia no encontrada.' }); }
+    publishedPath = path.join(uploadDir, req.file.filename);
+    await fs.link(req.file.path, publishedPath);
     const url_archivo = `/uploads/${req.file.filename}`;
-    
     const fecha = fechaLima();
     const hora = horaLimaCorta();
-
-    const [result] = await db.query(
+    const [result] = await conn.execute(
       `INSERT INTO radiografias
         (historia_id, tipo, descripcion, url_archivo, fecha_toma, subido_por)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [historiaId, tipo || 'radiografia', descripcion || '', url_archivo, fecha, req.usuario.id]
     );
 
-    await db.query(
+    await conn.execute(
       `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
        VALUES (?, ?, ?, ?, ?)`,
       [historiaId, req.usuario.id, `Subió una placa/anexo: "${descripcion || 'Radiografía'}"`, fecha, hora]
     );
-
+    commitStarted = true;
+    await conn.commit();
+    conn.release(); conn = null;
+    await fs.unlink(req.file.path).catch(() => {});
     res.status(201).json({
       ok:          true,
       mensaje:     'Imagen subida correctamente.',
@@ -483,19 +503,25 @@ const subirRadiografia = async (req, res) => {
       url_archivo,
     });
   } catch (err) {
-    console.error(err);
+    if (conn) { await conn.rollback().catch(() => {}); conn.release(); }
+    // An uncertain commit may have persisted the row. Keep its bytes for reconciliation.
     res.status(500).json({ ok: false, mensaje: 'Error al subir imagen.' });
+  } finally {
+    if (req.file?.path && (!publishedPath || !commitStarted)) await fs.unlink(req.file.path).catch(() => {});
   }
 };
 
 // GET /api/historias/:historiaId/radiografias — listar imágenes
 const getRadiografias = async (req, res) => {
   try {
+    const archivadas = req.query.archivadas === '1';
+    if (archivadas && !req.usuario.isAdmin) return res.status(403).json({ ok: false, mensaje: 'Se requieren permisos de administrador.' });
     const [rows] = await db.query(
-      `SELECT r.*, u.nombre_completo AS subido_por_nombre
+      `SELECT r.*, u.nombre_completo AS subido_por_nombre, a.anulada_en, a.anulada_por
        FROM radiografias r
        LEFT JOIN usuarios u ON r.subido_por = u.id
-       WHERE r.historia_id = ?
+       LEFT JOIN radiografias_anulaciones a ON a.radiografia_id=r.id AND a.restaurada_en IS NULL
+       WHERE r.historia_id = ? AND ${archivadas ? 'a.radiografia_id IS NOT NULL' : 'a.radiografia_id IS NULL'}
        ORDER BY r.creado_en DESC`,
       [req.params.historiaId]
     );
@@ -505,37 +531,63 @@ const getRadiografias = async (req, res) => {
   }
 };
 
-// DELETE /api/historias/radiografias/:id — eliminar imagen
+// DELETE /api/historias/radiografias/:id — anular sin borrar bytes
 const eliminarRadiografia = async (req, res) => {
+  let conn;
   try {
     const { id } = req.params;
-    const path = require('path');
-    const fs   = require('fs');
-    
-    const [rows] = await db.query(
-      'SELECT url_archivo, historia_id, descripcion FROM radiografias WHERE id = ?', [id]
-    );
-    
-    if (rows.length === 0) {
-      return res.status(404).json({ ok: false, mensaje: 'Imagen no encontrada.' });
-    }
-
-    const filePath = path.join(__dirname, '../', rows[0].url_archivo);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    
-    await db.query('DELETE FROM radiografias WHERE id = ?', [id]);
-    
+    if (!/^[1-9][0-9]*$/.test(id)) return res.status(400).json({ ok: false, mensaje: 'Anexo no válido.' });
+    conn = await db.getConnection(); await conn.beginTransaction();
+    const [rows] = await conn.execute('SELECT historia_id, descripcion FROM radiografias WHERE id=? FOR UPDATE', [id]);
+    if (!rows.length) return res.status(404).json({ ok: false, mensaje: 'Imagen no encontrada.' });
+    const [state] = await conn.execute('SELECT restaurada_en FROM radiografias_anulaciones WHERE radiografia_id=?', [id]);
+    if (state.length && state[0].restaurada_en === null) return res.status(409).json({ ok: false, mensaje: 'El anexo ya está anulado.' });
+    await conn.execute(`INSERT INTO radiografias_anulaciones(radiografia_id,anulada_por,anulada_en)
+      VALUES(?,?,NOW()) ON DUPLICATE KEY UPDATE anulada_por=VALUES(anulada_por),anulada_en=VALUES(anulada_en),restaurada_por=NULL,restaurada_en=NULL`, [id, req.usuario.id]);
     const fecha = fechaLima();
     const hora = horaLimaCorta();
-    await db.query(
+    await conn.execute(
       `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
        VALUES (?, ?, ?, ?, ?)`,
-      [rows[0].historia_id, req.usuario.id, `Eliminó físicamente la placa: "${rows[0].descripcion}"`, fecha, hora]
+      [rows[0].historia_id, req.usuario.id, `Anuló la placa/anexo: "${rows[0].descripcion}"`, fecha, hora]
     );
-    
-    res.json({ ok: true, mensaje: 'Imagen eliminada correctamente.' });
+    await conn.commit();
+    res.json({ ok: true, mensaje: 'Anexo anulado; el archivo se conserva.' });
   } catch (err) {
     res.status(500).json({ ok: false, mensaje: 'Error al eliminar imagen.' });
+  } finally {
+    if (conn) { await conn.rollback().catch(() => {}); conn.release(); }
+  }
+};
+
+const restaurarRadiografia = async (req, res) => {
+  let conn;
+  try {
+    const { id } = req.params;
+    if (!/^[1-9][0-9]*$/.test(id)) return res.status(400).json({ ok: false, mensaje: 'Anexo no válido.' });
+    conn = await db.getConnection(); await conn.beginTransaction();
+    const [rows] = await conn.execute('SELECT historia_id, descripcion, url_archivo FROM radiografias WHERE id=? FOR UPDATE', [id]);
+    if (!rows.length) return res.status(404).json({ ok: false, mensaje: 'Imagen no encontrada.' });
+    const [state] = await conn.execute('SELECT restaurada_en FROM radiografias_anulaciones WHERE radiografia_id=?', [id]);
+    if (!state.length || state[0].restaurada_en !== null) return res.status(409).json({ ok: false, mensaje: 'El anexo no está anulado.' });
+    let available = false;
+    try {
+      const directory = await fs.lstat(uploadDir);
+      if (!directory.isDirectory() || directory.isSymbolicLink()) throw Error('CLINICAL_STORAGE_INVALID');
+      const stat = await fs.lstat(path.join(uploadDir, storedName(rows[0].url_archivo)));
+      available = stat.isFile() && !stat.isSymbolicLink() && stat.size > 0;
+    } catch { /* Keep the archived record until its bytes can be recovered. */ }
+    if (!available) return res.status(409).json({ ok: false, mensaje: 'Falta el archivo; restaura el respaldo antes de recuperar el anexo.' });
+    await conn.execute('UPDATE radiografias_anulaciones SET restaurada_por=?,restaurada_en=NOW() WHERE radiografia_id=?', [req.usuario.id, id]);
+    await conn.execute(`INSERT INTO auditoria_historias(historia_id,usuario_id,accion,fecha_accion,hora_accion)
+      VALUES(?,?,?,?,?)`, [rows[0].historia_id, req.usuario.id,
+      `Restauró la placa/anexo: "${rows[0].descripcion}"`, fechaLima(), horaLimaCorta()]);
+    await conn.commit();
+    res.json({ ok: true, mensaje: 'Anexo restaurado.' });
+  } catch (err) {
+    res.status(500).json({ ok: false, mensaje: 'Error al restaurar anexo.' });
+  } finally {
+    if (conn) { await conn.rollback().catch(() => {}); conn.release(); }
   }
 };
 
@@ -905,6 +957,7 @@ module.exports = {
   subirRadiografia,
   getRadiografias,
   eliminarRadiografia,
+  restaurarRadiografia,
   guardarFirmas,
   editarConsulta,
   eliminarConsulta,

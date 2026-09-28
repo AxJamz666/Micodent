@@ -108,6 +108,7 @@ app.get('/api/health', async (req, res) => {
     await db.query('SELECT pago_id,porcentaje,revision FROM finanzas_pago_pos LIMIT 0');
     if (migrations.length !== 2 || !pos) throw Object.assign(new Error('Pending migration'), { code: 'SCHEMA_PENDING' });
     await require('../scripts/migrate-s1a').verifyApplied(db);
+    await require('../scripts/migrate-clinical-files').verifyApplied(db);
 
     res.set('Cache-Control', 'no-store');
 
@@ -116,7 +117,7 @@ app.get('/api/health', async (req, res) => {
       status: 'healthy',
       backend: 'online',
       database: 'connected',
-      version: 'rc4-m03a-dev',
+      version: 'rc4-m03b-dev',
       mensaje: 'Micodent esta listo para operar',
       hora: new Date().toLocaleString('es-PE'),
     });
@@ -203,7 +204,10 @@ app.use((err, _req, res, _next) => {
 });
 
 if (require.main === module) {
-  require('../scripts/migrate-s1a').verifyApplied(db).then(() => {
+  Promise.all([
+    require('../scripts/migrate-s1a').verifyApplied(db),
+    require('../scripts/migrate-clinical-files').verifyApplied(db),
+  ]).then(() => {
     app.listen(PORT, '127.0.0.1', () => console.log(`MICODENT DEV disponible en http://localhost:${PORT}`));
   }).catch(async () => {
     console.error('MICODENT DEV no inicio: verifica la BD y la migracion S1-A. No se aplicaron cambios automaticos.');

@@ -25,7 +25,7 @@ module.exports = async ({ conn, base }) => {
       try {
         const response = await fetch(`http://127.0.0.1:${port}/api/health`, { signal: AbortSignal.timeout(1000) });
         const body = await response.json();
-        if (response.ok && body.version === 'rc4-m03a-dev') { healthy = true; break; }
+        if (response.ok && body.version === 'rc4-m03b-dev') { healthy = true; break; }
       } catch { /* The child may still be starting. */ }
       await delay(100);
     }
@@ -46,6 +46,16 @@ module.exports = async ({ conn, base }) => {
   } finally {
     await stop(child);
     await conn.query("UPDATE micodent_migrations SET checksum=? WHERE id='001_s1a'", [marker.checksum]);
+  }
+  assert.equal((await fetch(base + '/api/health')).status, 200);
+  const [[clinical]] = await conn.query("SELECT checksum FROM micodent_migrations WHERE id='003_clinical_files'");
+  try {
+    await conn.query("UPDATE micodent_migrations SET checksum=? WHERE id='003_clinical_files'", ['0'.repeat(64)]);
+    const response = await fetch(base + '/api/health');
+    assert.equal(response.status, 503);
+    assert.equal((await response.json()).reason, 'schema_pending');
+  } finally {
+    await conn.query("UPDATE micodent_migrations SET checksum=? WHERE id='003_clinical_files'", [clinical.checksum]);
   }
   assert.equal((await fetch(base + '/api/health')).status, 200);
 };

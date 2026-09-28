@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const net = require('node:net');
 const crypto = require('node:crypto');
-const { spawn, execFileSync } = require('node:child_process');
+const { spawn, execFileSync, spawnSync } = require('node:child_process');
 const mysql = require('mysql2/promise');
 const { once } = require('node:events');
 
@@ -72,6 +72,46 @@ async function run() {
     Object.assign(process.env,{ DB_HOST:'127.0.0.1',DB_PORT:String(port),DB_USER:'dev_micodent',DB_PASSWORD:password,DB_NAME:'micodent_dev',JWT_SECRET:crypto.randomBytes(40).toString('hex'),JWT_EXPIRES_IN:'1h' });
     const s1a = require('./s1a-hotfix-integration.cjs');
     const securityIdentity = await s1a.prepare({conn,root,bin,port,dataDir,mysql8,password,check});
+    const clinicalMigration = require('../scripts/migrate-clinical-files');
+    if (mysql8) {
+      await check('M03-B: migracion rechaza identidad/respaldo incorrectos, conserva datos y es repetible', async () => {
+        const dev = await mysql.createConnection({ ...require('../src/config/environment').databaseOptions(),
+          supportBigNumbers:true, bigNumberStrings:true });
+        try {
+        const before = await s1a.snapshot(dev);
+        const backup = path.join(root,'m03b-synthetic-backup'); fs.mkdirSync(backup);
+        const dump = execFileSync(path.join(bin,'mysqldump.exe'), [
+          `--defaults-extra-file=${path.join(root,'synthetic-client.cnf')}`,
+          '--single-transaction','--no-tablespaces','--set-gtid-purged=OFF','--hex-blob','micodent_dev'],
+        { windowsHide:true, stdio:['ignore','pipe','pipe'], maxBuffer:32*1024**2 });
+        fs.writeFileSync(path.join(backup,'micodent_dev.sql'),dump,{flag:'wx'});
+        fs.writeFileSync(path.join(backup,'estado_bd.json'),JSON.stringify({identity:{db:'micodent_dev',uuid:securityIdentity.uuid},tables:before}),{flag:'wx'});
+        const index=Object.fromEntries(['micodent_dev.sql','estado_bd.json'].map(name=>[name,{sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(backup,name))).digest('hex')}]));
+        fs.writeFileSync(path.join(backup,'SHA256.json'),JSON.stringify(index),{flag:'wx'});
+        const invoke=args=>spawnSync(process.execPath,[path.resolve(__dirname,'../scripts/migrate-clinical-files.js'),...args],
+          {windowsHide:true,env:process.env,encoding:'utf8',timeout:30000});
+        assert.notEqual(invoke(['--check','--server-uuid','incorrecto']).status,0);
+        assert.notEqual(invoke(['--apply','--server-uuid',securityIdentity.uuid,'--backup',root]).status,0);
+        assert.deepEqual(await s1a.snapshot(dev),before);
+        for(const args of [['--check','--server-uuid',securityIdentity.uuid],
+          ['--apply','--server-uuid',securityIdentity.uuid,'--backup',backup],
+          ['--apply','--server-uuid',securityIdentity.uuid,'--backup',backup]]) {
+          const result=invoke(args);
+          assert.equal(result.status,0,`M03-B migracion: ${result.stderr || 'sin detalle'}`);
+        }
+        await clinicalMigration.verifyApplied(conn);
+        const after=await s1a.snapshot(dev);
+        assert.equal(after.length,before.length+1);
+        for(const table of before.filter(t=>t.name!=='micodent_migrations')) {
+          assert.deepEqual(after.find(t=>t.name===table.name),table);
+        }
+        } finally { await dev.end(); }
+      });
+    } else {
+      await conn.query(fs.readFileSync(path.resolve(__dirname,'../migrations/003_clinical_files.sql'),'utf8'));
+      await conn.execute('INSERT INTO micodent_migrations(id,checksum) VALUES(?,?)',[clinicalMigration.id,clinicalMigration.checksum]);
+      await clinicalMigration.verifyApplied(conn);
+    }
     const clinicalFiles = process.env.HOTFIX_FILES_TEST === '1' ? require('./clinical-files-integration.cjs') : null;
     if (clinicalFiles) await clinicalFiles.prepare({conn,root});
     const app=require('../src/index'); pool=require('../src/config/db');

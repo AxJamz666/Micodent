@@ -654,13 +654,13 @@ const handleFileUpload = async (e) => {
   };
 
 const handleEliminarRadiografia = async (id) => {
-    if (!window.confirm('¿Eliminar esta placa?')) return;
+    if (!window.confirm('¿Anular esta placa? Se conservará para su recuperación.')) return;
     
     // Si la placa solo estaba en memoria (borrador)
     const radToDelete = radiografias.find(r => r.id === id);
     if (radToDelete?.isPending) {
       setRadiografias(prev => prev.filter(r => r.id !== id));
-      toast.success('Placa eliminada.');
+      toast.success('Placa retirada del borrador.');
       return;
     }
 
@@ -668,7 +668,7 @@ const handleEliminarRadiografia = async (id) => {
     try {
       await historiasService.eliminarRadiografia(id);
       setRadiografias(prev => prev.filter(r => r.id !== id));
-      toast.success('Placa eliminada.');
+      toast.success('Placa anulada.');
     } catch (err) {
       toast.error('Error al eliminar placa.');
     }

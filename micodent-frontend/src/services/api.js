@@ -124,8 +124,9 @@ export const historiasService = {
   registrarPago:      (consultaId, data)  => postOnce(`/historias/consultas/${consultaId}/pagos`, data),
   anularPago:         (pagoId, motivo) => postOnce(`/historias/pagos/${pagoId}/anular`, { motivo }),
   conciliarCostos:    (consultaId, data) => postOnce(`/historias/consultas/${consultaId}/conciliar-costos`, data),
-  getRadiografias:    (historiaId)        => api.get(`/historias/${historiaId}/radiografias`),
+  getRadiografias:    (historiaId, archivadas = false) => api.get(`/historias/${historiaId}/radiografias`, { params: archivadas ? { archivadas: 1 } : {} }),
   eliminarRadiografia:(id)                => api.delete(`/historias/radiografias/${id}`),
+  restaurarRadiografia:(id)               => api.post(`/historias/radiografias/${id}/restaurar`),
   subirRadiografia:   (historiaId, formData) =>
     api.post(`/historias/${historiaId}/radiografias`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
