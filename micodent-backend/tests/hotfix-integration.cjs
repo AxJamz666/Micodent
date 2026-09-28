@@ -198,6 +198,26 @@ async function run() {
       assert.equal(preserved.firma_doctor_data,doctor);
       assert.equal(await count(),before);
     });
+    await check('Odontograma: registro firmado y auditoria se confirman juntos', async()=>{
+      const route='/historias/1/odontograma-items';
+      const payload={pieza:'11',cara:'Toda la pieza',estado_codigo:'qa',estado_nombre:'Hallazgo sintetico',color:'red'};
+      const issued=await api('POST',route,payload,tokens.qadoctor);
+      assert.equal(issued.status,201,JSON.stringify(issued.body));
+      const [[item]]=await conn.query('SELECT bloqueada,firmado_en FROM odontograma_items WHERE id=?',[issued.body.itemId]);
+      assert.equal(Number(item.bloqueada),1);
+      assert.ok(item.firmado_en);
+      const [[audit]]=await conn.query("SELECT COUNT(*) AS total FROM auditoria_historias WHERE historia_id=1 AND accion LIKE 'Registró en el odontograma%' AND usuario_id='qadoctor'");
+      assert.equal(Number(audit.total),1);
+      const [[before]]=await conn.query('SELECT COUNT(*) AS total FROM odontograma_items');
+      await conn.query("CREATE TRIGGER qa_block_odontogram_audit BEFORE INSERT ON auditoria_historias FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='QA audit unavailable'");
+      try {
+        assert.equal((await api('POST',route,{...payload,pieza:'12'},tokens.qadoctor)).status,500);
+      } finally {
+        await conn.query('DROP TRIGGER qa_block_odontogram_audit');
+      }
+      const [[after]]=await conn.query('SELECT COUNT(*) AS total FROM odontograma_items');
+      assert.equal(Number(after.total),Number(before.total));
+    });
     const create=(token,extra={})=>api('POST','/historias/1/consultas',{descripcion:'Tratamiento sintetico',costo_total:'380.00',abono_inicial:'0',fecha_consulta:'2026-09-22',tipo_comision:'estandar',...extra},token);
     let a,b;
     await check('A: cobro 120, comision 30, margen 90',async()=>{

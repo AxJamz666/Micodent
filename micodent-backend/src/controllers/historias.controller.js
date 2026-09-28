@@ -279,6 +279,7 @@ const guardarAntecedentes = async (req, res) => {
 
 // POST /api/historias/:historiaId/odontograma-items — agregar un diagnostico o procedimiento (queda firmado al instante)
 const agregarItemOdontograma = async (req, res) => {
+  let conn;
   try {
     const { historiaId } = req.params;
     const { pieza, cara, estado_codigo, estado_nombre, color, notas } = req.body;
@@ -287,7 +288,9 @@ const agregarItemOdontograma = async (req, res) => {
       return res.status(400).json({ ok: false, mensaje: 'Faltan datos del diagnóstico o procedimiento.' });
     }
 
-    const [result] = await db.query(
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+    const [result] = await conn.query(
       `INSERT INTO odontograma_items
        (historia_id, pieza, cara, estado_codigo, estado_nombre, color, notas, registrado_por, firmado_en, bloqueada)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), 1)`,
@@ -296,16 +299,20 @@ const agregarItemOdontograma = async (req, res) => {
 
     const fecha = fechaLima();
     const hora = horaLimaCorta();
-    await db.query(
+    await conn.query(
       `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
        VALUES (?, ?, ?, ?, ?)`,
       [historiaId, req.usuario.id, `Registró en el odontograma — Pieza ${pieza}: "${estado_nombre}"`, fecha, hora]
     );
 
+    await conn.commit();
     res.status(201).json({ ok: true, mensaje: 'Registrado correctamente.', itemId: result.insertId });
   } catch (err) {
-    console.error(err);
+    if (conn) await conn.rollback().catch(() => {});
+    console.error('CLINICAL_ODONTOGRAM_ISSUE_FAILED', err.code || 'UNKNOWN');
     res.status(500).json({ ok: false, mensaje: 'Error al registrar en el odontograma.' });
+  } finally {
+    conn?.release();
   }
 };
 

@@ -1,5 +1,48 @@
 # Mapa de etapas en GitHub
 
+## Estado de trabajo 2026-09-28
+
+E00 es preparacion; E01-E17 son las 17 etapas de mejora. Los estados siguientes
+describen la rama local de desarrollo RC4 + S1, no una version desplegada ni
+aprobada para uso clinico. El workspace activo esta en
+`F:\ChatGPT\MICODENT — Sistema de Gestión Odontológica\MICODENT_DEV\.runtime\rc4-s1-integracion`.
+No se ha enviado la continuacion M06/M07 a GitHub.
+
+| Etapa | Estado actual | Pendiente principal |
+| --- | --- | --- |
+| E00 Recuperacion y versiones | Respaldo piloto confirmado por el propietario; desarrollo aislado | Recuperacion operativa repetible por instalacion (E14) |
+| E01 S1-A | Incorporada a RC4 y probada en aislamiento | Aceptacion de la combinacion final antes de despliegue |
+| E02 Secretos | Controles M02 en RC4; rotacion JWT solo en DEV historico | Contencion/rotacion coordinada por instalacion |
+| E03 S1-B | Cookies, CSRF y sesiones probadas en aislamiento | Validacion operativa por laptop |
+| E04 Archivos clinicos | M03-A/B probados en aislamiento | Inventario historico y aceptacion por instalacion |
+| E05 Autorizacion | M06-A incorporado y probado | M15: decisiones de acceso fino con Miguel y Edy |
+| E06 Clinica y trazabilidad | En curso: M07-A/B/C con pruebas aisladas | Anulacion no destructiva, versiones de firmas, identidad de emision, M08/M09/M11 |
+| E07 Edy | No iniciada | Paquete propio tras E05/E06; ninguna capacidad concedida |
+| E08 Finanzas | RC4 resolvio defectos concretos | Auditoria integral e invariantes historicos pendientes |
+| E09 Agenda/API | No iniciada como etapa | Conflictos, contratos y validacion |
+| E10 BD/rendimiento | No iniciada como etapa | Indices, restricciones y migraciones controladas |
+| E11 Trabajo/mantenimiento | No iniciada como etapa | Prevencion de perdida de formularios y modularidad |
+| E12 UX/UI | Mejoras RC4 puntuales | Revision integral de vistas y accesibilidad |
+| E13 Despliegue local | Launcher RC4 probado en simulacro | Integracion S1, prueba y aceptacion en cada laptop |
+| E14 Recuperacion operativa | Respaldo piloto reportado; etapa abierta | Politica y restauraciones repetibles de BD + archivos |
+| E15 Actualizaciones | No iniciada | Identificar, respaldar y actualizar cada laptop por separado |
+| E16 Aceptacion integral | No iniciada | Regresion clinica, financiera, fallos y usuarios |
+| E17 Documentacion/entrega | No iniciada como cierre | Manuales, soporte y decision de servidor central |
+
+M07-A (`7319aa8`) deja atomicas la emision/auditoria de recetas y ordenes,
+evita dos reemisiones del mismo original y audita cambios de firma/sello del
+perfil. M07-B (`f9809f3`) conserva la firma del doctor cuando la interfaz envia
+solo la del paciente y hace atomico ese guardado con su auditoria. Ambas son
+subfases tecnicas de E06, no el cierre de E06. La firma y el sello de recetas y
+ordenes antiguas aun proceden del perfil actual; no se puede reconstruir su
+imagen exacta al momento de emision con los datos disponibles. El consentimiento
+permite reemplazar una firma sin version anterior y la anulacion de un item del
+odontograma usa `DELETE`. Se requiere un paquete aditivo con respaldo verificado
+para resolver estas tres brechas sin inventar evidencia historica.
+M07-C hace atomicos el item nuevo de odontograma y su auditoria, con prueba de
+rollback ante fallo de esta. M07-D y M07-E estan planificados en
+`M07_SIGUIENTES_PAQUETES.md`; todavia no se aplicaron migraciones.
+
 ## Actualizacion 2026-09-24
 
 RC4 consolida el hotfix clinico-financiero y el launcher V4.0.3. Ver
