@@ -43,6 +43,12 @@ otro paquete, cambiar permisos de Edy ni desplegar en las laptops.
 
 ## Documentacion y recuperacion
 
+- Antes de iniciar o retomar cualquiera de E01-E17, consultar
+  `docs/PRIORIDAD_MODELOS.md`, informar etapa/subfase y modelo recomendado, y
+  esperar confirmacion explicita del propietario de que ya selecciono el
+  modelo. No continuar el trabajo de esa etapa hasta recibirla. Un solo
+  modelo puede realizar la etapa completa; no se exige alternar modelos.
+
 - Actualizar el roadmap y cierre de cada etapa sin incluir valores sensibles;
   issue y PR solo cuando correspondan. Distinguir implementado, probado,
   aceptado y desplegado.
