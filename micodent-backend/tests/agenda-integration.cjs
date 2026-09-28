@@ -41,6 +41,29 @@ module.exports = async ({ api, conn, tokens, check }) => {
     assert.equal((await saved(result.body.citaId)).celular_contacto, '+51 900-000-001');
   });
 
+  await check('E09/M19: busqueda de pacientes limitada sin cambiar el contrato anterior', async () => {
+    const inserted = [];
+    try {
+      for (const [dni, name] of [['90000001', 'Agenda QA Uno'], ['90000002', 'Agenda QA Dos']]) {
+        const [result] = await conn.query(`INSERT INTO pacientes
+          (dni,nombres,apellidos,sexo,fecha_nacimiento,fecha_registro,hora_registro)
+          VALUES (?,?,'Busqueda','M','1990-01-01','2026-09-22','09:00:00')`, [dni, name]);
+        inserted.push(result.insertId);
+      }
+      const all = await api('GET', '/pacientes?search=Agenda%20QA', null, tokens.qaadmin);
+      assert.equal(all.status, 200);
+      assert.equal(all.body.data.length, 2);
+      const limited = await api('GET', '/pacientes?search=Agenda%20QA&limit=1', null, tokens.qaadmin);
+      assert.equal(limited.status, 200);
+      assert.equal(limited.body.data.length, 1);
+      for (const value of ['0', '51', '1abc']) {
+        assert.equal((await api('GET', `/pacientes?limit=${value}`, null, tokens.qaadmin)).status, 400);
+      }
+    } finally {
+      for (const id of inserted) await conn.query('DELETE FROM pacientes WHERE id=?', [id]);
+    }
+  });
+
   await check('E09: dos altas simultaneas producen una sola reserva', async () => {
     const results = await Promise.all([create(), create()]);
     assert.deepEqual(results.map(r => r.status).sort(), [201, 409]);

@@ -64,7 +64,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
     if (!busquedaPaciente || busquedaPaciente.length < 2) { setResultadosBusqueda([]); return; }
     const delay = setTimeout(async () => {
       try {
-        const { data } = await pacientesService.getAll(busquedaPaciente);
+        const { data } = await pacientesService.getAll(busquedaPaciente, undefined, 6);
         setResultadosBusqueda((data.data || []).slice(0, 6));
       } catch {
         setResultadosBusqueda([]);

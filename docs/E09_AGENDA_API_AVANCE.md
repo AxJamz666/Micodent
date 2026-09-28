@@ -22,6 +22,11 @@ propietario: GPT-6 Sol. La E06/M07-D quedo pausada en `d8522d1`, otra rama.
   abiertas durante una actualizacion.
 - M19 inicia con un limite de 64 KB para el cuerpo de solicitudes de agenda,
   sin modificar el limite general requerido por otros modulos clinicos.
+- El login usa un limite propio de 16 KB antes del control de intentos.
+- La busqueda de pacientes admite `limit=1..50` de forma opcional; Agenda
+  solicita seis resultados al servidor. Sin `limit`, el contrato anterior
+  permanece igual. Esta medida reduce el trafico de Agenda, pero no reemplaza
+  la futura paginacion ni elimina el costo de buscar con `LIKE`.
 
 No se cambia el esquema ni se ejecuta una migracion. No se ha modificado la
 base `micodent` ni las instalaciones piloto o familiares. El backend DEV
@@ -35,13 +40,12 @@ ejecutaron en una base MySQL temporal y con registros sinteticos.
 | Backend unitario | 85/85 |
 | Frontend unitario | 23/23 |
 | Build frontend y copia verificada al backend | Correctos |
-| Integracion MySQL aislada | Alta/edicion/reactivacion concurrentes, rollback, historicos y regresion clinico-financiera correctos |
-| Navegador sobre build compilado | Alta, conflicto 409 y modal movil correctos |
+| Integracion MySQL aislada | Alta/edicion/reactivacion concurrentes, rollback, historicos, busqueda limitada, login 413 y regresion clinico-financiera correctos |
+| Navegador sobre build compilado | Alta, conflicto 409, busqueda `limit=6` y modal movil correctos |
 | Escaner de secretos | Codigo sin hallazgos; dos enlaces locales `node_modules` reportados como `SYMLINK_REQUIRES_REVIEW` |
 
-Evidencia de navegador: `E:\MICODENT_QA\qa-1790638172779`.
-Ultima regresion backend, incluido rechazo 413 de agenda:
-`E:\MICODENT_QA\qa-1790638495023`.
+Evidencia de navegador: `E:\MICODENT_QA\qa-1790638797959`.
+Ultima regresion backend: `E:\MICODENT_QA\qa-1790638885192`.
 El escaneo no certifica todo el entorno por esos enlaces locales, que no estan
 versionados ni forman parte del paquete. Antes de publicar, comprobar el indice
 de Git y ejecutar la verificacion sobre un arbol sin dichos enlaces.
@@ -52,10 +56,18 @@ de Git y ejecutar la verificacion sobre un arbol sin dichos enlaces.
   formatos de respuesta que el frontend ya consume. El GET historico de citas
   conserva rangos amplios por compatibilidad; evaluar paginacion o limites con
   un contrato nuevo y mediciones antes de restringirlo.
-- Inventariar por grupo las 70 rutas REST actuales antes de imponer limites
-  comunes: archivos clinicos, pagos e informes tienen tamanos y riesgos
+- Las 70 rutas REST actuales requieren limites por grupo, no un limite global
+  menor: archivos clinicos, pagos e informes tienen tamanos y riesgos
   distintos. Mantener el contrato `{ ok, data/mensaje }` donde ya existe y
   agregar pruebas negativas de tamano, rango, identificador y permisos.
+- `GET /api/historias` incluye firmas y sellos actuales del doctor en cada
+  fila (`src/controllers/historias.controller.js`), y la impresion desde
+  `src/pages/Historias.jsx` los consume. No quitarlos sin redisenar ese
+  contrato y resolver el versionado historico de firmas en E06/M07-E.
+- Los listados completos de pacientes, historias, deudores y laboratorio
+  carecen de paginacion; limitar solo la respuesta sin adaptar consumidores
+  ocultaria datos. E10 debe medirlos y definir paginacion/indices con las
+  vistas involucradas; E08 revisara el contrato de produccion financiera.
 - Revalidar sobre la configuracion definitiva de MySQL/XAMPP y aceptar el
   flujo de agenda con usuarios de prueba antes de cualquier actualizacion.
 - Hacer respaldo y plan de reversion por instalacion al promover este paquete;

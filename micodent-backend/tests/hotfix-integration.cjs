@@ -129,6 +129,7 @@ async function run() {
       return client.response(response);
     }
     const tokens={}; for(const id of ['qaadmin','qadoctor','qaotro']) {const r=await api('POST','/auth/login',{id,password:pass});assert.equal(r.status,200);tokens[id]=r.token;}
+    await require('./api-contract-integration.cjs')({ api, check });
     await require('./agenda-integration.cjs')({ api, conn, tokens, check });
     await check('Recetas y ordenes: emision auditada y una sola reemision concurrente', async()=>{
       const documents=[

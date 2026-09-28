@@ -26,6 +26,11 @@ module.exports = async ({ browser, base, root, pass }) => {
       return modal;
     };
     let modal = await fill('Reserva visual QA');
+    const search = page.waitForResponse(r => r.url().includes('/api/pacientes?')
+      && r.url().includes('limit=6') && r.request().method() === 'GET');
+    await modal.locator('input').nth(0).fill('Sintetico');
+    assert.equal((await search).status(), 200);
+    await modal.locator('input').nth(0).fill('');
     const created = page.waitForResponse(r => r.url().endsWith('/api/citas') && r.request().method() === 'POST');
     await modal.getByRole('button', { name: 'Agendar Cita' }).click();
     assert.equal((await created).status(), 201);

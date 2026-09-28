@@ -4,7 +4,10 @@ const { fechaLima, horaLima, horaLimaCorta } = require('../utils/fecha');
 // GET /api/pacientes
 const getPacientes = async (req, res) => {
   try {
-    const { search, incluirArchivados } = req.query;
+    const { search, incluirArchivados, limit } = req.query;
+    if (limit !== undefined && (typeof limit !== 'string' || !/^[1-9]\d?$/.test(limit) || Number(limit) > 50)) {
+      return res.status(400).json({ ok: false, mensaje: 'Limite de resultados no valido.' });
+    }
     let query = `
       SELECT p.*, u.nombre_completo AS registrado_por_nombre,
              h.id AS historia_id, h.nro_historia, h.activa AS historia_activa,
@@ -39,7 +42,11 @@ const getPacientes = async (req, res) => {
     if (condiciones.length > 0) {
       query += ' WHERE ' + condiciones.join(' AND ');
     }
-    query += ' ORDER BY p.creado_en DESC';
+    query += ' ORDER BY p.creado_en DESC, p.id DESC';
+    if (limit !== undefined) {
+      query += ' LIMIT ?';
+      params.push(Number(limit));
+    }
     const [rows] = await db.query(query, params);
 
     const data = rows.map(p => {

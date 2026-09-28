@@ -46,6 +46,8 @@ app.use(
 // MIDDLEWARES
 // ======================================================
 
+app.use('/api/auth', express.json({ limit: '16kb' }));
+app.use('/api/auth', express.urlencoded({ extended: true, limit: '16kb' }));
 app.use('/api/citas', express.json({ limit: '64kb' }));
 app.use('/api/citas', express.urlencoded({ extended: true, limit: '64kb' }));
 
