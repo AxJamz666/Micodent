@@ -129,6 +129,47 @@ async function run() {
       return client.response(response);
     }
     const tokens={}; for(const id of ['qaadmin','qadoctor','qaotro']) {const r=await api('POST','/auth/login',{id,password:pass});assert.equal(r.status,200);tokens[id]=r.token;}
+    await check('Recetas y ordenes: emision auditada y una sola reemision concurrente', async()=>{
+      const documents=[
+        {path:'/historias/1/recetas', kind:'recetas', payload:{rp:'Indicacion sintetica'},
+          correction:{motivo:'Correccion sintetica',rp:'Indicacion corregida'}},
+        {path:'/historias/1/ordenes-radiografia', kind:'ordenes_radiografia', payload:{motivo:'Evaluacion sintetica'},
+          correction:{motivo:'Correccion sintetica',motivo_radiografia:'Evaluacion corregida'}},
+      ];
+      for(const document of documents){
+        const issued=await api('POST',document.path,document.payload,tokens.qadoctor);
+        assert.equal(issued.status,201,JSON.stringify(issued.body));
+        const id=issued.body.recetaId || issued.body.ordenId;
+        const corrected=await Promise.all([1,2].map(()=>api('POST',
+          `/historias/${document.kind==='recetas'?'recetas':'ordenes-radiografia'}/${id}/reemitir`,
+          document.correction,tokens.qadoctor)));
+        assert.deepEqual(corrected.map(r=>r.status).sort(),[201,409]);
+        const [[successor]]=await conn.query(`SELECT COUNT(*) AS total FROM ${document.kind} WHERE reemplaza_a=?`,[id]);
+        assert.equal(Number(successor.total),1);
+        const [[original]]=await conn.query(`SELECT anulada FROM ${document.kind} WHERE id=?`,[id]);
+        assert.equal(Number(original.anulada),1);
+      }
+    });
+    await check('Recetas y ordenes: fallo de auditoria revierte la emision', async()=>{
+      const [[beforeRecipe]]=await conn.query('SELECT COUNT(*) AS total FROM recetas');
+      const [[beforeOrder]]=await conn.query('SELECT COUNT(*) AS total FROM ordenes_radiografia');
+      await conn.query("CREATE TRIGGER qa_block_document_audit BEFORE INSERT ON auditoria_historias FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='QA audit unavailable'");
+      try {
+        for(const [path,payload] of [
+          ['/historias/1/recetas',{rp:'Receta que debe revertirse'}],
+          ['/historias/1/ordenes-radiografia',{motivo:'Orden que debe revertirse'}],
+        ]){
+          const response=await api('POST',path,payload,tokens.qadoctor);
+          assert.equal(response.status,500);
+        }
+      } finally {
+        await conn.query('DROP TRIGGER qa_block_document_audit');
+      }
+      const [[afterRecipe]]=await conn.query('SELECT COUNT(*) AS total FROM recetas');
+      const [[afterOrder]]=await conn.query('SELECT COUNT(*) AS total FROM ordenes_radiografia');
+      assert.equal(Number(afterRecipe.total),Number(beforeRecipe.total));
+      assert.equal(Number(afterOrder.total),Number(beforeOrder.total));
+    });
     const create=(token,extra={})=>api('POST','/historias/1/consultas',{descripcion:'Tratamiento sintetico',costo_total:'380.00',abono_inicial:'0',fecha_consulta:'2026-09-22',tipo_comision:'estandar',...extra},token);
     let a,b;
     await check('A: cobro 120, comision 30, margen 90',async()=>{

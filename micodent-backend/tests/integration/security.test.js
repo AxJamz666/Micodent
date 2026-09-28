@@ -105,6 +105,30 @@ test('database permissions override token and browser state', async () => {
   await db.execute('UPDATE usuarios SET activo=0 WHERE id=?', [id]);
   assert.equal((await request('GET', '/auth/me', token)).status, 401);
 });
+test('signature and stamp updates are atomic and audit only actual changes', async () => {
+  const id = await seed('signer', 1, 'Doctor');
+  const token = await login(id);
+  const image = 'data:image/png;base64,c3ludGhldGlj';
+  const change = await request('PUT', '/usuarios/mi-firma-sello', token, { firma_digital: image });
+  assert.equal(change.status, 200);
+  const [[saved]] = await db.execute('SELECT firma_digital, sello_digital FROM usuarios WHERE id=?', [id]);
+  assert.equal(saved.firma_digital, image);
+  assert.equal(saved.sello_digital, null);
+  const [events] = await db.execute('SELECT accion, usuario_id, objetivo_id FROM seguridad_eventos WHERE objetivo_id=? AND accion=?',
+    [id, 'USER_SIGNING_ASSETS_CHANGED']);
+  assert.deepEqual(events, [{ accion: 'USER_SIGNING_ASSETS_CHANGED', usuario_id: id, objetivo_id: id }]);
+  assert.equal((await request('PUT', '/usuarios/mi-firma-sello', token, { firma_digital: image })).status, 200);
+  const [[unchanged]] = await db.execute('SELECT COUNT(*) AS count FROM seguridad_eventos WHERE objetivo_id=? AND accion=?',
+    [id, 'USER_SIGNING_ASSETS_CHANGED']);
+  assert.equal(Number(unchanged.count), 1);
+  assert.equal((await request('PUT', '/usuarios/mi-firma-sello', token, { sello_digital: image })).status, 200);
+  const [[both]] = await db.execute('SELECT firma_digital, sello_digital FROM usuarios WHERE id=?', [id]);
+  assert.equal(both.firma_digital, image);
+  assert.equal(both.sello_digital, image);
+  const [[changed]] = await db.execute('SELECT COUNT(*) AS count FROM seguridad_eventos WHERE objetivo_id=? AND accion=?',
+    [id, 'USER_SIGNING_ASSETS_CHANGED']);
+  assert.equal(Number(changed.count), 2);
+});
 test('logout revokes one session; logout-all revokes all persistently', async () => {
   const id = await seed('logout'); const one = await login(id), two = await login(id);
   assert.equal((await request('POST', '/auth/logout', one)).status, 200);

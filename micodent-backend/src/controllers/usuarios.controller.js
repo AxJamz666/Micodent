@@ -152,18 +152,22 @@ const reactivarUsuario = async (req, res) => {
 // PUT /api/usuarios/mi-firma-sello (autoservicio, cualquier usuario logueado edita SOLO su propia fila)
 const actualizarFirmaSello = async (req, res) => {
   try {
-    const { firma_digital, sello_digital } = req.body;
-    const userId = req.usuario.id;
-
-    await db.query(
-      'UPDATE usuarios SET firma_digital = IF(?, ?, firma_digital), sello_digital = IF(?, ?, sello_digital) WHERE id = ?',
-      [Object.hasOwn(req.body, 'firma_digital'), firma_digital || null, Object.hasOwn(req.body, 'sello_digital'), sello_digital || null, userId]
-    );
+    const body = req.body || {};
+    await security.transaction(async conn => {
+      const user = await security.loadUser(conn, req.usuario.id, true);
+      await security.assertSession(conn, req.auth, user);
+      const [[current]] = await conn.execute(
+        'SELECT firma_digital, sello_digital FROM usuarios WHERE id = ?', [user.id]);
+      const firma = Object.hasOwn(body, 'firma_digital') ? body.firma_digital || null : current.firma_digital;
+      const sello = Object.hasOwn(body, 'sello_digital') ? body.sello_digital || null : current.sello_digital;
+      if (firma === current.firma_digital && sello === current.sello_digital) return;
+      await conn.execute('UPDATE usuarios SET firma_digital = ?, sello_digital = ? WHERE id = ?',
+        [firma, sello, user.id]);
+      await auditSecurity(conn, 'USER_SIGNING_ASSETS_CHANGED', user.id, user.id);
+    });
 
     res.json({ ok: true, mensaje: 'Firma y sello actualizados correctamente.' });
-  } catch (err) {
-    res.status(500).json({ ok: false, mensaje: 'Error al actualizar firma y sello.' });
-  }
+  } catch (err) { return sendSecurityError(res, err); }
 };
 
 // GET /api/usuarios/doctores — lista simplificada de doctores activos, abierta a cualquier rol (para agendar citas)

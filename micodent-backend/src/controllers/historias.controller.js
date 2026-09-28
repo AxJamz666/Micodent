@@ -720,7 +720,10 @@ const getCentrosReferencia = async (req, res) => {
 
 // POST /api/historias/:historiaId/ordenes-radiografia — emitir orden (queda firmada al instante)
 const agregarOrdenRadiografia = async (req, res) => {
+  let conn;
   try {
+    conn = await db.getConnection();
+    await conn.beginTransaction();
     const { historiaId } = req.params;
     const {
       tipo_solicitud, motivo, envio_virtual,
@@ -731,7 +734,7 @@ const agregarOrdenRadiografia = async (req, res) => {
     const fecha = fechaLima();
     const hora = horaLimaCorta();
 
-    const [result] = await db.query(
+    const [result] = await conn.query(
       `INSERT INTO ordenes_radiografia
        (historia_id, doctor_id, fecha, tipo_solicitud, motivo, envio_virtual,
         extraorales, tomografias, piezas_tomografia, fotografias, intraorales, periapicales_piezas, modelos_estudio,
@@ -747,16 +750,20 @@ const agregarOrdenRadiografia = async (req, res) => {
       ]
     );
 
-    await db.query(
+    await conn.query(
       `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
        VALUES (?, ?, ?, ?, ?)`,
       [historiaId, req.usuario.id, 'Emitió y firmó una nueva Orden de Radiografía.', fecha, hora]
     );
 
+    await conn.commit();
     res.status(201).json({ ok: true, mensaje: 'Orden emitida y firmada correctamente.', ordenId: result.insertId });
   } catch (err) {
-    console.error(err);
+    if (conn) await conn.rollback();
+    console.error('CLINICAL_ORDER_ISSUE_FAILED', err.code || 'UNKNOWN');
     res.status(500).json({ ok: false, mensaje: 'Error al emitir la orden.' });
+  } finally {
+    conn?.release();
   }
 };
 
@@ -777,7 +784,7 @@ const reemitirOrdenRadiografia = async (req, res) => {
       return res.status(400).json({ ok: false, mensaje: 'El motivo de la corrección es obligatorio.' });
     }
 
-    const [rows] = await conn.query('SELECT historia_id, anulada FROM ordenes_radiografia WHERE id = ?', [id]);
+    const [rows] = await conn.query('SELECT historia_id, anulada FROM ordenes_radiografia WHERE id = ? FOR UPDATE', [id]);
     if (rows.length === 0) {
       await conn.rollback();
       return res.status(404).json({ ok: false, mensaje: 'Orden no encontrada.' });
@@ -831,6 +838,7 @@ const reemitirOrdenRadiografia = async (req, res) => {
 
 // POST /api/historias/:historiaId/recetas — emitir receta (queda firmada al instante)
 const agregarReceta = async (req, res) => {
+  let conn;
   try {
     const { historiaId } = req.params;
     const { rp, indicaciones } = req.body;
@@ -839,25 +847,32 @@ const agregarReceta = async (req, res) => {
       return res.status(400).json({ ok: false, mensaje: 'El campo Rp es obligatorio.' });
     }
 
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
     const fecha = fechaLima();
     const hora = horaLimaCorta();
 
-    const [result] = await db.query(
+    const [result] = await conn.query(
       `INSERT INTO recetas (historia_id, doctor_id, fecha, rp, indicaciones, firmado_en, bloqueada)
        VALUES (?, ?, ?, ?, ?, NOW(), 1)`,
       [historiaId, req.usuario.id, fecha, rp, indicaciones || null]
     );
 
-    await db.query(
+    await conn.query(
       `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
        VALUES (?, ?, ?, ?, ?)`,
       [historiaId, req.usuario.id, 'Emitió y firmó una nueva receta.', fecha, hora]
     );
 
+    await conn.commit();
     res.status(201).json({ ok: true, mensaje: 'Receta emitida y firmada correctamente.', recetaId: result.insertId });
   } catch (err) {
-    console.error(err);
+    if (conn) await conn.rollback();
+    console.error('CLINICAL_RECIPE_ISSUE_FAILED', err.code || 'UNKNOWN');
     res.status(500).json({ ok: false, mensaje: 'Error al emitir la receta.' });
+  } finally {
+    conn?.release();
   }
 };
 
@@ -874,7 +889,7 @@ const reemitirReceta = async (req, res) => {
       return res.status(400).json({ ok: false, mensaje: 'El motivo y el Rp corregido son obligatorios.' });
     }
 
-    const [rows] = await conn.query('SELECT historia_id, anulada FROM recetas WHERE id = ?', [id]);
+    const [rows] = await conn.query('SELECT historia_id, anulada FROM recetas WHERE id = ? FOR UPDATE', [id]);
     if (rows.length === 0) {
       await conn.rollback();
       return res.status(404).json({ ok: false, mensaje: 'Receta no encontrada.' });
