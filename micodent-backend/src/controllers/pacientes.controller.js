@@ -5,6 +5,9 @@ const { fechaLima, horaLima, horaLimaCorta } = require('../utils/fecha');
 const getPacientes = async (req, res) => {
   try {
     const { search, incluirArchivados, limit } = req.query;
+    if (search !== undefined && (typeof search !== 'string' || search.length > 200)) {
+      return res.status(400).json({ ok: false, mensaje: 'Busqueda de pacientes no valida.' });
+    }
     if (limit !== undefined && (typeof limit !== 'string' || !/^[1-9]\d?$/.test(limit) || Number(limit) > 50)) {
       return res.status(400).json({ ok: false, mensaje: 'Limite de resultados no valido.' });
     }

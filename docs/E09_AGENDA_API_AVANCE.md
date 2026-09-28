@@ -23,6 +23,9 @@ propietario: GPT-6 Sol. La E06/M07-D quedo pausada en `d8522d1`, otra rama.
 - M19 inicia con un limite de 64 KB para el cuerpo de solicitudes de agenda,
   sin modificar el limite general requerido por otros modulos clinicos.
 - El login usa un limite propio de 16 KB antes del control de intentos.
+- Pacientes usa 64 KB para solicitudes JSON/formulario; su busqueda rechaza
+  parametros repetidos o de mas de 200 caracteres. Los datos clinicos siguen
+  usando sus rutas y limites previos.
 - La busqueda de pacientes admite `limit=1..50` de forma opcional; Agenda
   solicita seis resultados al servidor. Sin `limit`, el contrato anterior
   permanece igual. Esta medida reduce el trafico de Agenda, pero no reemplaza
@@ -48,8 +51,8 @@ ejecutaron en una base MySQL temporal y con registros sinteticos.
 | Navegador sobre build compilado | Alta, conflicto 409, busqueda `limit=6`, respuesta tardia y modal movil correctos |
 | Escaner de secretos | Codigo sin hallazgos; dos enlaces locales `node_modules` reportados como `SYMLINK_REQUIRES_REVIEW` |
 
-Evidencia de navegador y ultima regresion backend:
-`E:\MICODENT_QA\qa-1790639285949`.
+Evidencia de navegador: `E:\MICODENT_QA\qa-1790639285949`.
+Ultima regresion backend: `E:\MICODENT_QA\qa-1790639498541`.
 El escaneo no certifica todo el entorno por esos enlaces locales, que no estan
 versionados ni forman parte del paquete. Antes de publicar, comprobar el indice
 de Git y ejecutar la verificacion sobre un arbol sin dichos enlaces.
