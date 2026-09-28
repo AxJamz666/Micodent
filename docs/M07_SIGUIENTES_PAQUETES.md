@@ -1,7 +1,8 @@
 # E06/M07 - Paquetes clinicos siguientes
 
-Estado: plan, sin migraciones aplicadas. Alcance autorizado hasta ahora: codigo
-M07-A/B/C en desarrollo y pruebas con datos sinteticos. Ninguna instalacion
+Estado: M07-D en curso y pausado por solicitud del propietario; M07-E plan.
+M07-A/B/C implementados y probados con datos sinteticos. La migracion M07-D
+solo se aplico en MySQL desechable. Ninguna instalacion
 clinica ni la base `micodent_dev` habitual se modifica por este documento.
 
 ## M07-D - Anulacion no destructiva del odontograma

@@ -118,6 +118,8 @@ async function run() {
       await conn.execute('INSERT INTO micodent_migrations(id,checksum) VALUES(?,?)',[clinicalMigration.id,clinicalMigration.checksum]);
       await clinicalMigration.verifyApplied(conn);
     }
+    const odontogramTests = require('./odontogram-integration.cjs');
+    await odontogramTests.prepare({ conn, root, bin, mysql8, identity: securityIdentity, check });
     const clinicalFiles = process.env.HOTFIX_FILES_TEST === '1' ? require('./clinical-files-integration.cjs') : null;
     if (clinicalFiles) await clinicalFiles.prepare({conn,root});
     const app=require('../src/index'); pool=require('../src/config/db');
@@ -219,6 +221,7 @@ async function run() {
       assert.equal(Number(after.total),Number(before.total));
     });
     const create=(token,extra={})=>api('POST','/historias/1/consultas',{descripcion:'Tratamiento sintetico',costo_total:'380.00',abono_inicial:'0',fecha_consulta:'2026-09-22',tipo_comision:'estandar',...extra},token);
+    await odontogramTests.run({ conn, api, tokens, check });
     let a,b;
     await check('A: cobro 120, comision 30, margen 90',async()=>{
       const r=await create(tokens.qadoctor,{abono_inicial:'120'});assert.equal(r.status,201,JSON.stringify(r.body));a=r.body.consultaId;

@@ -13,7 +13,8 @@ const getPacientes = async (req, res) => {
                WHEN am.diagnostico IS NOT NULL AND am.diagnostico != '' THEN 1
                ELSE 0
              END) AS tiene_antecedentes,
-             (SELECT COUNT(*) FROM odontograma_items WHERE historia_id = h.id) AS total_odontograma,
+             (SELECT COUNT(*) FROM odontograma_items o WHERE o.historia_id = h.id
+               AND NOT EXISTS (SELECT 1 FROM odontograma_anulaciones a WHERE a.odontograma_item_id=o.id)) AS total_odontograma,
              (SELECT COUNT(*) FROM consultas WHERE historia_id = h.id) AS total_evoluciones,
              GREATEST(
                COALESCE(h.creado_en, p.creado_en),

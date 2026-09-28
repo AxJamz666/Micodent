@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Lock, Plus, Trash2 } from 'lucide-react';
+import { Lock, Plus, CircleX } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { historiasService } from '../services/api';
 import { TRATAMIENTOS_DB } from '../utils/tratamientosDb';
 import { Diente } from './Diente';
+import OdontogramaAnulado from './OdontogramaAnulado';
 
 const ARCADAS = [
   { nombre: 'Maxilar Superior Permanente', piezas: [18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28] },
@@ -15,8 +16,9 @@ const arcadaDePieza = (numero) => ARCADAS.find(a => a.piezas.includes(numero))?.
 
 const CampoTexto = ({ label, value, onChange, rows = 2 }) => (
   <div>
-    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">{label}</label>
-    <textarea rows={rows} className="w-full px-4 py-3 border rounded-2xl outline-none focus:border-clinical-500 resize-none bg-white border-slate-200" value={value} onChange={e => onChange(e.target.value)} />
+    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">{label}
+      <textarea rows={rows} className="w-full px-4 py-3 border rounded-2xl outline-none focus:border-clinical-500 resize-none bg-white border-slate-200 normal-case tracking-normal font-normal text-sm" value={value} onChange={e => onChange(e.target.value)} />
+    </label>
   </div>
 );
 
@@ -108,15 +110,15 @@ const PanelOdontograma = ({ lado, color, label, historiaId, piezaActiva, registr
   };
 
   const handleEliminar = async (itemId) => {
-    if (!eliminarMotivo) { toast.error('Indica el motivo de la eliminación.'); return; }
+    if (!eliminarMotivo.trim()) { toast.error('Indica el motivo de la anulación.'); return; }
     try {
       setEliminando(true);
       await historiasService.eliminarItemOdontograma(itemId, eliminarMotivo);
-      toast.success('Registro eliminado.');
+      toast.success('Registro anulado. El original se conserva.');
       await onGuardado();
       setEliminarAbiertoId(null); setEliminarMotivo('');
     } catch (err) {
-      toast.error(err.response?.data?.mensaje || 'Error al eliminar.');
+      toast.error(err.response?.data?.mensaje || 'Error al anular.');
     } finally {
       setEliminando(false);
     }
@@ -139,8 +141,8 @@ const PanelOdontograma = ({ lado, color, label, historiaId, piezaActiva, registr
                 <p className="text-[10px] font-bold text-slate-500">{item.registrado_por_nombre || '—'} · {item.fecha}</p>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   {item.bloqueada && item.registrado_por === miUserId && (!item.adendas || item.adendas.length === 0) && eliminarAbiertoId !== item.id && (
-                    <button onClick={() => { setEliminarAbiertoId(item.id); setEliminarMotivo(''); }} className="text-slate-400 hover:text-red-600" title="Eliminar por error de pieza">
-                      <Trash2 size={13} />
+                    <button onClick={() => { setEliminarAbiertoId(item.id); setEliminarMotivo(''); }} className="text-slate-400 hover:text-red-600" title="Anular por error de pieza" aria-label="Anular por error de pieza">
+                      <CircleX size={13} />
                     </button>
                   )}
                   {item.bloqueada && <Lock size={13} className="text-slate-400" />}
@@ -151,11 +153,11 @@ const PanelOdontograma = ({ lado, color, label, historiaId, piezaActiva, registr
 
               {eliminarAbiertoId === item.id && (
                 <div className="mt-2 pt-2 border-t border-red-200 space-y-2">
-                  <CampoTexto label="Motivo de la eliminación" value={eliminarMotivo} onChange={setEliminarMotivo} />
+                  <CampoTexto label="Motivo de la anulación" value={eliminarMotivo} onChange={setEliminarMotivo} />
                   <div className="flex gap-2">
                     <button onClick={() => setEliminarAbiertoId(null)} className="flex-1 py-2 bg-white text-slate-600 rounded-xl font-bold text-xs border border-slate-200">Cancelar</button>
                     <button onClick={() => handleEliminar(item.id)} disabled={eliminando} className="flex-1 py-2 bg-red-600 text-white rounded-xl font-bold text-xs disabled:opacity-50">
-                      {eliminando ? 'Eliminando...' : 'Confirmar Eliminación'}
+                      {eliminando ? 'Anulando...' : 'Confirmar anulación'}
                     </button>
                   </div>
                 </div>
@@ -231,7 +233,7 @@ const PanelOdontograma = ({ lado, color, label, historiaId, piezaActiva, registr
   );
 };
 
-const OdontogramaEditor = ({ historiaId, odontogramaVisual, tratamientosAsignados, onGuardado, miUserId }) => {
+const OdontogramaEditor = ({ historiaId, odontogramaVisual, tratamientosAsignados, registrosAnulados = [], onGuardado, miUserId }) => {
   const [piezaActiva, setPiezaActiva] = useState(null);
 
   const getAsignadosParaPieza = (piezaOClave) => {
@@ -309,6 +311,7 @@ const OdontogramaEditor = ({ historiaId, odontogramaVisual, tratamientosAsignado
 
        <PanelOdontograma lado="procedimiento" color="blue" label="Procedimiento" historiaId={historiaId} piezaActiva={piezaActiva} registros={registrosDeEstaPieza('blue')} onGuardado={onGuardado} miUserId={miUserId} />
       </div>
+      <OdontogramaAnulado registros={registrosAnulados} />
     </div>
   );
 };

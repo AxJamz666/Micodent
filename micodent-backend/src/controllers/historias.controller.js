@@ -88,9 +88,13 @@ const getHistoriaByPaciente = async (req, res) => {
       [historia[0].id]
     );
      const [odontograma] = await db.query(
-      `SELECT o.*, u.nombre_completo AS registrado_por_nombre
+      `SELECT o.*, u.nombre_completo AS registrado_por_nombre,
+              a.motivo AS anulacion_motivo, a.anulada_por, a.anulada_en,
+              ua.nombre_completo AS anulada_por_nombre
        FROM odontograma_items o
        LEFT JOIN usuarios u ON o.registrado_por = u.id
+       LEFT JOIN odontograma_anulaciones a ON a.odontograma_item_id = o.id
+       LEFT JOIN usuarios ua ON ua.id = a.anulada_por
        WHERE o.historia_id = ?
        ORDER BY o.fecha_registro DESC`,
       [historia[0].id]
@@ -196,7 +200,8 @@ const getHistoriaByPaciente = async (req, res) => {
         ...historia[0],
         antecedentes:  antecedentes[0] || {},
         triaje:        triaje[0]       || {},
-        odontograma,
+        odontograma: odontograma.filter(item => !item.anulada_en),
+        odontograma_anulado: odontograma.filter(item => item.anulada_en),
         consultas,
         firma:         firma[0]        || {},
         radiografias,
@@ -319,37 +324,14 @@ const agregarItemOdontograma = async (req, res) => {
 // POST /api/historias/odontograma-items/:id/adendas — corregir un diagnostico/procedimiento ya firmado
 const agregarAdendaOdontograma = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { motivo, contenido } = req.body;
-
-    if (!motivo || !contenido) {
-      return res.status(400).json({ ok: false, mensaje: 'El motivo y la corrección son obligatorios.' });
-    }
-
-    const [rows] = await db.query('SELECT historia_id, bloqueada FROM odontograma_items WHERE id = ?', [id]);
-    if (rows.length === 0) {
-      return res.status(404).json({ ok: false, mensaje: 'Registro no encontrado.' });
-    }
-    if (!rows[0].bloqueada) {
-      return res.status(400).json({ ok: false, mensaje: 'Este registro todavía no está firmado.' });
-    }
-
-    await db.query(
-      'INSERT INTO odontograma_adendas (odontograma_item_id, usuario_id, motivo, contenido) VALUES (?, ?, ?, ?)',
-      [id, req.usuario.id, motivo, contenido]
-    );
-
-    const fecha = fechaLima();
-    const hora = horaLimaCorta();
-    await db.query(
-      `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
-       VALUES (?, ?, ?, ?, ?)`,
-      [rows[0].historia_id, req.usuario.id, `Agregó una corrección a un registro del odontograma. Motivo: "${motivo}"`, fecha, hora]
-    );
-
+    await require('../services/odontogram').revise({ id: req.params.id, usuarioId: req.usuario.id,
+      motivo: req.body?.motivo, contenido: req.body?.contenido });
     res.status(201).json({ ok: true, mensaje: 'Corrección agregada correctamente.' });
   } catch (err) {
-    console.error(err);
+    if (err instanceof require('../services/odontogram').OdontogramError) {
+      return res.status(err.status).json({ ok: false, mensaje: err.message });
+    }
+    console.error('CLINICAL_ODONTOGRAM_ADENDA_FAILED', err.code || 'UNKNOWN');
     res.status(500).json({ ok: false, mensaje: 'Error al agregar la corrección.' });
   }
 };
@@ -357,44 +339,15 @@ const agregarAdendaOdontograma = async (req, res) => {
 // DELETE /api/historias/odontograma-items/:id — anular un registro reciente por error de pieza
 const eliminarItemOdontograma = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { motivo } = req.body;
-
-    if (!motivo) {
-      return res.status(400).json({ ok: false, mensaje: 'Debes indicar el motivo de la eliminación.' });
-    }
-
-    const [rows] = await db.query(
-      `SELECT o.historia_id, o.pieza, o.estado_nombre, o.registrado_por,
-              (SELECT COUNT(*) FROM odontograma_adendas WHERE odontograma_item_id = o.id) AS total_adendas
-       FROM odontograma_items o WHERE o.id = ?`,
-      [id]
-    );
-    if (rows.length === 0) {
-      return res.status(404).json({ ok: false, mensaje: 'Registro no encontrado.' });
-    }
-    const item = rows[0];
-    if (item.registrado_por !== req.usuario.id) {
-      return res.status(403).json({ ok: false, mensaje: 'Solo el doctor que lo registró puede eliminarlo.' });
-    }
-    if (item.total_adendas > 0) {
-      return res.status(409).json({ ok: false, mensaje: 'Este registro ya tiene una corrección agregada y no se puede eliminar. Usa una corrección en su lugar.' });
-    }
-
-    await db.query('DELETE FROM odontograma_items WHERE id = ?', [id]);
-
-    const fecha = fechaLima();
-    const hora = horaLimaCorta();
-    await db.query(
-      `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
-       VALUES (?, ?, ?, ?, ?)`,
-      [item.historia_id, req.usuario.id, `Anuló un registro del odontograma — Pieza ${item.pieza}: "${item.estado_nombre}". Motivo: "${motivo}"`, fecha, hora]
-    );
-
-    res.json({ ok: true, mensaje: 'Registro eliminado correctamente.' });
+    await require('../services/odontogram').revise({ id: req.params.id, usuarioId: req.usuario.id,
+      motivo: req.body?.motivo, annul: true });
+    res.json({ ok: true, mensaje: 'Registro anulado. El original se conserva en el historial.' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ ok: false, mensaje: 'Error al eliminar el registro.' });
+    if (err instanceof require('../services/odontogram').OdontogramError) {
+      return res.status(err.status).json({ ok: false, mensaje: err.message });
+    }
+    console.error('CLINICAL_ODONTOGRAM_ANNUL_FAILED', err.code || 'UNKNOWN');
+    res.status(500).json({ ok: false, mensaje: 'Error al anular el registro.' });
   }
 };
 

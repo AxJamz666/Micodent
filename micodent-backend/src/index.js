@@ -109,6 +109,7 @@ app.get('/api/health', async (req, res) => {
     if (migrations.length !== 2 || !pos) throw Object.assign(new Error('Pending migration'), { code: 'SCHEMA_PENDING' });
     await require('../scripts/migrate-s1a').verifyApplied(db);
     await require('../scripts/migrate-clinical-files').verifyApplied(db);
+    await require('../scripts/migrate-odontogram').verifyApplied(db);
 
     res.set('Cache-Control', 'no-store');
 
@@ -117,7 +118,7 @@ app.get('/api/health', async (req, res) => {
       status: 'healthy',
       backend: 'online',
       database: 'connected',
-      version: 'rc4-m03b-dev',
+      version: 'rc4-m07d-dev',
       mensaje: 'Micodent esta listo para operar',
       hora: new Date().toLocaleString('es-PE'),
     });
@@ -207,10 +208,11 @@ if (require.main === module) {
   Promise.all([
     require('../scripts/migrate-s1a').verifyApplied(db),
     require('../scripts/migrate-clinical-files').verifyApplied(db),
+    require('../scripts/migrate-odontogram').verifyApplied(db),
   ]).then(() => {
     app.listen(PORT, '127.0.0.1', () => console.log(`MICODENT DEV disponible en http://localhost:${PORT}`));
   }).catch(async () => {
-    console.error('MICODENT DEV no inicio: verifica la BD y la migracion S1-A. No se aplicaron cambios automaticos.');
+    console.error('MICODENT DEV no inicio: verifica la BD y las migraciones requeridas. No se aplicaron cambios automaticos.');
     await db.end();
     process.exitCode = 1;
   });

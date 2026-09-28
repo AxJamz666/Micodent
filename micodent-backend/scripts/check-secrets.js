@@ -13,6 +13,7 @@ const REVIEWED_SQL = new Map([
   ['micodent-backend/migrations/001_hotfix_finanzas.sql', '873a049851041c9d09a6f76b841659b92da850ab37b6f6ee6cdca95daabd2bb1'],
   ['micodent-backend/migrations/002_pos.sql', '265c10a84deeede06a0f3b514088001df4ec8d96786433a7075f6c7d6db146a3'],
   ['micodent-backend/migrations/003_clinical_files.sql', '6ea6be90e53f0496cebe35f262718bdcdd130f77f3a2b2eab1d6c30beed3b6fe'],
+  ['micodent-backend/migrations/004_odontogram_annulments.sql', '7bb1fd0a5d8cc1e34e25f1785d6f16b1266c03e6b2808097837ef982f12901f8'],
 ]);
 const LEGACY_NOTICE = "// Disabled legacy reset tool. No database access or credential changes.\nconsole.error('Herramienta deshabilitada. Usa el cambio o restablecimiento protegido de contrasena de MICODENT.');\nprocess.exitCode = 1;\n";
 const relative = value => value.replaceAll('\\', '/');

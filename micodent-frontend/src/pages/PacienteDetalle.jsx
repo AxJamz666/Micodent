@@ -139,6 +139,7 @@ const PacienteDetalle = () => {
   // Odontograma
   const [odontograma, setOdontograma] = useState({});
   const [tratamientosAsignados, setTratamientosAsignados] = useState([]);
+  const [odontogramaAnulado, setOdontogramaAnulado] = useState([]);
 
   // Radiografías
   const [radiografias, setRadiografias] = useState([]);
@@ -248,6 +249,7 @@ const PacienteDetalle = () => {
           }
           setOdontograma(objOdonto);
           setTratamientosAsignados(arrAsig);
+          setOdontogramaAnulado(h.odontograma_anulado || []);
 
           setEvoluciones((h.consultas || []).map(c => ({
             id: c.id, fecha: c.fecha_consulta, descripcion: c.descripcion,
@@ -306,6 +308,7 @@ const PacienteDetalle = () => {
       }
       setOdontograma(objOdonto);
       setTratamientosAsignados(arrAsig);
+      setOdontogramaAnulado(h.odontograma_anulado || []);
     } catch (err) {
       toast.error('Error al actualizar el odontograma.');
     }
@@ -809,6 +812,7 @@ const PacienteDetalle = () => {
             <OdontogramaEditor
               historiaId={hcId}
               odontogramaVisual={odontograma}
+              registrosAnulados={odontogramaAnulado}
               tratamientosAsignados={tratamientosAsignados}
               onGuardado={recargarOdontograma}
               miUserId={miUserId}

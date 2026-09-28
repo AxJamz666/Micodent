@@ -13,6 +13,12 @@ async function run({ base, root, pass, conn }) {
   const browser = await chromium.launch({channel:'msedge',headless:true});
   const outcomes=[];
   try {
+    if (process.env.HOTFIX_BROWSER_MODE === 'odontogram') {
+      for (const [mode, origin] of [['build', base], ['dev', `http://127.0.0.1:${vite.httpServer.address().port}`]]) {
+        await require('./odontogram-browser.cjs')({ browser, origin, root, pass, conn, mode });
+      }
+      return;
+    }
     if (process.env.HOTFIX_BROWSER_MODE === 'access') {
       await conn.query(`INSERT INTO usuarios (id,password_hash,nombre,nombre_completo,rol,nivel,is_admin,activo)
         SELECT 'qa_inactive_access',password_hash,'QA','Cuenta inactiva sintetica','Asistente',1,0,0

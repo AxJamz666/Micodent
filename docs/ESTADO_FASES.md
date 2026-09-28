@@ -16,7 +16,7 @@ No se ha enviado la continuacion M06/M07 a GitHub.
 | E03 S1-B | Cookies, CSRF y sesiones probadas en aislamiento | Validacion operativa por laptop |
 | E04 Archivos clinicos | M03-A/B probados en aislamiento | Inventario historico y aceptacion por instalacion |
 | E05 Autorizacion | M06-A incorporado y probado | M15: decisiones de acceso fino con Miguel y Edy |
-| E06 Clinica y trazabilidad | En curso: M07-A/B/C con pruebas aisladas | Anulacion no destructiva, versiones de firmas, identidad de emision, M08/M09/M11 |
+| E06 Clinica y trazabilidad | Pausada: M07-A/B/C con pruebas aisladas; M07-D guardado como trabajo en curso | Terminar QA M07-D, despues versiones de firmas, identidad de emision, M08/M09/M11 |
 | E07 Edy | No iniciada | Paquete propio tras E05/E06; ninguna capacidad concedida |
 | E08 Finanzas | RC4 resolvio defectos concretos | Auditoria integral e invariantes historicos pendientes |
 | E09 Agenda/API | No iniciada como etapa | Conflictos, contratos y validacion |
@@ -42,6 +42,17 @@ para resolver estas tres brechas sin inventar evidencia historica.
 M07-C hace atomicos el item nuevo de odontograma y su auditoria, con prueba de
 rollback ante fallo de esta. M07-D y M07-E estan planificados en
 `M07_SIGUIENTES_PAQUETES.md`; todavia no se aplicaron migraciones.
+
+Pausa solicitada el 2026-09-28: M07-D tiene codigo y migracion aditiva en la
+rama local. Se probaron en MySQL desechable el destino y respaldo obligatorios,
+la segunda ejecucion, preservacion de filas, permisos, anulacion concurrente,
+carrera con adenda y rollback por auditoria; el navegador compilado paso una
+prueba visual de anulacion, trazabilidad e impresion. Backend 85/85 y frontend
+23/23 unitarias; build frontend correcto. Quedan pendientes la repeticion del
+navegador de desarrollo y el cierre de regresion. El empaquetador Node actual
+termino con codigo nativo `3221226505`; el build de QA se copio y verifico con
+PowerShell, sin declarar resuelto el empaquetador. La BD habitual `micodent_dev`
+no recibio la migracion ni se activo el candidato. No se cierra E06/M07-D.
 
 ## Actualizacion 2026-09-24
 

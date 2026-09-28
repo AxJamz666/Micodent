@@ -25,11 +25,11 @@ module.exports = async ({ conn, base }) => {
       try {
         const response = await fetch(`http://127.0.0.1:${port}/api/health`, { signal: AbortSignal.timeout(1000) });
         const body = await response.json();
-        if (response.ok && body.version === 'rc4-m03b-dev') { healthy = true; break; }
+        if (response.ok && body.version === 'rc4-m07d-dev') { healthy = true; break; }
       } catch { /* The child may still be starting. */ }
       await delay(100);
     }
-    assert(healthy, 'El proceso real debe servir health con ambas migraciones verificadas.');
+    assert(healthy, 'El proceso real debe servir health con todas las migraciones verificadas.');
   } finally { await stop(child); }
   const [[marker]] = await conn.query("SELECT checksum FROM micodent_migrations WHERE id='001_s1a'");
   try {
@@ -46,6 +46,24 @@ module.exports = async ({ conn, base }) => {
   } finally {
     await stop(child);
     await conn.query("UPDATE micodent_migrations SET checksum=? WHERE id='001_s1a'", [marker.checksum]);
+  }
+  assert.equal((await fetch(base + '/api/health')).status, 200);
+  const [[odontogram]] = await conn.query("SELECT checksum FROM micodent_migrations WHERE id='004_odontogram_annulments'");
+  try {
+    await conn.query("UPDATE micodent_migrations SET checksum=? WHERE id='004_odontogram_annulments'", ['0'.repeat(64)]);
+    const response = await fetch(base + '/api/health');
+    assert.equal(response.status, 503);
+    assert.equal((await response.json()).reason, 'schema_pending');
+    child = launch();
+    const exited = once(child, 'exit');
+    let timer;
+    const result = await Promise.race([exited, new Promise(resolve => { timer = setTimeout(() => resolve(null), 15000); })]);
+    clearTimeout(timer);
+    assert(result, 'El arranque debe rechazar una migracion odontologica incorrecta.');
+    assert.equal(result[0], 1);
+  } finally {
+    await stop(child);
+    await conn.query("UPDATE micodent_migrations SET checksum=? WHERE id='004_odontogram_annulments'", [odontogram.checksum]);
   }
   assert.equal((await fetch(base + '/api/health')).status, 200);
   const [[clinical]] = await conn.query("SELECT checksum FROM micodent_migrations WHERE id='003_clinical_files'");
