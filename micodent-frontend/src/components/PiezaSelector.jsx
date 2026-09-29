@@ -1,11 +1,4 @@
-import React from 'react';
-
-const FILAS = [
-  [18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28],
-  [55,54,53,52,51,61,62,63,64,65],
-  [85,84,83,82,81,71,72,73,74,75],
-  [48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38],
-];
+import { TOOTH_ROWS } from '../utils/rxTeeth';
 
 const PiezaSelector = ({ seleccionadas, onChange }) => {
   const toggle = (n) => {
@@ -15,7 +8,7 @@ const PiezaSelector = ({ seleccionadas, onChange }) => {
 
   return (
     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 overflow-x-auto">
-      {FILAS.map((fila, i) => (
+      {TOOTH_ROWS.map((fila, i) => (
         <div key={i} className={`flex gap-1 justify-center flex-wrap ${i === 1 || i === 2 ? 'opacity-70' : ''}`}>
           {fila.map(n => (
             <button

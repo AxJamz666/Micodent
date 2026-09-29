@@ -3,6 +3,7 @@ import { Plus, X, Lock, Printer, FileText, RefreshCw, History } from 'lucide-rea
 import toast from 'react-hot-toast';
 import { historiasService } from '../services/api';
 import PiezaSelector from './PiezaSelector';
+import RxTeethPrint from './RxTeethPrint';
 import FirmaMiniBlock from './FirmaMiniBlock';
 import PrintPortal from './PrintPortal';
 import { printDocument } from '../utils/printDocument';
@@ -534,6 +535,8 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
                   </div>
                 )}
               </div>
+
+              <RxTeethPrint orden={selectedOrden} />
 
               <div className="flex justify-center mb-5">
                 <FirmaMiniBlock

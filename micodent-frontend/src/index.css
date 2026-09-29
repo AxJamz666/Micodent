@@ -7,6 +7,12 @@
 .document-stamp-image { display: block; max-width: 192px; max-height: 80px; width: auto; height: auto; object-fit: contain; margin: 0 auto; }
 .document-stamp-fallback { width: 100%; border-top: 1px solid #64748b; padding-top: 5px; text-align: center; overflow-wrap: anywhere; }
 .rx-reference { break-inside: avoid; }
+.rx-teeth-chart { break-inside: avoid; }
+.rx-teeth-rows { display: grid; gap: 3px; width: 100%; }
+.rx-teeth-row { display: flex; justify-content: center; gap: 2px; width: 100%; }
+.rx-tooth { box-sizing: border-box; flex: 0 1 28px; min-width: 0; height: 28px; border: 1px solid #cbd5e1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; line-height: 11px; color: #475569; }
+.rx-tooth strong { height: 11px; font-size: 9px; color: #111827; }
+.rx-tooth-selected { border: 2px solid #111827; color: #111827; background: #fff; font-weight: 700; }
 
 @media screen {
   .dialog-overlay { overflow-y: auto; padding: 16px; overscroll-behavior: contain; }

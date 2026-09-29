@@ -15,6 +15,7 @@ Estado: preparado y probado en DEV, pendiente de instalacion y aceptacion en la 
 
 - Base de codigo: rama `codex/e09-agenda-api`, commit `4062ebf`, frontend compilado `rc4-e09-dev`, lanzador V4.0.3.
 - Preparacion E13: rama `codex/e13-gabriela-piloto`; registrar el commit final en el manifiesto del paquete.
+- La revision de aceptacion RX debe incluir el odontograma en vista previa e impresion. Usar solo el ZIP E13 mas reciente cuyo SHA-256 coincida con el archivo `.sha256`; el paquete `E13_GABRIELA_PILOTO_daf92b2.zip` no contiene esta correccion.
 - Prueba aislada con Node 24.14.0 y MariaDB 10.4.32: esquema vacio, 35 tablas, dos mapas, login y health. La prueba integrada de E09 en MariaDB tambien paso.
 - M07-D sigue pausado y no forma parte de este piloto.
 
@@ -28,7 +29,7 @@ Estado: preparado y probado en DEV, pendiente de instalacion y aceptacion en la 
 6. Abrir `cmd` en `micodent-backend` y ejecutar `npm ci --omit=dev`. Requiere internet. No editar `package-lock.json`. Si falla, detenerse y registrar el error.
 7. Con MySQL activo, en esa misma carpeta ejecutar primero `npm run setup:fresh-pilot:check`. Debe confirmar `micodent_dev`, MariaDB 10.4.32 y cero tablas; no modifica la base. Si pasa, ejecutar `npm run setup:fresh-pilot`. La aplicacion repite la verificacion antes de crear el esquema y muestra una vez la clave inicial de `gabriela`. Anotarla en privado. Si falla, no repetirlo ni borrar tablas; solicitar revision.
 8. Ejecutar `comprobar_micodent.bat`. Luego `iniciar_micodent.bat`. El lanzador comprueba MySQL, backend, frontend y navegador. Abrir `http://localhost:4000` solo en esta laptop. Iniciar sesion como `gabriela` y cambiar de inmediato la clave inicial desde el perfil.
-9. Probar con datos ficticios: paciente, historia, cita, consulta, abono, laboratorio, gasto, orden Rx con ambos mapas, receta, impresion y dashboard financiero. Cerrar sesion, reiniciar Windows, arrancar MySQL y abrir el BAT de nuevo. Registrar cualquier diferencia antes de usar datos reales.
+9. Probar con datos ficticios: paciente, historia, cita, consulta, abono, laboratorio, gasto, receta, impresion y dashboard financiero. En una orden Rx marcar piezas de tomografia y periapicales, incluida una pieza comun; comprobar en vista previa e impresion el odontograma con marcas T, P y T/P, la lista de numeros y ambos mapas. Cerrar sesion, reiniciar Windows, arrancar MySQL y abrir el BAT de nuevo. Registrar cualquier diferencia antes de usar datos reales.
 
 ## Criterios de parada y datos reales
 
