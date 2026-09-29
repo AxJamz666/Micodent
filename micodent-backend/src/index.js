@@ -56,6 +56,11 @@ for (const route of ['/api/dashboard', '/api/gastos', '/api/laboratorio']) {
   app.use(route, express.json({ limit: '64kb' }));
   app.use(route, express.urlencoded({ extended: true, limit: '64kb' }));
 }
+const smallUserJson = express.json({ limit: '64kb' });
+const smallUserForm = express.urlencoded({ extended: true, limit: '64kb' });
+const signingAssets = req => req.method === 'PUT' && /^\/mi-firma-sello\/?$/i.test(req.path);
+app.use('/api/usuarios', (req, res, next) => signingAssets(req) ? next() : smallUserJson(req, res, next));
+app.use('/api/usuarios', (req, res, next) => signingAssets(req) ? next() : smallUserForm(req, res, next));
 
 app.use(express.json({ limit: '50mb' }));
 

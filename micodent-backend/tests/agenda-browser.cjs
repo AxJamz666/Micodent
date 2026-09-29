@@ -27,7 +27,8 @@ module.exports = async ({ browser, base, root, pass }) => {
     };
     let modal = await fill('Reserva visual QA');
     const search = page.waitForResponse(r => r.url().includes('/api/pacientes?')
-      && r.url().includes('limit=6') && r.request().method() === 'GET');
+      && r.url().includes('limit=6') && r.url().includes('incluirArchivados=false')
+      && r.request().method() === 'GET');
     await modal.locator('input').nth(0).fill('Sintetico');
     assert.equal((await search).status(), 200);
     await modal.locator('input').nth(0).fill('');
@@ -72,7 +73,7 @@ module.exports = async ({ browser, base, root, pass }) => {
     const conflict = page.waitForResponse(r => r.url().endsWith('/api/citas') && r.request().method() === 'POST');
     await modal.getByRole('button', { name: 'Agendar Cita' }).click();
     assert.equal((await conflict).status(), 409);
-    await page.getByText('Ya existe una cita en ese horario para este doctor.', { exact: true }).waitFor();
+    await modal.getByRole('alert').getByText('Ya existe una cita en ese horario para este doctor.', { exact: true }).waitFor();
     await page.waitForTimeout(350);
     assert.equal(await modal.count(), 1);
     await page.setViewportSize({ width: 390, height: 844 });

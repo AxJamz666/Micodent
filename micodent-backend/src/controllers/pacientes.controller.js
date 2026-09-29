@@ -35,10 +35,11 @@ const getPacientes = async (req, res) => {
     const condiciones = [];
     const params = [];
     if (search) {
-      // Al buscar, se incluyen tambien los archivados: si escribiste algo, ya sabes a quien buscas
+      // La busqueda general conserva archivados; Agenda puede pedir solo activos.
       condiciones.push('(p.nombres LIKE ? OR p.apellidos LIKE ? OR p.dni LIKE ? OR h.nro_historia LIKE ? OR p.celular LIKE ?)');
       const s = `%${search}%`;
       params.push(s, s, s, s, s);
+      if (incluirArchivados === 'false') condiciones.push('p.activo = 1');
     } else if (incluirArchivados !== 'true') {
       condiciones.push('p.activo = 1');
     }

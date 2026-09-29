@@ -1,7 +1,8 @@
 # MICODENT - Estado de etapas y modelo acordado
 
-Acuerdo actualizado el 2026-09-28. E00 es preparacion; E01-E17 son las 17
-etapas. De las 16 abiertas, cuatro usan Astra y doce Sol. El estado describe
+Acuerdo actualizado el 2026-09-29. E00 es preparacion; E01-E17 son las 17
+etapas. Tras el cierre tecnico de E09, quedan 15 abiertas: cuatro Astra y once
+Sol. El estado describe
 la linea local RC4 + S1, no un release clinico aprobado. La asignacion de
 modelo no altera las pruebas, respaldos, aceptaciones ni limites de despliegue.
 
@@ -15,7 +16,7 @@ modelo no altera las pruebas, respaldos, aceptaciones ni limites de despliegue.
 | E06 | Clinica y trazabilidad | M07-A/B/C probados; M07-D pausado y guardado; resto pendiente | GPT-6 Astra |
 | E07 | Permiso especifico de Edy | No iniciada | GPT-6 Sol |
 | E08 | Finanzas | Correcciones RC4 puntuales; auditoria integral pendiente | GPT-6 Astra |
-| E09 | Agenda y API | M16 probado; M19 en curso | GPT-6 Sol |
+| E09 | Agenda y API | Cierre tecnico en DEV; aceptacion operativa E13/E16 pendiente | GPT-6 Sol |
 | E10 | Base de datos y rendimiento | No iniciada como etapa | GPT-6 Sol |
 | E11 | Proteccion del trabajo y mantenimiento | No iniciada como etapa | GPT-6 Sol |
 | E12 | Diseno y experiencia premium | Mejoras puntuales RC4; revision integral pendiente | GPT-6 Sol |
@@ -39,8 +40,9 @@ cambiar de etapa, repetir el aviso y esperar nueva confirmacion.
 E06/M07-D (anulacion no destructiva del odontograma) quedo pausada y guardada
 en la rama local `codex/rc4-m07-trazabilidad`, commit `d8522d1`; requiere QA
 final antes de retomarla. El propietario pidio continuar una etapa Sol y
-confirmo GPT-6 Sol para E09/M16 (Agenda y API). Esta etapa usa la rama local
-`codex/e09-agenda-api`; M19 esta en curso y la aceptacion sigue pendiente. No aplicar
+confirmo GPT-6 Sol para E09/M16-M19 (Agenda y API). Esta etapa usa la rama
+`codex/e09-agenda-api`; la implementacion tecnica cerro en DEV, pero la aceptacion
+operativa sigue pendiente. No aplicar
 migraciones a la instalacion habitual ni tocar instalaciones clinicas por este
 documento.
 

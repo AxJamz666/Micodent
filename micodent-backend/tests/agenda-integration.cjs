@@ -53,6 +53,12 @@ module.exports = async ({ api, conn, tokens, check }) => {
       const all = await api('GET', '/pacientes?search=Agenda%20QA', null, tokens.qaadmin);
       assert.equal(all.status, 200);
       assert.equal(all.body.data.length, 2);
+      await conn.query('UPDATE pacientes SET activo=0 WHERE id=?', [inserted[1]]);
+      const active = await api('GET', '/pacientes?search=Agenda%20QA&incluirArchivados=false&limit=6', null, tokens.qaadmin);
+      assert.equal(active.status, 200);
+      assert.deepEqual(active.body.data.map(patient => patient.id), [inserted[0]]);
+      const historic = await api('GET', '/pacientes?search=Agenda%20QA', null, tokens.qaadmin);
+      assert.equal(historic.body.data.length, 2);
       const limited = await api('GET', '/pacientes?search=Agenda%20QA&limit=1', null, tokens.qaadmin);
       assert.equal(limited.status, 200);
       assert.equal(limited.body.data.length, 1);

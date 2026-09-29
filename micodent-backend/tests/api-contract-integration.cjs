@@ -60,4 +60,19 @@ module.exports = async ({ api, conn, tokens, check }) => {
       assert.equal(response.body.ok, false);
     }
   });
+  await check('E09/M19: usuarios pequenos limitados, firma y sello conservan su contrato', async () => {
+    const oversized = { qa_padding: 'x'.repeat(70 * 1024) };
+    for (const [method, route] of [
+      ['POST', '/usuarios'],
+      ['PUT', '/usuarios/cambiar-password'],
+      ['POST', '/usuarios/reset-password'],
+      ['PUT', '/usuarios/qaotro'],
+    ]) {
+      const response = await api(method, route, oversized, tokens.qaadmin);
+      assert.equal(response.status, 413, `${method} ${route}`);
+      assert.equal(response.body.ok, false);
+    }
+    const signing = await api('PUT', '/usuarios/mi-firma-sello', oversized, tokens.qaadmin);
+    assert.equal(signing.status, 200);
+  });
 };

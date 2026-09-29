@@ -6,8 +6,10 @@ E00 es preparacion; E01-E17 son las 17 etapas de mejora. Los estados siguientes
 describen la rama local de desarrollo RC4 + S1, no una version desplegada ni
 aprobada para uso clinico. E06/M07-D quedo pausada en `d8522d1` dentro de
 `F:\ChatGPT\MICODENT — Sistema de Gestión Odontológica\MICODENT_DEV\.runtime\rc4-s1-integracion`.
-E09/M16 usa `F:\ChatGPT\MICODENT — Sistema de Gestión Odontológica\MICODENT_DEV\.runtime\e09-agenda-api`.
-No se ha enviado la continuacion M06/M07 ni E09 a GitHub.
+E09/M16-M19 cerro su implementacion tecnica aislada en
+`F:\ChatGPT\MICODENT — Sistema de Gestión Odontológica\MICODENT_DEV\.runtime\e09-agenda-api`.
+La continuacion M06/M07 sigue local. E09 tiene su propia rama de trabajo;
+publicarla no equivale a integrarla ni a desplegarla.
 
 | Etapa | Estado actual | Pendiente principal |
 | --- | --- | --- |
@@ -20,7 +22,7 @@ No se ha enviado la continuacion M06/M07 ni E09 a GitHub.
 | E06 Clinica y trazabilidad | Pausada: M07-A/B/C probados; M07-D guardado en otra rama, aun sin QA final | Anulacion no destructiva, versiones de firmas, identidad de emision, M08/M09/M11 |
 | E07 Edy | No iniciada | Paquete propio tras E05/E06; ninguna capacidad concedida |
 | E08 Finanzas | RC4 resolvio defectos concretos | Auditoria integral e invariantes historicos pendientes |
-| E09 Agenda/API | M16 probado en aislamiento; M19 en curso; sin despliegue | Contratos/limites generales y aceptacion; ver E09_AGENDA_API_AVANCE.md |
+| E09 Agenda/API | Cierre tecnico en DEV; sin despliegue ni aceptacion clinica | Validacion operativa E13/E16; dependencias en E09_AGENDA_API_AVANCE.md |
 | E10 BD/rendimiento | No iniciada como etapa | Indices, restricciones y migraciones controladas |
 | E11 Trabajo/mantenimiento | No iniciada como etapa | Prevencion de perdida de formularios y modularidad |
 | E12 UX/UI | Mejoras RC4 puntuales | Revision integral de vistas y accesibilidad |

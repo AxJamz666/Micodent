@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Search, Check, Ban, UserX, RotateCcw, ArrowRight } from 'lucide-react';
+import { X, Search, Check, Ban, UserX, RotateCcw, ArrowRight, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { pacientesService, citasService } from '../services/api';
 import { generarSlotsHorario, formatearHora12h, ESTADO_CITA_CONFIG } from '../utils/agendaUtils';
@@ -28,6 +28,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
   const [resultadosBusqueda, setResultadosBusqueda] = useState([]);
   const [guardando, setGuardando] = useState(false);
   const [cambiandoEstado, setCambiandoEstado] = useState(false);
+  const [error, setError] = useState('');
   const mutationBusy = useRef(false);
 
   useEffect(() => {
@@ -58,6 +59,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
     }
     setBusquedaPaciente('');
     setResultadosBusqueda([]);
+    setError('');
   }, [isOpen, citaExistente, prefill]);
 
   useEffect(() => {
@@ -65,7 +67,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
     const controller = new AbortController();
     const delay = setTimeout(async () => {
       try {
-        const { data } = await pacientesService.getAll(busquedaPaciente.trim(), undefined, 6, controller.signal);
+        const { data } = await pacientesService.getAll(busquedaPaciente.trim(), 'false', 6, controller.signal);
         if (!controller.signal.aborted) setResultadosBusqueda((data.data || []).slice(0, 6));
       } catch {
         if (!controller.signal.aborted) setResultadosBusqueda([]);
@@ -94,6 +96,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
     }
     mutationBusy.current = true;
     try {
+      setError('');
       setGuardando(true);
       if (esEdicion) {
         await citasService.editar(citaExistente.id, form);
@@ -105,7 +108,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
       await onGuardado();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.mensaje || 'Error al guardar la cita.');
+      setError(err.response?.data?.mensaje || 'Error al guardar la cita.');
     } finally {
       mutationBusy.current = false;
       setGuardando(false);
@@ -116,13 +119,14 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
     if (mutationBusy.current) return;
     mutationBusy.current = true;
     try {
+      setError('');
       setCambiandoEstado(true);
       await citasService.actualizarEstado(citaExistente.id, nuevoEstado);
       toast.success('Estado actualizado.');
       await onGuardado();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.mensaje || 'Error al actualizar el estado.');
+      setError(err.response?.data?.mensaje || 'Error al actualizar el estado.');
     } finally {
       mutationBusy.current = false;
       setCambiandoEstado(false);
@@ -164,6 +168,12 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
         )}
 
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 space-y-5">
+          {error && (
+            <div role="alert" className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+              <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <span>{error}</span>
+            </div>
+          )}
           <div>
             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Paciente (opcional, buscar existente)</label>
             {pacienteVinculado ? (
