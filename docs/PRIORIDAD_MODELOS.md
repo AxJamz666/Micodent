@@ -20,7 +20,7 @@ modelo no altera las pruebas, respaldos, aceptaciones ni limites de despliegue.
 | E10 | Base de datos y rendimiento | No iniciada como etapa | GPT-6 Sol |
 | E11 | Proteccion del trabajo y mantenimiento | No iniciada como etapa | GPT-6 Sol |
 | E12 | Diseno y experiencia premium | Mejoras puntuales RC4; revision integral pendiente | GPT-6 Sol |
-| E13 | Despliegue local | Launcher RC4 probado en simulacro; laptops pendientes | GPT-6 Sol |
+| E13 | Despliegue local | Piloto Gabriela preparado en aislamiento; instalacion, recuperacion y aceptacion pendientes | GPT-6 Sol |
 | E14 | Recuperacion operativa | Respaldo piloto; restauraciones por instalacion pendientes | GPT-6 Astra |
 | E15 | Actualizacion de laptops | No iniciada | GPT-6 Sol |
 | E16 | Aceptacion integral | No iniciada | GPT-6 Sol |

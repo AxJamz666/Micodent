@@ -26,7 +26,7 @@ publicarla no equivale a integrarla ni a desplegarla.
 | E10 BD/rendimiento | No iniciada como etapa | Indices, restricciones y migraciones controladas |
 | E11 Trabajo/mantenimiento | No iniciada como etapa | Prevencion de perdida de formularios y modularidad |
 | E12 UX/UI | Mejoras RC4 puntuales | Revision integral de vistas y accesibilidad |
-| E13 Despliegue local | Launcher RC4 probado en simulacro | Integracion S1, prueba y aceptacion en cada laptop |
+| E13 Despliegue local | Launcher RC4 probado; paquete nuevo Gabriela preparado y probado en MariaDB aislada | Instalacion en laptop, backup/restauracion y aceptacion; datos reales bloqueados |
 | E14 Recuperacion operativa | Respaldo piloto reportado; etapa abierta | Politica y restauraciones repetibles de BD + archivos |
 | E15 Actualizaciones | No iniciada | Identificar, respaldar y actualizar cada laptop por separado |
 | E16 Aceptacion integral | No iniciada | Regresion clinica, financiera, fallos y usuarios |

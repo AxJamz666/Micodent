@@ -10,6 +10,8 @@ const SKIP_DIRS = new Set(['.git', '.runtime', 'node_modules', 'coverage', 'test
 const TEXT = /(?:\.(?:js|jsx|mjs|cjs|ts|tsx|json|txt|md|html|css|svg|ya?ml|bat|ps1|ini|conf|log|pem|key|sql)|\.env(?:\.[^/]*)?)$/i;
 // Reviewed schema migrations only. A changed SQL file needs a fresh content review.
 const REVIEWED_SQL = new Map([
+  ['micodent-backend/migrations/000_fresh_legacy_schema.sql', 'cef002e7cf23f4cf4960dcee107fcdea26f019b2fdf2b1c12c2523936c73e343'],
+  ['micodent-backend/migrations/000_fresh_reference_centers.sql', '715fe62869af64ccf159c72a03700e961d1a96297d8c3dacea7d41764a636c0f'],
   ['micodent-backend/migrations/001_hotfix_finanzas.sql', '873a049851041c9d09a6f76b841659b92da850ab37b6f6ee6cdca95daabd2bb1'],
   ['micodent-backend/migrations/002_pos.sql', '265c10a84deeede06a0f3b514088001df4ec8d96786433a7075f6c7d6db146a3'],
   ['micodent-backend/migrations/003_clinical_files.sql', '6ea6be90e53f0496cebe35f262718bdcdd130f77f3a2b2eab1d6c30beed3b6fe'],
@@ -73,7 +75,10 @@ function scanDirectory(folder, { knownSecrets = [], artifact = false } = {}) {
     for (const item of fs.readdirSync(directory, { withFileTypes: true })) {
       const full = path.join(directory, item.name);
       const name = relative(path.relative(folder, full));
-      if (item.isSymbolicLink()) { findings.push({ file: name, rule: 'SYMLINK_REQUIRES_REVIEW' }); continue; }
+      if (item.isSymbolicLink()) {
+        if (!artifact && item.name.toLowerCase() === 'node_modules') continue;
+        findings.push({ file: name, rule: 'SYMLINK_REQUIRES_REVIEW' }); continue;
+      }
       if (item.isDirectory()) {
         if (SKIP_DIRS.has(item.name.toLowerCase())) {
           if (artifact) findings.push({ file: name, rule: 'EXCLUDED_SOURCE_DIRECTORY' });
