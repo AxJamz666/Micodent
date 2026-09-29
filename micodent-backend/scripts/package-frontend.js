@@ -32,5 +32,5 @@ function walk(folder) {
   }
 }
 walk(source);
-fs.writeFileSync(path.join(target,'build-version.json'), JSON.stringify({ version:'rc4-e09-dev', createdAt:new Date().toISOString(), files }, null, 2));
+fs.writeFileSync(path.join(target,'build-version.json'), JSON.stringify({ version:'rc4-e12-e13-pilot', createdAt:new Date().toISOString(), files }, null, 2));
 console.log(`Frontend compilado integrado: ${files.length} archivos verificados en backend/public.`);
