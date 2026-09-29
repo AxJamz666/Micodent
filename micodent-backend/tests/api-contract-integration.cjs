@@ -31,4 +31,21 @@ module.exports = async ({ api, conn, tokens, check }) => {
     const existing = await api('PUT', '/pacientes/1', { ...data, cambios_detectados: null }, tokens.qaadmin);
     assert.equal(existing.status, 200);
   });
+  await check('E09/M19: rutas de paciente rechazan identificadores ambiguos sin escribir', async () => {
+    const [[before]] = await conn.query('SELECT activo, nombres FROM pacientes WHERE id = 1');
+    const [[auditBefore]] = await conn.query('SELECT COUNT(*) AS total FROM auditoria_pacientes');
+    for (const id of ['1abc', '1e0', '0', '9007199254740992']) {
+      for (const [method, suffix] of [
+        ['GET', ''], ['GET', '/auditoria'], ['PUT', ''], ['DELETE', ''], ['PUT', '/reactivar'],
+      ]) {
+        const response = await api(method, `/pacientes/${id}${suffix}`, undefined, tokens.qaadmin);
+        assert.equal(response.status, 400, `${method} /pacientes/${id}${suffix}`);
+        assert.equal(response.body.ok, false);
+      }
+    }
+    const [[after]] = await conn.query('SELECT activo, nombres FROM pacientes WHERE id = 1');
+    const [[auditAfter]] = await conn.query('SELECT COUNT(*) AS total FROM auditoria_pacientes');
+    assert.deepEqual(after, before);
+    assert.equal(Number(auditAfter.total), Number(auditBefore.total));
+  });
 };

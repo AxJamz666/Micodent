@@ -42,6 +42,9 @@ propietario: GPT-6 Sol. La E06/M07-D quedo pausada en `d8522d1`, otra rama.
   transaccion, sin crear auditoria; una edicion valida conserva el contrato
   anterior. El archivado y la reactivacion de pacientes siguen haciendo
   varias escrituras sin transaccion y requieren revision en E06.
+- Las rutas con ID de paciente rechazan identificadores no canonicos o fuera
+  del rango entero seguro antes de consultar MySQL. La prueba negativa cubre
+  lectura, auditoria, edicion, archivado y reactivacion sin escrituras.
 
 No se cambia el esquema ni se ejecuta una migracion. No se ha modificado la
 base `micodent` ni las instalaciones piloto o familiares. El backend DEV
@@ -60,7 +63,7 @@ ejecutaron en una base MySQL temporal y con registros sinteticos.
 | Escaner de secretos | Codigo sin hallazgos; dos enlaces locales `node_modules` reportados como `SYMLINK_REQUIRES_REVIEW` |
 
 Evidencia de navegador: `E:\MICODENT_QA\qa-1790639285949`.
-Ultima regresion backend: `E:\MICODENT_QA\qa-1790639918888`.
+Ultima regresion backend: `E:\MICODENT_QA\qa-1790640167691`.
 El escaneo no certifica todo el entorno por esos enlaces locales, que no estan
 versionados ni forman parte del paquete. Antes de publicar, comprobar el indice
 de Git y ejecutar la verificacion sobre un arbol sin dichos enlaces.
