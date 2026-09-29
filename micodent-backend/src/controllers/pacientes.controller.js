@@ -193,6 +193,11 @@ const editarPaciente = async (req, res) => {
     await conn.beginTransaction();
 
     const { id } = req.params;
+    const [[paciente]] = await conn.query('SELECT id FROM pacientes WHERE id = ? FOR UPDATE', [id]);
+    if (!paciente) {
+      await conn.rollback();
+      return res.status(404).json({ ok: false, mensaje: 'Paciente no encontrado.' });
+    }
     const { dni, nombres, apellidos, sexo, fecha_nacimiento,
             domicilio, celular, apoderado_nombre, parentesco, apoderado_celular,
             cambios_detectados } = req.body;

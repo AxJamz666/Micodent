@@ -38,6 +38,10 @@ propietario: GPT-6 Sol. La E06/M07-D quedo pausada en `d8522d1`, otra rama.
   que todas conservan autenticacion, salvo el login publico. `ping` y `health`
   son rutas operativas separadas. Las capacidades
   especificas por rol siguen sujetas a E05/E06/E07 y no se modificaron aqui.
+- La edicion de un paciente inexistente ahora responde 404 dentro de la
+  transaccion, sin crear auditoria; una edicion valida conserva el contrato
+  anterior. El archivado y la reactivacion de pacientes siguen haciendo
+  varias escrituras sin transaccion y requieren revision en E06.
 
 No se cambia el esquema ni se ejecuta una migracion. No se ha modificado la
 base `micodent` ni las instalaciones piloto o familiares. El backend DEV
@@ -56,7 +60,7 @@ ejecutaron en una base MySQL temporal y con registros sinteticos.
 | Escaner de secretos | Codigo sin hallazgos; dos enlaces locales `node_modules` reportados como `SYMLINK_REQUIRES_REVIEW` |
 
 Evidencia de navegador: `E:\MICODENT_QA\qa-1790639285949`.
-Ultima regresion backend: `E:\MICODENT_QA\qa-1790639498541`.
+Ultima regresion backend: `E:\MICODENT_QA\qa-1790639918888`.
 El escaneo no certifica todo el entorno por esos enlaces locales, que no estan
 versionados ni forman parte del paquete. Antes de publicar, comprobar el indice
 de Git y ejecutar la verificacion sobre un arbol sin dichos enlaces.
