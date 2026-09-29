@@ -15,46 +15,46 @@ const ConfirmModal = ({
 
   const config = {
     danger: {
-      icon: <Trash2 size={30} />,
-      iconBg: 'bg-red-100 text-red-600',
-      btn: 'bg-red-500 hover:bg-red-600 shadow-red-200',
+      icon: <Trash2 size={20} />,
+      iconBg: 'text-red-700',
+      btn: 'bg-red-700 hover:bg-red-800',
     },
     warning: {
-      icon: <AlertTriangle size={30} />,
-      iconBg: 'bg-orange-100 text-orange-600',
-      btn: 'bg-orange-500 hover:bg-orange-600 shadow-orange-200',
+      icon: <AlertTriangle size={20} />,
+      iconBg: 'text-amber-700',
+      btn: 'bg-amber-700 hover:bg-amber-800',
     },
     reset: {
-      icon: <RotateCcw size={30} />,
-      iconBg: 'bg-amber-100 text-amber-600',
-      btn: 'bg-amber-500 hover:bg-amber-600 shadow-amber-200',
+      icon: <RotateCcw size={20} />,
+      iconBg: 'text-clinical-600',
+      btn: 'bg-clinical-600 hover:bg-clinical-700',
     },
   };
 
   const { icon, iconBg, btn } = config[type] || config.danger;
 
   return (
-    <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[500] flex items-center justify-center p-4">
+    <div className="dialog-overlay fixed inset-0 z-[500] flex items-center justify-center bg-slate-900/50 p-4">
       <div
-        className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 animate-pop-in"
+        role="alertdialog" aria-modal="true" aria-labelledby="confirm-modal-title"
+        className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex flex-col items-center text-center">
-          <div className={`p-5 rounded-2xl mb-5 ${iconBg}`}>{icon}</div>
-          <h3 className="text-xl font-black text-slate-800 mb-2">{title}</h3>
-          <p className="text-slate-500 text-sm leading-relaxed mb-8">{message}</p>
-          <div className="flex gap-3 w-full">
+        <div>
+          <h3 id="confirm-modal-title" className="mb-3 flex items-center gap-2 text-lg font-semibold text-slate-800"><span className={iconBg}>{icon}</span>{title}</h3>
+          <p className="mb-6 text-sm leading-relaxed text-slate-600">{message}</p>
+          <div className="flex w-full justify-end gap-2">
             <button
               onClick={onCancel}
               disabled={busy}
-              className="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50"
+              className="ui-button-secondary"
             >
               {cancelText}
             </button>
             <button
               onClick={onConfirm}
               disabled={busy}
-              className={`flex-1 py-3.5 text-white rounded-2xl font-bold transition-all shadow-lg disabled:opacity-50 ${btn}`}
+              className={`inline-flex min-h-10 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors disabled:opacity-50 ${btn}`}
             >
               {busy ? 'Guardando...' : confirmText}
             </button>

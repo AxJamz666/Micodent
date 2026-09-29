@@ -251,43 +251,43 @@ const FinanzasDashboard = () => {
 
   return (
     <div className="animate-fade-in text-slate-800 pb-10 max-w-7xl mx-auto">
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h2 className="text-3xl font-bold text-slate-800 flex items-center gap-2"><TrendingUp size={30} className="text-clinical-600"/> Dashboard Financiero</h2>
-          <p className="text-slate-500 mt-1">Consolidado de producción y cobros de la clínica, por doctor.</p>
+          <h2 className="ui-page-title flex items-center gap-2"><TrendingUp size={22} className="text-clinical-600"/> Dashboard Financiero</h2>
+          <p className="ui-page-subtitle">Producción, cobros y gastos de la clínica.</p>
         </div>
-        <button onClick={abrirAuditoria} className="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-slate-200 transition-colors border border-slate-200 w-fit">
+        <button onClick={abrirAuditoria} className="ui-button-secondary w-fit">
           <History size={16}/> Registro de Actividad
         </button>
       </div>
 
-      {vista !== 'produccion' && <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-8 flex flex-col md:flex-row md:items-end gap-4 flex-wrap">
+      {vista !== 'produccion' && <div className="mb-6 flex flex-wrap items-end gap-4 border-b border-slate-200 pb-5">
         <div>
           <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Desde</label>
-          <input type="date" value={desde} onChange={e => setDesde(e.target.value)} className="px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 text-sm" />
+          <input type="date" value={desde} onChange={e => setDesde(e.target.value)} className="ui-input" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Hasta</label>
-          <input type="date" value={hasta} onChange={e => setHasta(e.target.value)} className="px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 text-sm" />
+          <input type="date" value={hasta} onChange={e => setHasta(e.target.value)} className="ui-input" />
         </div>
         <div className="flex gap-1.5 items-center flex-wrap">
-          <button onClick={() => setRangoRapido(1)} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-600 transition-colors">Hoy</button>
+          <button onClick={() => setRangoRapido(1)} className="ui-button-secondary">Hoy</button>
           <input type="month" value={mesGlobal} onChange={e => handleSeleccionarMes(e.target.value)}
-            title="Elegir mes completo" className="px-3 py-2 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 border-slate-200 text-xs font-bold text-slate-600" />
+            title="Elegir mes completo" className="ui-input" />
         </div>
         <div className="flex-1 min-w-[180px]">
           <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Doctor</label>
-          <select value={doctorFiltro} onChange={e => setDoctorFiltro(e.target.value)} className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 text-sm">
+          <select value={doctorFiltro} onChange={e => setDoctorFiltro(e.target.value)} className="ui-input">
             <option value="todos">Todos los doctores</option>
             {data?.porDoctor?.map(d => <option key={d.doctor_id} value={d.doctor_id}>{d.doctor_nombre}</option>)}
           </select>
         </div>
       </div>}
 
-      <div className="flex flex-wrap gap-2 mb-6 bg-slate-50 p-1 rounded-2xl w-fit max-w-full">
+      <div className="mb-6 flex max-w-full flex-wrap gap-1 border-b border-slate-200 pb-1">
         {[{ v: 'resumen', l: 'Resumen', icon: <TrendingUp size={16}/> }, { v: 'gastos', l: 'Gastos', icon: <Wallet size={16}/> }, { v: 'laboratorio', l: 'Laboratorio', icon: <Package size={16}/> }, { v: 'produccion', l: 'Producción y comisiones por personal', icon: <Users size={16}/> }].map(op => (
           <button key={op.v} aria-pressed={vista === op.v} onClick={() => setVista(op.v)}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors ${vista === op.v ? 'bg-white shadow-sm text-clinical-600' : 'text-slate-500 hover:text-slate-700'}`}>
+            className={`flex min-h-10 items-center gap-2 border-b-2 px-3 py-2 text-sm font-semibold transition-colors ${vista === op.v ? 'border-clinical-600 text-clinical-700' : 'border-transparent text-slate-600 hover:border-slate-300'}`}>
             {op.icon} {op.l}
           </button>
         ))}
@@ -310,15 +310,15 @@ const FinanzasDashboard = () => {
           </section>
           <h3 className="text-lg font-bold mb-3">Resultado de producción</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-            <KpiCard color="bg-purple-100 text-purple-600" icon={<Percent size={22}/>} label="Comisiones generadas" value={`S/ ${parseFloat(data?.totales?.totalComisionBruta || 0).toFixed(2)}`} />
-            <KpiCard color="bg-orange-100 text-orange-600" icon={<Wallet size={22}/>} label="Costos externos aplicados" value={data?.totales?.movimientosPorConciliar ? 'Por conciliar' : `S/ ${parseFloat(data?.totales?.costosExternosAplicados || 0).toFixed(2)}`} />
+            <KpiCard color="bg-slate-100 text-slate-600" icon={<Percent size={22}/>} label="Comisiones generadas" value={`S/ ${parseFloat(data?.totales?.totalComisionBruta || 0).toFixed(2)}`} />
+            <KpiCard color="bg-amber-100 text-amber-700" icon={<Wallet size={22}/>} label="Costos externos aplicados" value={data?.totales?.movimientosPorConciliar ? 'Por conciliar' : `S/ ${parseFloat(data?.totales?.costosExternosAplicados || 0).toFixed(2)}`} />
             <KpiCard color={parseFloat(data?.totales?.gananciaNetaReal || 0) >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} icon={<TrendingUp size={22}/>} label="Resultado tras costos y gastos" value={data?.totales?.movimientosPorConciliar ? 'Por conciliar' : `S/ ${parseFloat(data?.totales?.gananciaNetaReal || 0).toFixed(2)}`} />
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto">
+          <div className="overflow-x-auto rounded-lg border border-slate-200">
             <div className="p-4 border-b text-sm">Costo de tratamientos registrados en el período: <strong>{money(data?.totales?.totalFacturado)}</strong></div>
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+            <table className="ui-table min-w-[640px] tabular-nums">
+              <thead>
                 <tr>
                   <th className="p-4">Doctor</th>
                   <th className="p-4 text-center">Pacientes</th>
@@ -397,9 +397,9 @@ const FinanzasDashboard = () => {
             </select>
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+          <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <table className="ui-table min-w-[640px] tabular-nums">
+              <thead>
                 <tr>
                   <th className="p-4">Fecha</th>
                   <th className="p-4">Categoría</th>
@@ -505,11 +505,11 @@ const FinanzasDashboard = () => {
       )}
 
       {showGastoModal && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label={editGastoId ? 'Editar Gasto' : 'Nuevo Gasto'} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
-            <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg">{editGastoId ? 'Editar Gasto' : 'Nuevo Gasto'}</h3>
-              <button onClick={() => setShowGastoModal(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+            <div className="ui-dialog-header">
+              <h3 className="font-semibold text-base">{editGastoId ? 'Editar Gasto' : 'Nuevo Gasto'}</h3>
+              <button onClick={() => setShowGastoModal(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
             </div>
             <form onSubmit={handleGuardarGasto} className="p-6 space-y-5">
               <div>
@@ -543,7 +543,7 @@ const FinanzasDashboard = () => {
                     className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white border-slate-200 text-sm" required />
                 </div>
               </div>
-              <button type="submit" className="w-full py-4 bg-clinical-500 text-white rounded-xl font-bold hover:bg-clinical-600 shadow-lg transition-all">
+              <button type="submit" className="ui-button-primary w-full">
                 {editGastoId ? 'Guardar Cambios' : 'Registrar Gasto'}
               </button>
             </form>
@@ -552,14 +552,14 @@ const FinanzasDashboard = () => {
       )}
 
       {showPenalidadModal && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Registrar Penalidad" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
-            <div className="bg-red-600 p-5 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2"><AlertTriangle size={20}/> Registrar Penalidad</h3>
-              <button onClick={() => setShowPenalidadModal(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+            <div className="ui-dialog-header">
+              <h3 className="font-semibold text-base flex items-center gap-2"><AlertTriangle size={18} className="text-red-600"/> Registrar Penalidad</h3>
+              <button onClick={() => setShowPenalidadModal(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
             </div>
             <form onSubmit={handleCrearPenalidad} className="p-6 space-y-5">
-              <p className="text-xs text-slate-500 bg-red-50 border border-red-100 p-3 rounded-xl">Se descontará de la comisión neta del doctor en el periodo — por ejemplo, un rehacimiento de laboratorio por error clínico.</p>
+              <p className="border-l-2 border-red-600 bg-red-50 px-3 py-2 text-sm text-red-900">Se descontará de la comisión neta del doctor en el periodo — por ejemplo, un rehacimiento de laboratorio por error clínico.</p>
               <div>
                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Doctor</label>
                 <select required value={formPenalidad.doctor_id} onChange={e => setFormPenalidad({...formPenalidad, doctor_id: e.target.value})}
@@ -585,18 +585,18 @@ const FinanzasDashboard = () => {
                 <textarea required rows={2} value={formPenalidad.motivo} onChange={e => setFormPenalidad({...formPenalidad, motivo: e.target.value})}
                   className="w-full px-4 py-3 border rounded-2xl outline-none focus:border-red-400 resize-none bg-white border-slate-200 text-sm" placeholder="Ej. Rehacimiento de corona por error de toma de molde" />
               </div>
-              <button type="submit" className="w-full py-4 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-lg transition-all">Registrar Penalidad</button>
+              <button type="submit" className="inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800">Registrar Penalidad</button>
             </form>
           </div>
         </div>
       )}
 
       {showAuditoriaModal && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Registro de Actividad Financiera" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2"><History size={20}/> Registro de Actividad Financiera</h3>
-              <button onClick={() => setShowAuditoriaModal(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+            <div className="ui-dialog-header">
+              <h3 className="font-semibold text-base flex items-center gap-2"><History size={18}/> Registro de Actividad Financiera</h3>
+              <button onClick={() => setShowAuditoriaModal(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
             </div>
             <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
               {auditoriaLogs.length === 0 ? (
@@ -634,10 +634,10 @@ const FinanzasDashboard = () => {
 };
 
 const KpiCard = ({ color, icon, label, value }) => (
-  <div data-financial-kpi={label} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-    <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${color}`}>{icon}</div>
-    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{label}</p>
-    <p className="text-lg font-black text-slate-800">{value}</p>
+  <div data-financial-kpi={label} className="min-h-28 rounded-lg border border-slate-200 bg-white p-4">
+    <div className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg ${color}`}>{icon}</div>
+    <p className="mb-0.5 text-xs font-medium text-slate-600">{label}</p>
+    <p className="break-words text-lg font-semibold tabular-nums text-slate-800">{value}</p>
   </div>
 );
 

@@ -41,34 +41,34 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-      <nav className="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center sticky top-0 z-50 shadow-sm">
-        <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="Micodent" className="h-10 w-auto object-contain" />
+    <div className="micodent-app min-h-screen bg-[#f4f7f7] font-sans">
+      <nav aria-label="Navegación principal" className="sticky top-0 z-50 flex min-h-16 items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 sm:px-6">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <img src="/logo.png" alt="" className="h-9 w-9 flex-shrink-0 object-contain" />
           <div className="hidden sm:block">
-            <h1 className="text-lg font-bold text-slate-800 leading-tight">Micodent</h1>
-            <p className="text-[10px] text-clinical-600 uppercase font-black tracking-widest">Sede Jauja</p>
+            <h1 className="text-base font-bold leading-tight text-slate-800">Micodent</h1>
+            <p className="text-[11px] font-medium text-slate-500">Gestión odontológica</p>
           </div>
         </div>
 
-        <div className="flex gap-2">
-        <NavLink to="/" className={({isActive}) => `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-clinical-50 text-clinical-600' : 'text-slate-500 hover:bg-slate-50'}`}><Home size={18}/> <span className="hidden lg:block">Inicio</span></NavLink>
-        <NavLink to="/pacientes" className={({isActive}) => `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-clinical-50 text-clinical-600' : 'text-slate-500 hover:bg-slate-50'}`}><Users size={18}/> <span className="hidden lg:block">Pacientes</span></NavLink>
-        <NavLink to="/agenda" className={({isActive}) => `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isActive ? 'bg-clinical-50 text-clinical-600' : 'text-slate-500 hover:bg-slate-50'}`}><CalendarDays size={18}/> <span className="hidden lg:block">Agenda</span></NavLink>
+        <div className="flex min-w-0 items-center justify-center gap-0.5 sm:gap-2">
+        <NavLink to="/" aria-label="Inicio" className={({isActive}) => `flex min-h-10 items-center gap-2 rounded-lg px-2.5 text-sm font-semibold transition-colors sm:px-3 ${isActive ? 'bg-clinical-50 text-clinical-700' : 'text-slate-600 hover:bg-slate-50'}`}><Home size={18}/> <span className="hidden md:block">Inicio</span></NavLink>
+        <NavLink to="/pacientes" aria-label="Pacientes" className={({isActive}) => `flex min-h-10 items-center gap-2 rounded-lg px-2.5 text-sm font-semibold transition-colors sm:px-3 ${isActive ? 'bg-clinical-50 text-clinical-700' : 'text-slate-600 hover:bg-slate-50'}`}><Users size={18}/> <span className="hidden md:block">Pacientes</span></NavLink>
+        <NavLink to="/agenda" aria-label="Agenda" className={({isActive}) => `flex min-h-10 items-center gap-2 rounded-lg px-2.5 text-sm font-semibold transition-colors sm:px-3 ${isActive ? 'bg-clinical-50 text-clinical-700' : 'text-slate-600 hover:bg-slate-50'}`}><CalendarDays size={18}/> <span className="hidden md:block">Agenda</span></NavLink>
         </div>
 
-        <div className="relative" ref={dropdownRef}>
-          <button aria-label="Menú de perfil" aria-expanded={isProfileOpen} onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-3 border border-slate-200 rounded-2xl py-1.5 px-2 hover:bg-slate-50 transition-all bg-white shadow-sm">
-            <div className="bg-clinical-500 text-white p-1 rounded-xl"><UserCircle size={24} /></div>
-            <span className="text-sm font-bold text-slate-700 hidden sm:block">{shortName}</span>
+        <div className="relative flex-shrink-0" ref={dropdownRef}>
+          <button aria-label="Menú de perfil" aria-expanded={isProfileOpen} onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 transition-colors hover:bg-slate-50">
+            <UserCircle size={24} className="text-clinical-600" />
+            <span className="hidden max-w-28 truncate text-sm font-semibold text-slate-700 sm:block">{shortName}</span>
             <ChevronDown size={14} className={`text-slate-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-white rounded-3xl shadow-2xl border border-slate-100 py-3 animate-fade-in z-50">
-              <div className="px-5 py-4 border-b border-slate-100 mb-2">
-                <p className="text-sm font-black text-slate-800 leading-tight">{fullName}</p>
-                <p className="text-[10px] text-clinical-600 mt-1 uppercase font-black tracking-widest">{role}</p>
+            <div className="absolute right-0 z-50 mt-2 w-[min(18rem,calc(100vw-1.5rem))] rounded-lg border border-slate-200 bg-white py-2 shadow-lg">
+              <div className="mb-1 border-b border-slate-100 px-4 py-3">
+                <p className="truncate text-sm font-semibold leading-tight text-slate-800">{fullName}</p>
+                <p className="mt-1 text-xs text-slate-500">{role}</p>
               </div>
 
               <div className="px-2 space-y-1">
@@ -98,7 +98,7 @@ const MainLayout = () => {
           )}
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto p-6"><Outlet /></main>
+      <main className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-6"><Outlet /></main>
     </div>
   );
 };

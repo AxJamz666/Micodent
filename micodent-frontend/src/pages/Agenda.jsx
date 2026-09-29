@@ -111,26 +111,26 @@ const Agenda = () => {
 
   return (
     <div className="animate-fade-in text-slate-800 pb-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h2 className="text-3xl font-bold text-slate-800 flex items-center gap-2"><CalendarDays size={30} className="text-clinical-600"/> Agenda de Citas</h2>
-          <p className="text-slate-500 mt-1 font-medium capitalize">{tituloHeader()}</p>
+          <h2 className="ui-page-title flex items-center gap-2"><CalendarDays size={22} className="text-clinical-600"/> Agenda de Citas</h2>
+          <p className="ui-page-subtitle capitalize">{tituloHeader()}</p>
         </div>
-        <button onClick={abrirNuevaCita} className="bg-clinical-500 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-clinical-600 transition-all shadow-lg shadow-clinical-100 w-fit">
-          <Plus size={20}/> Nueva Cita
+        <button onClick={abrirNuevaCita} className="ui-button-primary w-fit">
+          <Plus size={18}/> Nueva cita
         </button>
       </div>
 
-      <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 mb-6 flex items-center justify-between flex-wrap gap-3">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
         <div className="flex items-center gap-2">
-          <button onClick={() => navegar(-1)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-500"><ChevronLeft size={20}/></button>
-          <button onClick={irAHoy} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm font-bold text-slate-600 transition-colors">Hoy</button>
-          <button onClick={() => navegar(1)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-500"><ChevronRight size={20}/></button>
+          <button onClick={() => navegar(-1)} aria-label="Período anterior" className="ui-icon-button"><ChevronLeft size={19}/></button>
+          <button onClick={irAHoy} className="ui-button-secondary">Hoy</button>
+          <button onClick={() => navegar(1)} aria-label="Período siguiente" className="ui-icon-button"><ChevronRight size={19}/></button>
         </div>
-        <div className="flex gap-1 bg-slate-50 p-1 rounded-xl">
+        <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1">
           {[{ v: 'dia', l: 'Día' }, { v: 'semana', l: 'Semana' }, { v: 'mes', l: 'Mes' }].map(op => (
-            <button key={op.v} onClick={() => setVista(op.v)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-colors ${vista === op.v ? 'bg-white shadow-sm text-clinical-600' : 'text-slate-400 hover:text-slate-600'}`}>
+            <button key={op.v} onClick={() => setVista(op.v)} aria-pressed={vista === op.v}
+              className={`min-h-9 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${vista === op.v ? 'bg-clinical-50 text-clinical-700' : 'text-slate-600 hover:bg-slate-50'}`}>
               {op.l}
             </button>
           ))}

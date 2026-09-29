@@ -888,9 +888,9 @@ const handleEliminarRadiografia = async (id) => {
       <div className="animate-fade-in text-slate-800 max-w-4xl mx-auto pb-10 print:pb-0">
         
         <style>{`
-          @page { margin: 8mm; size: A4 portrait; } 
-          @media print { 
-            body { -webkit-print-color-adjust: exact; background: white; margin: 0; padding: 0; } 
+          @page { margin: 8mm; size: A4 portrait; }
+          @media print {
+            body { -webkit-print-color-adjust: exact; background: white; margin: 0; padding: 0; }
             nav { display: none !important; }
             .saltar-pagina { page-break-before: always !important; break-before: page !important; }
             .print-compact { margin-bottom: 0.25rem !important; }

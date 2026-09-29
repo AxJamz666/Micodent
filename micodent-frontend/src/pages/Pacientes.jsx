@@ -145,36 +145,37 @@ const Pacientes = () => {
         onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
       />
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h2 className="text-3xl font-bold text-slate-800">Directorio de Pacientes</h2>
-          <p className="text-slate-500">Cada paciente ya tiene su historia clínica lista — entra a su ficha para trabajarla.</p>
+          <h2 className="ui-page-title">Pacientes</h2>
+          <p className="ui-page-subtitle">Directorio e historias clínicas.</p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={handleToggleArchivados} className={`px-4 py-3 rounded-2xl font-bold text-sm border transition-colors whitespace-nowrap ${mostrarArchivados ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
-            {mostrarArchivados ? '✓ Mostrando archivados' : 'Mostrar archivados'}
+        <div className="flex flex-wrap gap-2">
+          <button onClick={handleToggleArchivados} aria-pressed={mostrarArchivados} className={`ui-button-secondary ${mostrarArchivados ? 'border-clinical-600 bg-clinical-50 text-clinical-700' : ''}`}>
+            <FolderOpen size={17}/> {mostrarArchivados ? 'Archivados visibles' : 'Mostrar archivados'}
           </button>
           <button
             onClick={() => navigate('/pacientes/nuevo')}
-            className="bg-clinical-500 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-clinical-600 transition-all shadow-lg shadow-clinical-100 w-fit"
+            className="ui-button-primary"
           >
             <UserPlus size={20} /> Registrar Paciente
           </button>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 mb-6">
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3 flex-1">
+      <div className="mb-5 flex flex-col gap-3 md:flex-row">
+        <div className="flex flex-1 items-center gap-3 rounded-lg border border-slate-300 bg-white px-3">
           <Search className="text-slate-400" size={20} />
           <input
             type="text"
             placeholder="Buscar por Nombre, DNI, HC o Celular..."
-            className="w-full outline-none bg-transparent font-medium"
+            aria-label="Buscar pacientes"
+            className="min-h-10 w-full min-w-0 bg-transparent text-sm outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           {searchTerm && (
-            <button onClick={() => setSearchTerm('')} className="text-slate-400 hover:text-slate-600">
+            <button onClick={() => setSearchTerm('')} aria-label="Limpiar búsqueda" className="text-slate-500 hover:text-slate-700">
               <X size={18} />
             </button>
           )}
@@ -183,7 +184,7 @@ const Pacientes = () => {
         <div className="relative" ref={ordenDropdownRef}>
           <button
             onClick={() => setOrdenMenuAbierto(prev => !prev)}
-            className="h-full w-full md:w-auto px-4 py-4 md:py-0 bg-white rounded-2xl shadow-sm border border-slate-100 font-bold text-sm text-slate-600 hover:border-clinical-300 transition-colors flex items-center gap-2 whitespace-nowrap"
+            className="ui-button-secondary h-full w-full whitespace-nowrap md:w-auto"
           >
             <ArrowUpDown size={16} className="text-slate-400" />
             Ordenar por: <span className="text-clinical-600">{ordenActualLabel}</span>
@@ -218,9 +219,9 @@ const Pacientes = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+        <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <table className="ui-table min-w-[860px]">
+            <thead>
               <tr>
                 <th className="p-4">Paciente</th>
                 <th className="p-4">DNI</th>

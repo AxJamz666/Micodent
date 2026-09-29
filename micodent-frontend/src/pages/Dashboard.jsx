@@ -86,11 +86,11 @@ const Dashboard = () => {
     <div className="animate-fade-in text-slate-800 max-w-7xl mx-auto pb-10">
 
       {/* CABECERA */}
-      <div className="mb-10">
-        <h1 className="text-3xl font-black text-slate-800">
+      <div className="mb-7">
+        <h1 className="ui-page-title">
           Bienvenid{gender === 'a' ? 'a' : 'o'}, {prefix} {nombre}
         </h1>
-        <p className="text-slate-500 mt-1 font-medium capitalize">
+        <p className="ui-page-subtitle capitalize">
           {new Date().toLocaleDateString('es-ES', {
             weekday:'long', year:'numeric', month:'long', day:'numeric'
           })}
@@ -98,7 +98,7 @@ const Dashboard = () => {
       </div>
 
       {/* KPI CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div className="mb-8 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           color="bg-green-100 text-green-600"
           icon={<TrendingUp size={28}/>}
@@ -126,7 +126,7 @@ const Dashboard = () => {
       </div>
 
       {/* ACCESOS RÁPIDOS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+      <div className="mb-8 grid grid-cols-1 gap-3 md:grid-cols-2">
         <AccesoRapido
           onClick={() => navigate('/pacientes')}
           icon={<UserPlus size={24}/>}
@@ -143,8 +143,8 @@ const Dashboard = () => {
       </div>
 
       {/* CITAS DE HOY */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-10">
-        <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+      <section className="mb-8 border-t border-slate-200 bg-white">
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
           <h3 className="font-bold text-slate-700 flex items-center gap-2">
             <CalendarDays size={18} className="text-clinical-500"/> Citas de Hoy
           </h3>
@@ -152,7 +152,7 @@ const Dashboard = () => {
             Ver Agenda
           </button>
         </div>
-        <div className="p-5">
+        <div className="p-4">
           {citasHoy.length === 0 ? (
             <p className="text-sm text-slate-400 text-center py-6">No hay citas programadas para hoy.</p>
           ) : (
@@ -176,14 +176,14 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-      </div>
+      </section>
 
       {/* PANELES INFERIORES */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
         {/* Últimas Historias */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+        <section className="border-t border-slate-200 bg-white">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
             <h3 className="font-bold text-slate-700 flex items-center gap-2">
               <Clock size={18} className="text-clinical-500"/> Últimas Historias Aperturadas
             </h3>
@@ -192,7 +192,7 @@ const Dashboard = () => {
                 Ver todas
               </button>
           </div>
-          <div className="p-5">
+          <div className="p-4">
             {ultimas.length === 0
               ? <p className="text-sm text-slate-400 text-center py-6">No hay historias registradas aún.</p>
               : <div className="space-y-3">
@@ -212,11 +212,11 @@ const Dashboard = () => {
                 </div>
             }
           </div>
-        </div>
+        </section>
 
         {/* Deudores */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+        <section className="border-t border-slate-200 bg-white">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
             <h3 className="font-bold text-slate-700 flex items-center gap-2">
               <AlertTriangle size={18} className="text-red-500"/> Tratamientos por Cancelar
             </h3>
@@ -224,7 +224,7 @@ const Dashboard = () => {
               {deudores.length} paciente{deudores.length !== 1 ? 's' : ''}
             </span>
           </div>
-          <div className="p-5 max-h-[520px] overflow-y-auto">
+          <div className="max-h-[520px] overflow-y-auto p-4">
             {deudores.length === 0
               ? <p className="text-sm text-slate-400 text-center py-6">Sin deudas pendientes.</p>
               : <div className="divide-y divide-slate-200">
@@ -246,7 +246,7 @@ const Dashboard = () => {
             }
           </div>
 
-        </div>
+        </section>
       </div>
 
       <CitaModal
@@ -262,24 +262,24 @@ const Dashboard = () => {
 };
 
 const KpiCard = ({ color, icon, label, value }) => (
-  <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 hover:-translate-y-1 transition-transform">
-    <div className={`p-4 rounded-2xl ${color}`}>{icon}</div>
-    <div>
-      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-      <p className="text-2xl font-black text-slate-800">{value}</p>
+  <div className="flex min-h-28 flex-col items-start gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+    <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${color}`}>{icon}</div>
+    <div className="min-w-0">
+      <p className="mb-1 text-xs font-medium text-slate-600">{label}</p>
+      <p className="break-words text-xl font-semibold tabular-nums text-slate-800">{value}</p>
     </div>
   </div>
 );
 
 const AccesoRapido = ({ onClick, icon, title, desc, secondary }) => (
   <button onClick={onClick}
-    className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-clinical-500 hover:shadow-md transition-all group w-full">
+    className="group flex w-full items-center justify-between border-b border-slate-200 bg-white px-4 py-4 text-left transition-colors hover:bg-slate-50">
     <div className="flex items-center gap-4">
-      <div className={`p-3 rounded-full transition-colors ${secondary ? 'bg-slate-50 text-slate-600 group-hover:bg-clinical-500 group-hover:text-white' : 'bg-clinical-50 text-clinical-600 group-hover:bg-clinical-500 group-hover:text-white'}`}>
+      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${secondary ? 'bg-slate-100 text-slate-600' : 'bg-clinical-50 text-clinical-600'}`}>
         {icon}
       </div>
       <div className="text-left">
-        <h3 className="font-bold text-lg">{title}</h3>
+        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
         <p className="text-slate-500 text-sm">{desc}</p>
       </div>
     </div>

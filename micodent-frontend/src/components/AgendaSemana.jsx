@@ -11,9 +11,9 @@ const AgendaSemana = ({ fechaActual, citas, onDiaClick, onCitaClick }) => {
   const citasDelDia = (diaISO) => citas.filter(c => c.fecha === diaISO);
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
       <div className="flex" style={{ minWidth: '900px' }}>
-        <div className="w-16 flex-shrink-0 border-r border-slate-100">
+        <div className="sticky left-0 z-20 w-16 flex-shrink-0 border-r border-slate-200 bg-white">
           <div className="h-16 border-b border-slate-100"></div>
           {slots.map(s => (
             <div key={s} style={{ height: ALTURA_SLOT }} className="text-[9px] text-slate-400 font-bold text-right pr-2 pt-0.5 border-b border-slate-50">
@@ -31,7 +31,7 @@ const AgendaSemana = ({ fechaActual, citas, onDiaClick, onCitaClick }) => {
             <div key={diaISO} className="flex-1 min-w-[120px] border-r border-slate-100 last:border-r-0">
               <button onClick={() => onDiaClick(dia)} className={`w-full h-16 border-b border-slate-100 flex flex-col items-center justify-center hover:bg-slate-50 transition-colors ${esHoy ? 'bg-clinical-50' : ''}`}>
                 <span className="text-[10px] font-bold text-slate-400 uppercase">{dia.toLocaleDateString('es-PE', { weekday: 'short' })}</span>
-                <span className={`text-lg font-black ${esHoy ? 'text-clinical-600' : 'text-slate-700'}`}>{dia.getDate()}</span>
+                <span className={`text-lg font-semibold ${esHoy ? 'text-clinical-600' : 'text-slate-700'}`}>{dia.getDate()}</span>
               </button>
 
               <div className="relative">

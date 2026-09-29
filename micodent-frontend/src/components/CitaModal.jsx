@@ -137,11 +137,11 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
   const estadoCfg = esEdicion ? ESTADO_CITA_CONFIG[citaExistente.estado] : null;
 
   return (
-    <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="bg-clinical-600 p-5 text-white flex justify-between items-center flex-shrink-0">
-          <h3 className="font-bold text-lg">{esEdicion ? 'Detalle de la Cita' : 'Nueva Cita'}</h3>
-          <button onClick={onClose} disabled={guardando || cambiandoEstado} className="hover:bg-white/20 p-1.5 rounded-full transition-colors disabled:opacity-50" aria-label="Cerrar cita"><X size={20}/></button>
+    <div className="dialog-overlay fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/50 p-4">
+      <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4">
+          <h3 className="text-lg font-semibold text-slate-800">{esEdicion ? 'Detalle de la cita' : 'Nueva cita'}</h3>
+          <button onClick={onClose} disabled={guardando || cambiandoEstado} className="ui-icon-button" aria-label="Cerrar cita"><X size={18}/></button>
         </div>
 
         {esEdicion && (
@@ -175,7 +175,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
             </div>
           )}
           <div>
-            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Paciente (opcional, buscar existente)</label>
+            <label className="ui-field-label">Paciente (opcional, buscar existente)</label>
             {pacienteVinculado ? (
               <div className="flex items-center justify-between bg-clinical-50 border border-clinical-100 px-4 py-2.5 rounded-xl">
                 <span className="text-sm font-bold text-clinical-700">{pacienteVinculado.nombre}</span>
@@ -186,7 +186,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16}/>
                 <input type="text" value={busquedaPaciente} onChange={e => { setBusquedaPaciente(e.target.value); setResultadosBusqueda([]); }}
                   placeholder="Buscar por nombre o DNI..."
-                  className="w-full pl-9 pr-3 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 text-sm" />
+                  className="ui-input pl-9" />
                 {resultadosBusqueda.length > 0 && (
                   <div className="absolute top-full mt-1 left-0 w-full bg-white border border-slate-200 rounded-xl shadow-lg z-10 max-h-48 overflow-y-auto">
                     {resultadosBusqueda.map(p => (
@@ -201,44 +201,44 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nombre de Contacto</label>
+              <label className="ui-field-label">Nombre de contacto</label>
               <input required value={form.nombre_contacto} onChange={e => setForm(prev => ({ ...prev, nombre_contacto: e.target.value }))}
-                className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white border-slate-200 text-sm" />
+                className="ui-input" />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Celular</label>
+              <label className="ui-field-label">Celular</label>
               <input required value={form.celular_contacto} onChange={e => setForm(prev => ({ ...prev, celular_contacto: e.target.value.replace(/\D/g, '') }))} maxLength={9}
-                className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white border-slate-200 text-sm" />
+                className="ui-input" />
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Motivo de Consulta</label>
+            <label className="ui-field-label">Motivo de consulta</label>
             <textarea rows={2} value={form.motivo_consulta} onChange={e => setForm(prev => ({ ...prev, motivo_consulta: e.target.value }))}
-              className="w-full px-4 py-3 border rounded-2xl outline-none focus:border-clinical-500 resize-none bg-white border-slate-200 text-sm" />
+              className="ui-input resize-y" />
           </div>
 
           <div>
-            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Doctor</label>
+            <label className="ui-field-label">Doctor</label>
             <select required value={form.doctor_id} onChange={e => setForm(prev => ({ ...prev, doctor_id: e.target.value }))}
-              className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white text-sm">
+              className="ui-input">
               <option value="">Selecciona un doctor...</option>
               {doctores.map(d => <option key={d.id} value={d.id}>{d.nombre_completo}</option>)}
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Fecha</label>
+              <label className="ui-field-label">Fecha</label>
               <input required type="date" value={form.fecha} onChange={e => setForm(prev => ({ ...prev, fecha: e.target.value }))}
-                className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white border-slate-200 text-sm" />
+                className="ui-input" />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Hora de Inicio</label>
+              <label className="ui-field-label">Hora de inicio</label>
               <select required value={form.hora_inicio} onChange={e => setForm(prev => ({ ...prev, hora_inicio: e.target.value }))}
-                className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white text-sm">
+                className="ui-input">
                 <option value="">Elige...</option>
                 {SLOTS.map(s => <option key={s} value={s}>{formatearHora12h(s)}</option>)}
               </select>
@@ -246,7 +246,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
           </div>
 
           <div>
-            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Duración</label>
+            <label className="ui-field-label">Duración</label>
             <div className="flex gap-2">
               {DURACIONES.map(d => (
                 <button key={d.valor} type="button" onClick={() => setForm(prev => ({ ...prev, duracion_minutos: d.valor }))}
@@ -257,7 +257,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
             </div>
           </div>
 
-          <button type="submit" disabled={guardando || cambiandoEstado} className="w-full py-4 bg-clinical-500 text-white rounded-xl font-bold hover:bg-clinical-600 shadow-lg transition-all disabled:opacity-50">
+          <button type="submit" disabled={guardando || cambiandoEstado} className="ui-button-primary w-full">
             {guardando ? 'Guardando...' : esEdicion ? 'Guardar Cambios' : 'Agendar Cita'}
           </button>
         </form>

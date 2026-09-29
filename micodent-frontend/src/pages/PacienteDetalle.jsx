@@ -635,17 +635,17 @@ const PacienteDetalle = () => {
 
   return (
     <div className="animate-fade-in text-slate-800 max-w-[1400px] mx-auto pb-10">
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6 sticky top-[72px] z-30 flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/pacientes')} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><ArrowLeft size={24} /></button>
-          <div className="bg-clinical-50 p-4 rounded-full text-clinical-600"><User size={32}/></div>
-          <div>
+      <div className="relative z-30 mb-5 flex flex-col justify-between gap-4 border-b border-slate-200 bg-[#f4f7f7] py-4 sm:sticky sm:top-16 md:flex-row md:items-center">
+        <div className="flex min-w-0 items-center gap-3">
+          <button onClick={() => navigate('/pacientes')} aria-label="Volver a pacientes" className="ui-icon-button flex-shrink-0"><ArrowLeft size={18} /></button>
+          <div className="hidden bg-clinical-50 p-2 text-clinical-600 sm:block"><User size={22}/></div>
+          <div className="min-w-0">
             {esNuevo ? (
-              <h2 className="text-2xl font-bold">Registrar Nuevo Paciente</h2>
+              <h2 className="ui-page-title">Registrar nuevo paciente</h2>
             ) : (
               <>
-                <div className="flex items-center gap-3">
-                  <h2 className="text-2xl font-bold">{pacienteInfo?.apellidos}, {pacienteInfo?.nombres}</h2>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="ui-page-title break-words">{pacienteInfo?.apellidos}, {pacienteInfo?.nombres}</h2>
                   <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest ${estadoCfg.class}`}>{estadoCfg.label}</span>
                 </div>
                 <p className="text-sm text-slate-500">DNI: {pacienteInfo?.dni} | HC: <span className="font-bold text-clinical-600">{nroHistoria}</span></p>
@@ -654,11 +654,11 @@ const PacienteDetalle = () => {
           </div>
         </div>
         {!esNuevo && (
-          <div className="flex gap-2">
-            <button onClick={() => navigate(`/historias?view=${id}`)} className="bg-blue-50 text-blue-600 px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-100 transition-all border border-blue-100">
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => navigate(`/historias?view=${id}`)} className="ui-button-secondary">
               <Printer size={18}/> Imprimir Reporte
             </button>
-            <button onClick={abrirAuditoriaHC} className="bg-slate-100 text-slate-600 px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-200 transition-all border border-slate-200">
+            <button onClick={abrirAuditoriaHC} className="ui-button-secondary">
               <History size={18}/> Historial de Cambios
             </button>
           </div>
@@ -666,7 +666,7 @@ const PacienteDetalle = () => {
       </div>
 
       {!esNuevo && (
-        <div className="flex w-full justify-between gap-1.5 mb-6">
+        <div className="mb-5 flex w-full gap-1 overflow-x-auto border-b border-slate-200 pb-1">
           <TabBtn active={activeTab==='datosPersonales'} onClick={()=>setActiveTab('datosPersonales')} icon={<User size={16}/>} label="Datos Personales"/>
           {esDoctor && <TabBtn active={activeTab==='triaje'}        onClick={()=>setActiveTab('triaje')}        icon={<Activity size={16}/>}    label="Triaje y Antecedentes"/>}
           {esDoctor && <TabBtn active={activeTab==='diagnostico'}   onClick={()=>setActiveTab('diagnostico')}   icon={<FileText size={16}/>}    label="Diagnóstico y Plan"/>}
@@ -679,7 +679,7 @@ const PacienteDetalle = () => {
         </div>
       )}
 
-      <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 min-h-[500px]">
+      <div className="min-h-[500px] rounded-lg border border-slate-200 bg-white p-4 sm:p-6">
 
         {activeTab === 'datosPersonales' && (
           <div className="animate-fade-in">
@@ -689,78 +689,74 @@ const PacienteDetalle = () => {
             <form onSubmit={handleGuardarDatosPersonales} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">DNI</label>
+                  <label className="ui-field-label">DNI</label>
                   <input required name="dni" value={formPersonal.dni} onChange={handleChangePersonal} maxLength="8"
-                    className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50" />
+                    className="ui-input" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Celular</label>
+                  <label className="ui-field-label">Celular</label>
                   <input required name="celular" value={formPersonal.celular} onChange={handleChangePersonal} maxLength="9"
-                    className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50" />
+                    className="ui-input" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Nombres</label>
+                  <label className="ui-field-label">Nombres</label>
                   <input required name="nombres" value={formPersonal.nombres} onChange={handleChangePersonal}
-                    className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50" />
+                    className="ui-input" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Apellidos</label>
+                  <label className="ui-field-label">Apellidos</label>
                   <input required name="apellidos" value={formPersonal.apellidos} onChange={handleChangePersonal}
-                    className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50" />
+                    className="ui-input" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Fecha Nacimiento</label>
+                  <label className="ui-field-label">Fecha de nacimiento</label>
                   <input required type="date" name="fechaNacimiento" value={formPersonal.fechaNacimiento} onChange={handleChangePersonal}
                     min="1900-01-01" max={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50" />
+                    className="ui-input" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Sexo</label>
+                  <label className="ui-field-label">Sexo</label>
                   <select name="sexo" value={formPersonal.sexo} onChange={handleChangePersonal}
-                    className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50">
+                    className="ui-input">
                     <option value="M">Masculino</option>
                     <option value="F">Femenino</option>
                   </select>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Domicilio Actual</label>
+                  <label className="ui-field-label">Domicilio actual</label>
                   <input required name="domicilio" value={formPersonal.domicilio} onChange={handleChangePersonal}
-                    className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50" />
+                    className="ui-input" />
                 </div>
               </div>
 
-              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                  <Baby size={14} /> Apoderado (Opcional)
+              <div className="space-y-4 border-t border-slate-200 pt-5">
+                <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <Baby size={16} className="text-clinical-600"/> Apoderado (opcional)
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-slate-400 mb-1">Nombre Completo</label>
+                    <label className="ui-field-label">Nombre completo</label>
                     <input name="apoderadoNombre" value={formPersonal.apoderadoNombre} onChange={handleChangePersonal}
-                      className="w-full px-4 py-2 border rounded-xl outline-none focus:border-clinical-500 bg-white" />
+                      className="ui-input" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1">Parentesco</label>
+                    <label className="ui-field-label">Parentesco</label>
                     <input name="apoderadoParentesco" value={formPersonal.apoderadoParentesco} onChange={handleChangePersonal}
-                      className="w-full px-4 py-2 border rounded-xl outline-none focus:border-clinical-500 bg-white" />
+                      className="ui-input" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1">Celular</label>
+                    <label className="ui-field-label">Celular</label>
                     <input name="apoderadoCelular" value={formPersonal.apoderadoCelular} onChange={handleChangePersonal} maxLength="9"
-                      className="w-full px-4 py-2 border rounded-xl outline-none focus:border-clinical-500 bg-white" />
+                      className="ui-input" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-clinical-50 p-8 rounded-3xl border border-clinical-100 mt-4 flex flex-col sm:flex-row justify-between items-center gap-6 shadow-inner">
-                <div>
-                  <h4 className="font-bold text-clinical-800 text-lg">{esNuevo ? 'Registrar Paciente' : 'Guardar Datos Personales'}</h4>
-                  <p className="text-sm text-clinical-600">{esNuevo ? 'Crea al paciente y su historia clínica, lista para seguir llenando.' : 'Guarda los cambios en la información del paciente y su apoderado.'}</p>
-                </div>
+              <div className="mt-4 flex justify-end border-t border-slate-200 pt-5">
                 <button type="submit" disabled={savingPersonal}
-                  className="bg-clinical-500 text-white px-10 py-4 rounded-2xl font-black text-xl flex items-center gap-3 hover:bg-clinical-600 hover:-translate-y-1 shadow-xl shadow-clinical-200 transition-all w-full sm:w-auto justify-center disabled:opacity-60 disabled:translate-y-0">
-                  <Save size={28}/>
-                  {savingPersonal ? 'Guardando...' : esNuevo ? 'REGISTRAR PACIENTE' : 'GUARDAR CAMBIOS'}
+                  className="ui-button-primary w-full sm:w-auto">
+                  <Save size={18}/>
+                  {savingPersonal ? 'Guardando...' : esNuevo ? 'Registrar paciente' : 'Guardar cambios'}
                 </button>
               </div>
             </form>
@@ -793,8 +789,8 @@ const PacienteDetalle = () => {
           <div className="animate-fade-in space-y-6">
             <Field label="Examen Clínico General" value={diagnosticoData.examenClinico} onChange={v => setDiagnosticoData({...diagnosticoData, examenClinico: v})} isTextArea rows="3" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field label="Diagnóstico" value={diagnosticoData.diagnostico} onChange={v => setDiagnosticoData({...diagnosticoData, diagnostico: v})} isTextArea rows="4" color="bg-orange-50/50 border-orange-100 focus:border-orange-400" />
-              <Field label="Plan de Tratamiento" value={diagnosticoData.planTratamiento} onChange={v => setDiagnosticoData({...diagnosticoData, planTratamiento: v})} isTextArea rows="4" color="bg-blue-50/50 border-blue-100 focus:border-blue-400" />
+              <Field label="Diagnóstico" value={diagnosticoData.diagnostico} onChange={v => setDiagnosticoData({...diagnosticoData, diagnostico: v})} isTextArea rows="4" />
+              <Field label="Plan de Tratamiento" value={diagnosticoData.planTratamiento} onChange={v => setDiagnosticoData({...diagnosticoData, planTratamiento: v})} isTextArea rows="4" />
             </div>
           </div>
         )}
@@ -820,7 +816,7 @@ const PacienteDetalle = () => {
           <div className="animate-fade-in space-y-6">
             <div className="border-b pb-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="font-bold text-xl flex items-center gap-2 text-purple-600"><ImageIcon size={24}/> Placas y Anexos Fotográficos</h3>
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800"><ImageIcon size={21} className="text-clinical-600"/> Placas y anexos fotográficos</h3>
                 <label className={`cursor-pointer px-6 py-2.5 bg-clinical-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-clinical-700 shadow-md transition-all ${subiendoImagen ? 'opacity-50 pointer-events-none' : ''}`}>
                   <UploadCloud size={18}/> {subiendoImagen ? 'Subiendo...' : 'Subir Imagen'}
                   <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={subiendoImagen} />
@@ -872,17 +868,17 @@ const PacienteDetalle = () => {
           <div className="animate-fade-in space-y-6">
             <div className="border-b pb-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="font-bold text-xl flex items-center gap-2 text-clinical-600"><CreditCard size={24}/> Evolución y Finanzas</h3>
-                {esDoctor && <button onClick={() => { setEditEvoId(null); setShowNuevoTratamiento(true); }} className="px-6 py-2.5 bg-slate-800 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-slate-700 shadow-md transition-all"><Plus size={18}/> Nuevo Tratamiento</button>}
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800"><CreditCard size={21} className="text-clinical-600"/> Evolución y finanzas</h3>
+                {esDoctor && <button onClick={() => { setEditEvoId(null); setShowNuevoTratamiento(true); }} className="ui-button-primary"><Plus size={18}/> Nuevo tratamiento</button>}
               </div>
               <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-lg border border-green-100 inline-flex items-center gap-1">
                 <Check size={12}/> Cada tratamiento se guarda y firma al crearlo
               </span>
             </div>
-            <div className="overflow-x-auto rounded-2xl border border-slate-100 mb-8">
-              <table className="w-full text-left bg-white text-sm">
-                <thead className="bg-slate-50 text-slate-500 font-black uppercase text-[10px] tracking-widest">
-                  <tr><th className="p-4 border-b border-slate-100">Fecha</th><th className="p-4 border-b border-slate-100">Tratamiento</th><th className="p-4 border-b border-slate-100 text-right">Total</th><th className="p-4 border-b border-slate-100 text-right text-orange-500">Resta</th><th className="p-4 border-b border-slate-100 text-center">Estado</th><th className="p-4 border-b border-slate-100 text-center">Acciones</th></tr>
+            <div className="mb-8 overflow-x-auto rounded-lg border border-slate-200 treatment-table-wrap">
+              <table className="ui-table min-w-[760px] tabular-nums treatment-table">
+                <thead>
+                  <tr><th>Fecha</th><th>Tratamiento</th><th className="text-right">Total</th><th className="text-right">Resta</th><th className="text-center">Estado</th><th className="text-center">Acciones</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {evoluciones.length === 0 ? (
@@ -893,23 +889,23 @@ const PacienteDetalle = () => {
                       const isCancelado = parseFloat(resta) <= 0;
                       return (
                         <tr key={evo.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="p-4 font-bold text-slate-500">{evo.fecha}</td>
-                          <td className="p-4 text-slate-700">
+                          <td data-label="Fecha" className="p-4 font-medium text-slate-500">{evo.fecha}</td>
+                          <td data-label="Tratamiento" className="p-4 text-slate-700">
                             {evo.descripcion}
                             {evo.tipoComision !== 'estandar' && (
-                              <span className={`ml-2 text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${evo.tipoComision === 'rehabilitacion' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'}`}>
+                              <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600">
                                 {evo.tipoComision === 'rehabilitacion' ? 'Rehabilitación' : 'Endodoncia'}
                               </span>
                             )}
                           </td>
-                          <td className="p-4 text-right font-black text-slate-800">S/ {parseFloat(evo.costoTotal).toFixed(2)}</td>
-                          <td className="p-4 text-right font-black text-orange-600">S/ {resta}</td>
-                          <td className="p-4 text-center">
-                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${isCancelado ? 'bg-green-100 text-green-700 border-green-200' : 'bg-orange-100 text-orange-700 border-orange-200'}`}>
+                          <td data-label="Total" className="p-4 text-right font-semibold text-slate-800">S/ {parseFloat(evo.costoTotal).toFixed(2)}</td>
+                          <td data-label="Resta" className="p-4 text-right font-semibold text-amber-700">S/ {resta}</td>
+                          <td data-label="Estado" className="p-4 text-center">
+                            <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-semibold ${isCancelado ? 'border-green-200 bg-green-50 text-green-700' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
                               {isCancelado ? <><Check size={12}/> Cancelado</> : <><Clock size={12}/> Pendiente</>}
                             </span>
                           </td>
-                          <td className="p-4">
+                          <td data-label="Acciones" className="p-4">
                             <div className="flex items-center justify-center gap-1.5">
                               <button onClick={() => { setSelectedEvolucion(evo); setShowHistorialModal(true); }} className="px-2 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-bold flex items-center gap-1 transition-all text-[10px]" title="Ver Historial"><Calendar size={12}/> Historial</button>
                               {!isCancelado && <button onClick={() => { setSelectedEvolucion(evo); setShowAbonoModal(true); }} className="px-2 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg font-bold flex items-center gap-1 transition-all text-[10px]" title="Abonar"><CreditCard size={12}/> Abonar</button>}
@@ -994,11 +990,10 @@ const PacienteDetalle = () => {
         )}
 
         {esDoctor && ['triaje','diagnostico','consentimiento'].includes(activeTab) && (
-          <div className="bg-clinical-50 p-8 rounded-3xl border border-clinical-100 mt-10 flex flex-col sm:flex-row justify-between items-center gap-6 shadow-inner">
-            <div><h4 className="font-bold text-clinical-800 text-lg">Guardar Cambios Clínicos</h4><p className="text-sm text-clinical-600">Guarda los datos médicos y las firmas de esta pestaña.</p></div>
-            <button onClick={handleGuardarDatosHC} disabled={savingHC} className="bg-clinical-500 text-white px-10 py-4 rounded-2xl font-black text-xl flex items-center gap-3 hover:bg-clinical-600 hover:-translate-y-1 shadow-xl shadow-clinical-200 transition-all w-full sm:w-auto justify-center disabled:opacity-60 disabled:translate-y-0">
-              <Save size={28}/>
-              {savingHC ? 'Guardando...' : 'GUARDAR CAMBIOS'}
+          <div className="mt-8 flex justify-end border-t border-slate-200 pt-5">
+            <button onClick={handleGuardarDatosHC} disabled={savingHC} className="ui-button-primary w-full sm:w-auto">
+              <Save size={18}/>
+              {savingHC ? 'Guardando...' : 'Guardar cambios clínicos'}
             </button>
           </div>
         )}
@@ -1006,11 +1001,11 @@ const PacienteDetalle = () => {
 
       {/* MODAL: NUEVO / EDITAR TRATAMIENTO */}
       {showNuevoTratamiento && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label={editEvoId ? 'Editar Tratamiento' : 'Nuevo Tratamiento'} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
-            <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg">{editEvoId ? 'Editar Tratamiento' : 'Nuevo Tratamiento'}</h3>
-              <button onClick={() => { setShowNuevoTratamiento(false); setEditEvoId(null); setFormNuevoTratamiento({ fecha: fechaHoyLima(), descripcion: '', costoTotal: '', abonoInicial: '', estadoClinico: '', tipoComision: 'estandar', cantidadRadiografias: 1, nombreLaboratorio: '', montoLaboratorio: '' }); }} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+            <div className="ui-dialog-header">
+              <h3 className="font-semibold text-base">{editEvoId ? 'Editar Tratamiento' : 'Nuevo Tratamiento'}</h3>
+              <button onClick={() => { setShowNuevoTratamiento(false); setEditEvoId(null); setFormNuevoTratamiento({ fecha: fechaHoyLima(), descripcion: '', costoTotal: '', abonoInicial: '', estadoClinico: '', tipoComision: 'estandar', cantidadRadiografias: 1, nombreLaboratorio: '', montoLaboratorio: '' }); }} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
             </div>
             <form id="tratamiento-form" onSubmit={handleCrearTratamiento} className="p-6 space-y-5">
               <InputV label="Fecha de Inicio" type="date" value={formNuevoTratamiento.fecha} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, fecha: v})} />
@@ -1034,14 +1029,14 @@ const PacienteDetalle = () => {
                   )}
                   <InputV label="Otros costos externos (S/)" placeholder="0.00" format="dec" required={false} value={formNuevoTratamiento.costoExterno || ''} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, costoExterno: v})} />
                   {formNuevoTratamiento.tipoComision === 'rehabilitacion' && (
-                    <div className="grid grid-cols-2 gap-4 bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
+                    <div className="grid grid-cols-2 gap-4 border-l-2 border-amber-600 bg-slate-50 p-4">
                       <div className="col-span-2">
-                        <label className="block text-[10px] font-bold text-orange-600 uppercase tracking-widest mb-1">Nombre del Laboratorio</label>
+                        <label className="ui-field-label">Nombre del Laboratorio</label>
                         <input value={formNuevoTratamiento.nombreLaboratorio} onChange={e => setFormNuevoTratamiento({...formNuevoTratamiento, nombreLaboratorio: e.target.value})}
-                          className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-orange-400 bg-white border-orange-200 text-sm" placeholder="Ej. Laboratorio Dental Center" />
+                          className="ui-input" placeholder="Ej. Laboratorio Dental Center" />
                       </div>
                       <InputV label="Costo Laboratorio (S/)" placeholder="0.00" format="dec" value={formNuevoTratamiento.montoLaboratorio} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, montoLaboratorio: v})} />
-                      <p className="col-span-2 text-[10px] text-orange-700 italic">Si aún no tienes el costo exacto, puedes dejarlo en blanco — pero la comisión del doctor se calculará sin descuento de laboratorio hasta que lo completes (por ahora, solo se puede agregar en la creación del tratamiento).</p>
+                      <p className="col-span-2 text-xs text-slate-600">Si aún no tienes el costo exacto, puedes dejarlo en blanco — pero la comisión del doctor se calculará sin descuento de laboratorio hasta que lo completes (por ahora, solo se puede agregar en la creación del tratamiento).</p>
                     </div>
                   )}
                 </>
@@ -1055,30 +1050,30 @@ const PacienteDetalle = () => {
               {!editEvoId && <MetodoPago value={formNuevoTratamiento.metodo} monto={formNuevoTratamiento.abonoInicial} config={posConfig} onChange={metodo=>setFormNuevoTratamiento({...formNuevoTratamiento,metodo})}/>}
             </form>
             <div data-dialog-footer>
-              <button type="submit" form="tratamiento-form" disabled={savingTreatment || (!editEvoId && formNuevoTratamiento.metodo === 'Tarjeta' && !posConfig)} className="w-full py-3 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-700 transition-all disabled:opacity-50">{savingTreatment ? 'Guardando...' : editEvoId ? 'Guardar Cambios' : 'Guardar y Firmar'}</button>
+              <button type="submit" form="tratamiento-form" disabled={savingTreatment || (!editEvoId && formNuevoTratamiento.metodo === 'Tarjeta' && !posConfig)} className="ui-button-primary w-full">{savingTreatment ? 'Guardando...' : editEvoId ? 'Guardar Cambios' : 'Guardar y Firmar'}</button>
             </div>
           </div>
         </div>
       )}
 
       {showAbonoModal && selectedEvolucion && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Registrar Abono" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
-            <div className="bg-green-600 p-5 text-white flex justify-between items-center"><h3 className="font-bold text-lg">Registrar Abono</h3><button onClick={() => setShowAbonoModal(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button></div>
+            <div className="ui-dialog-header"><h3 className="font-semibold text-base">Registrar Abono</h3><button onClick={() => setShowAbonoModal(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button></div>
             <form onSubmit={handleAbonar} className="p-6 space-y-5">
-              <div className="text-center bg-green-50 p-5 rounded-2xl border border-green-100"><p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-1">Deuda Restante</p><p className="text-4xl font-black text-green-700">S/ {calcularResta(selectedEvolucion.costoTotal, selectedEvolucion.pagos)}</p></div>
+              <div className="border-b border-slate-200 pb-4"><p className="text-xs font-semibold text-slate-600">Deuda restante</p><p className="mt-1 text-2xl font-semibold tabular-nums text-slate-800">S/ {calcularResta(selectedEvolucion.costoTotal, selectedEvolucion.pagos)}</p></div>
               <InputV label="Monto a Abonar (S/)" placeholder="0.00" format="dec" value={formAbono.monto} onChange={v => setFormAbono({...formAbono, monto: v})} />
               <MetodoPago value={formAbono.metodo} monto={formAbono.monto} config={posConfig} onChange={metodo=>setFormAbono({...formAbono,metodo})}/>
-              <button type="submit" disabled={savingPayment || (formAbono.metodo === 'Tarjeta' && !posConfig)} className="w-full py-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition-all disabled:opacity-50">{savingPayment ? 'Confirmando...' : 'Confirmar Abono'}</button>
+              <button type="submit" disabled={savingPayment || (formAbono.metodo === 'Tarjeta' && !posConfig)} className="ui-button-primary w-full">{savingPayment ? 'Confirmando...' : 'Confirmar Abono'}</button>
             </form>
           </div>
         </div>
       )}
 
       {showAdendaModal && selectedEvolucion && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Agregar Corrección" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
-            <div className="bg-slate-800 p-5 text-white flex justify-between items-center"><h3 className="font-bold text-lg flex items-center gap-2"><Lock size={18}/> Agregar Corrección</h3><button onClick={() => setShowAdendaModal(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button></div>
+            <div className="ui-dialog-header"><h3 className="font-semibold text-base flex items-center gap-2"><Lock size={18}/> Agregar Corrección</h3><button onClick={() => setShowAdendaModal(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button></div>
             <form onSubmit={handleAgregarAdenda} className="p-6 space-y-5">
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <p className="text-xs font-bold text-slate-500 uppercase mb-1">Evolución original (no se modifica)</p>
@@ -1086,16 +1081,16 @@ const PacienteDetalle = () => {
               </div>
               <Field label="Motivo de la corrección" value={formAdenda.motivo} onChange={v => setFormAdenda({...formAdenda, motivo: v})} isTextArea rows="2" />
               <Field label="Corrección" value={formAdenda.contenido} onChange={v => setFormAdenda({...formAdenda, contenido: v})} isTextArea rows="3" />
-              <button type="submit" className="w-full py-4 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 shadow-lg transition-all">Guardar Corrección</button>
+              <button type="submit" className="ui-button-primary w-full">Guardar Corrección</button>
             </form>
           </div>
         </div>
       )}
 
       {showHistorialModal && selectedEvolucion && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Historial y Correcciones" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
-            <div className="bg-blue-600 p-5 text-white flex justify-between items-center"><h3 className="font-bold text-lg flex items-center gap-2"><Calendar size={20}/> Historial y Correcciones</h3><button onClick={() => setShowHistorialModal(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button></div>
+            <div className="ui-dialog-header"><h3 className="font-semibold text-base flex items-center gap-2"><Calendar size={18}/> Historial y Correcciones</h3><button onClick={() => setShowHistorialModal(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button></div>
             <div className="p-6 max-h-96 overflow-y-auto space-y-3">
               <div className="bg-clinical-50 p-4 rounded-2xl border border-clinical-100">
                 <p className="text-xs font-black text-clinical-700 uppercase tracking-widest mb-2">Detalle Clínico</p>
@@ -1174,9 +1169,9 @@ const PacienteDetalle = () => {
       )}
 
       {showHCAuditModal && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Historial de Cambios" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="bg-slate-800 p-5 text-white flex justify-between items-center"><h3 className="font-bold text-lg flex items-center gap-2"><History size={20}/> Historial de Cambios</h3><button onClick={() => setShowHCAuditModal(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button></div>
+            <div className="ui-dialog-header"><h3 className="font-semibold text-base flex items-center gap-2"><History size={18}/> Historial de Cambios</h3><button onClick={() => setShowHCAuditModal(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button></div>
             <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
               <p className="font-bold text-slate-700 mb-6">Documento: <span className="text-clinical-600 font-black">{nroHistoria}</span></p>
               {hcAuditLogs.length === 0 ? (
@@ -1218,18 +1213,18 @@ const PacienteDetalle = () => {
 };
 
 const TabBtn = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl font-bold text-[10px] xl:text-[11px] transition-all whitespace-nowrap ${active ? 'bg-clinical-500 text-white shadow-md shadow-clinical-100' : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50'}`}>
+  <button type="button" aria-pressed={active} onClick={onClick} className={`flex flex-none items-center justify-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-xs font-semibold transition-colors ${active ? 'border-clinical-600 text-clinical-700' : 'border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-800'}`}>
     {icon} {label}
   </button>
 );
 
-const Field = ({ label, value, onChange, isTextArea, rows=3, color }) => (
+const Field = ({ label, value, onChange, isTextArea, rows=3 }) => (
   <div>
-    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">{label}</label>
+    <label className="ui-field-label">{label}</label>
     {isTextArea ? (
-      <textarea rows={rows} className={`w-full px-4 py-3 border rounded-2xl outline-none focus:border-clinical-500 resize-none ${color || 'bg-white border-slate-200'}`} value={value} onChange={e => onChange(e.target.value)} />
+      <textarea rows={rows} className="ui-input resize-y" value={value} onChange={e => onChange(e.target.value)} />
     ) : (
-      <input className={`w-full px-4 py-3 border rounded-2xl outline-none focus:border-clinical-500 ${color || 'bg-white border-slate-200'}`} value={value} onChange={e => onChange(e.target.value)} />
+      <input className="ui-input" value={value} onChange={e => onChange(e.target.value)} />
     )}
   </div>
 );

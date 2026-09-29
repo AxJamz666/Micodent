@@ -2,6 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body { background: #f4f7f7; color: #24333a; font-family: 'Segoe UI Variable', 'Segoe UI', Arial, sans-serif; }
+  button, input, select, textarea { font: inherit; }
+  :focus-visible { outline: 2px solid #0b6963; outline-offset: 2px; }
+}
+
+@layer components {
+  .ui-page-title { @apply text-2xl font-bold text-slate-800; }
+  .ui-page-subtitle { @apply mt-1 text-sm text-slate-500; }
+  .ui-button-primary { @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-clinical-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-clinical-700 disabled:cursor-not-allowed disabled:opacity-50; }
+  .ui-button-secondary { @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50; }
+  .ui-icon-button { @apply inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50; }
+  .ui-input { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-800 outline-none focus:border-clinical-600 sm:text-sm; }
+  .ui-field-label { @apply mb-1.5 block text-xs font-semibold text-slate-600; }
+  .ui-table { @apply w-full border-collapse bg-white text-left text-sm; }
+  .ui-table thead { @apply border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600; }
+  .ui-table th, .ui-table td { @apply px-4 py-3 align-middle; }
+  .ui-table tbody tr { @apply border-b border-slate-100; }
+  .ui-table tbody tr:last-child { @apply border-b-0; }
+  .ui-dialog-header { @apply flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4 text-slate-800; }
+  .ui-dialog-close { @apply inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50; }
+  .ui-dialog-note { @apply border-l-2 border-amber-600 bg-amber-50 px-3 py-2 text-sm text-amber-900; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+}
+
+@media (max-width: 639px) {
+  .treatment-table-wrap { overflow: visible; border: 0; }
+  .treatment-table { display: block; min-width: 0; background: transparent; }
+  .treatment-table thead { display: none; }
+  .treatment-table tbody { display: grid; gap: 10px; }
+  .treatment-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; border: 1px solid #dce5e9; border-radius: 8px; background: white; padding: 12px; }
+  .treatment-table tbody td { min-width: 0; padding: 0; border: 0; text-align: left; }
+  .treatment-table tbody td::before { content: attr(data-label); display: block; margin-bottom: 2px; color: #64748b; font-size: 11px; font-weight: 600; }
+  .treatment-table tbody td:nth-child(1), .treatment-table tbody td:nth-child(2), .treatment-table tbody td:nth-child(6) { grid-column: 1 / -1; }
+  .treatment-table tbody td:nth-child(1)::before, .treatment-table tbody td:nth-child(2)::before { display: none; }
+  .treatment-table tbody td:nth-child(2) { font-weight: 600; }
+  .treatment-table tbody td:nth-child(6) { border-top: 1px solid #e2e8f0; padding-top: 10px; }
+  .treatment-table tbody td:nth-child(6) > div { justify-content: flex-start; flex-wrap: wrap; }
+  .treatment-table tbody td[colspan] { grid-column: 1 / -1; }
+}
+
 .document-signature { width: 192px; max-width: 100%; display: flex; flex-direction: column; align-items: center; break-inside: avoid; }
 .document-signature-image { display: block; max-width: 160px; max-height: 44px; width: auto; height: auto; object-fit: contain; margin: 0 auto 2px; }
 .document-stamp-image { display: block; max-width: 192px; max-height: 80px; width: auto; height: auto; object-fit: contain; margin: 0 auto; }
@@ -15,7 +59,7 @@
 .rx-tooth-selected { border: 2px solid #111827; color: #111827; background: #fff; font-weight: 700; }
 
 @media screen {
-  .dialog-overlay { overflow-y: auto; padding: 16px; overscroll-behavior: contain; }
+  .dialog-overlay { overflow-y: auto; padding: 16px; overscroll-behavior: contain; backdrop-filter: none; background: rgba(19, 35, 42, 0.55); }
   .dialog-overlay > div { max-height: calc(100dvh - 32px); min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
   .dialog-overlay > div > :first-child { flex-shrink: 0; }
   .dialog-overlay > div > form,
@@ -32,10 +76,6 @@
   [data-print-dialog] .dialog-overlay > div { display: block !important; max-width: none !important; border-radius: 0 !important; box-shadow: none !important; }
   .orden-print-area, .receta-print-area { position: static !important; width: 100% !important; }
   .orden-print-area img, .receta-print-area img { break-inside: avoid; }
-}
-
-body {
-  @apply bg-slate-50 text-slate-800;
 }
 
 /* --- BORRAR OJITO DEL NAVEGADOR --- */

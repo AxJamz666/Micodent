@@ -99,7 +99,7 @@ const FormularioOrden = ({ form, setForm }) => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Tipo de Solicitud</label>
+          <label className="ui-field-label">Tipo de Solicitud</label>
           <div className="flex gap-2">
             {[{ v: 'rx_informe', l: 'Rx + Informe' }, { v: 'todo_virtual', l: 'Todo Virtual' }].map(op => (
               <button key={op.v} type="button" onClick={() => setForm(prev => ({ ...prev, tipo_solicitud: op.v }))}
@@ -110,9 +110,9 @@ const FormularioOrden = ({ form, setForm }) => {
           </div>
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Envío Virtual</label>
-          <select value={form.envio_virtual} onChange={e => setForm(prev => ({ ...prev, envio_virtual: e.target.value }))}
-            className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white text-sm h-[42px]">
+          <label htmlFor="orden-envio-virtual" className="ui-field-label">Envío Virtual</label>
+          <select id="orden-envio-virtual" value={form.envio_virtual} onChange={e => setForm(prev => ({ ...prev, envio_virtual: e.target.value }))}
+            className="ui-input h-[42px]">
             <option value="ninguno">Ninguno</option>
             <option value="whatsapp">Whatsapp</option>
             <option value="correo">Correo</option>
@@ -121,9 +121,9 @@ const FormularioOrden = ({ form, setForm }) => {
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Motivo de la Radiografía</label>
-        <textarea rows={2} value={form.motivo} onChange={e => setForm(prev => ({ ...prev, motivo: e.target.value }))}
-          className="w-full px-4 py-3 border rounded-2xl outline-none focus:border-clinical-500 resize-none bg-white border-slate-200" />
+        <label htmlFor="orden-motivo" className="ui-field-label">Motivo de la Radiografía</label>
+        <textarea id="orden-motivo" rows={2} value={form.motivo} onChange={e => setForm(prev => ({ ...prev, motivo: e.target.value }))}
+          className="ui-input resize-none" />
       </div>
 
       <div className="border border-slate-200 rounded-2xl p-5">
@@ -332,7 +332,7 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
       <div className="flex justify-between items-center border-b pb-4">
         <h3 className="font-bold text-xl flex items-center gap-2 text-clinical-600"><FileText size={24}/> Órdenes de Radiografía</h3>
         {esDoctor && (
-          <button onClick={() => { setForm(initialFormState()); setShowNueva(true); }} className="px-6 py-2.5 bg-slate-800 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-slate-700 shadow-md transition-all">
+          <button onClick={() => { setForm(initialFormState()); setShowNueva(true); }} className="ui-button-primary">
             <Plus size={18}/> Nueva Orden
           </button>
         )}
@@ -376,15 +376,15 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
       )}
 
       {showNueva && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Nueva Orden de Radiografía" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="bg-slate-800 p-5 text-white flex justify-between items-center flex-shrink-0">
-              <h3 className="font-bold text-lg">Nueva Orden de Radiografía</h3>
-              <button onClick={() => setShowNueva(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+            <div className="ui-dialog-header">
+              <h3 className="font-semibold text-base">Nueva Orden de Radiografía</h3>
+              <button onClick={() => setShowNueva(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
             </div>
             <form onSubmit={handleCrear} className="p-6 overflow-y-auto flex-1">
               <FormularioOrden form={form} setForm={setForm} />
-              <button type="submit" disabled={guardando} className="w-full mt-6 py-4 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 shadow-lg transition-all disabled:opacity-50">
+              <button type="submit" disabled={guardando} className="ui-button-primary mt-6 w-full">
                 {guardando ? 'Guardando y firmando...' : 'Guardar y Firmar'}
               </button>
             </form>
@@ -393,23 +393,23 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
       )}
 
       {ordenAReemitir && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Corregir Orden" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="bg-amber-500 p-5 text-white flex justify-between items-center flex-shrink-0">
-              <h3 className="font-bold text-lg flex items-center gap-2"><RefreshCw size={18}/> Corregir Orden</h3>
-              <button onClick={() => setOrdenAReemitir(null)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+            <div className="ui-dialog-header">
+              <h3 className="font-semibold text-base flex items-center gap-2"><RefreshCw size={18}/> Corregir Orden</h3>
+              <button onClick={() => setOrdenAReemitir(null)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
             </div>
             <form onSubmit={handleReemitir} className="p-6 overflow-y-auto flex-1 space-y-5">
-              <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl">
-                <p className="text-xs text-amber-800">La orden original quedará <strong>anulada</strong> (no se podrá imprimir) y se emitirá esta versión como una orden nueva y firmada.</p>
+              <div className="ui-dialog-note">
+                <p>La orden original quedará <strong>anulada</strong> (no se podrá imprimir) y se emitirá esta versión como una orden nueva y firmada.</p>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Motivo de la corrección</label>
-                <textarea required rows={2} value={motivoReemitir} onChange={e => setMotivoReemitir(e.target.value)}
-                  className="w-full px-4 py-3 border rounded-2xl outline-none focus:border-amber-500 resize-none bg-white border-slate-200" />
+                <label htmlFor="orden-motivo-correccion" className="ui-field-label">Motivo de la corrección</label>
+                <textarea id="orden-motivo-correccion" required rows={2} value={motivoReemitir} onChange={e => setMotivoReemitir(e.target.value)}
+                  className="ui-input resize-none" />
               </div>
               <FormularioOrden form={form} setForm={setForm} />
-              <button type="submit" disabled={reemitiendo} className="w-full py-4 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 shadow-lg transition-all disabled:opacity-50">
+              <button type="submit" disabled={reemitiendo} className="ui-button-primary w-full">
                 {reemitiendo ? 'Guardando...' : 'Anular y Emitir Corregida'}
               </button>
             </form>
@@ -418,11 +418,11 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
       )}
 
       {historialOrden && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Historial de esta Orden" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2"><History size={20}/> Historial de esta Orden</h3>
-              <button onClick={() => setHistorialOrden(null)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+            <div className="ui-dialog-header">
+              <h3 className="font-semibold text-base flex items-center gap-2"><History size={18}/> Historial de esta Orden</h3>
+              <button onClick={() => setHistorialOrden(null)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
             </div>
             <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
               <div className="space-y-6 border-l-2 border-slate-300 ml-4 pl-6 relative">

@@ -20,14 +20,14 @@ export default function ConfiguracionPos() {
     finally { lock.current = false; setBusy(false); }
   };
   return <>
-    <button type="button" onClick={show} title="Configurar recargo POS" aria-label="Configurar recargo POS" className="inline-flex p-2 border rounded text-teal-700"><Settings2 size={18}/></button>
+    <button type="button" onClick={show} title="Configurar recargo POS" aria-label="Configurar recargo POS" className="ui-icon-button"><Settings2 size={18}/></button>
     {open && <div className="dialog-overlay fixed inset-0 bg-black/50 z-[200] p-4 flex items-center justify-center">
-      <section role="dialog" aria-modal="true" aria-labelledby="pos-title" className="bg-white rounded-lg p-5 w-full max-w-sm text-slate-800">
-        <header className="flex items-center justify-between mb-4"><h3 id="pos-title" className="font-bold text-lg">Recargo por tarjeta (POS)</h3><button type="button" aria-label="Cerrar configuración POS" onClick={()=>setOpen(false)}><X size={20}/></button></header>
-        <form onSubmit={save} className="space-y-4">
-          <label className="block text-sm">Porcentaje (%)<input type="number" min="0" max="100" step="0.01" required value={rate} onChange={e=>setRate(e.target.value)} className="mt-1 w-full p-2 border rounded"/></label>
+      <section role="dialog" aria-modal="true" aria-labelledby="pos-title" className="w-full max-w-sm overflow-hidden rounded-lg bg-white text-slate-800">
+        <header className="ui-dialog-header"><h3 id="pos-title" className="text-base font-semibold">Recargo por tarjeta (POS)</h3><button type="button" className="ui-dialog-close" aria-label="Cerrar configuración POS" onClick={()=>setOpen(false)}><X size={18}/></button></header>
+        <form onSubmit={save} className="space-y-4 p-5">
+          <label className="ui-field-label">Porcentaje (%)<input type="number" min="0" max="100" step="0.01" required value={rate} onChange={e=>setRate(e.target.value)} className="ui-input mt-1"/></label>
           <p className="text-sm text-slate-600">Vigente para nuevos cobros. Los abonos anteriores conservan su recargo.</p>
-          <button type="submit" disabled={busy} className="w-full p-2 rounded bg-teal-700 text-white disabled:opacity-50">{busy ? 'Guardando...' : 'Guardar porcentaje'}</button>
+          <button type="submit" disabled={busy} className="ui-button-primary w-full">{busy ? 'Guardando...' : 'Guardar porcentaje'}</button>
         </form>
       </section>
     </div>}

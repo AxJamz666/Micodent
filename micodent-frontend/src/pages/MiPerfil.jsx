@@ -194,37 +194,25 @@ const MiPerfil = () => {
 
   return (
     <div className="animate-fade-in text-slate-800 pb-10 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-800">Mi Perfil</h2>
-        <p className="text-slate-500 mt-1">Consulta tus datos institucionales y gestiona tu contraseña de acceso.</p>
+      <div className="mb-7">
+        <h2 className="ui-page-title">Mi perfil</h2>
+        <p className="ui-page-subtitle">Datos institucionales y acceso.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 gap-7 lg:grid-cols-12">
         {/* ── TARJETA DE IDENTIDAD ── */}
         <div className="lg:col-span-4">
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-            <div className="bg-clinical-500 h-28 w-full relative">
-              <div className="absolute inset-0 opacity-10"
-                style={{ backgroundImage:'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)', backgroundSize:'10px 10px' }} />
-            </div>
-            <div className="px-6 pb-8 text-center -mt-14 relative z-10">
-              <div className="bg-white p-2 rounded-full inline-block mb-3 shadow-md border border-slate-50">
-                <div className="bg-clinical-50 p-5 rounded-full text-clinical-600">
-                  <User size={56} strokeWidth={1.5} />
-                </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-5">
+            <div className="flex items-center gap-3 border-b border-slate-200 pb-5">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-clinical-50 text-clinical-600">
+                <User size={26} strokeWidth={1.7} />
               </div>
-              <h3 className="text-xl font-black text-slate-800 leading-tight">
-                {userData?.nombre_completo}
-              </h3>
-              <span className={`inline-block mt-3 text-[10px] font-black tracking-widest px-4 py-1.5 rounded-lg border ${
-                userData?.is_admin
-                  ? 'bg-purple-50 text-purple-700 border-purple-200'
-                  : 'bg-slate-50 text-slate-600 border-slate-200'
-              }`}>
-                {userData?.is_admin ? 'ADMINISTRADOR' : (userData?.rol||'').toUpperCase()}
-              </span>
-
-              <div className="mt-8 space-y-3 text-left border-t border-slate-100 pt-6">
+              <div className="min-w-0">
+                <h3 className="break-words text-base font-semibold text-slate-800">{userData?.nombre_completo}</h3>
+                <p className="mt-1 text-xs text-slate-500">{userData?.is_admin ? 'Administrador' : userData?.rol}</p>
+              </div>
+            </div>
+            <div className="space-y-4 pt-5">
                 <MiniField icon={<IdCard size={14}/>}    label="ID de Acceso"
                   value={localStorage.getItem('userId')} mono />
                 <MiniField icon={<User size={14}/>}      label="Sexo"
@@ -237,7 +225,6 @@ const MiPerfil = () => {
                   <MiniField icon={<CreditCard size={14}/>} label="COP"
                     value={userData.cop} color="text-clinical-700" />
                 )}
-              </div>
             </div>
           </div>
         </div>
@@ -245,11 +232,8 @@ const MiPerfil = () => {
         {/* ── COLUMNA DERECHA ── */}
         <div className="lg:col-span-8 space-y-6">
           {/* DATOS INSTITUCIONALES */}
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-slate-100 px-4 py-2 rounded-bl-3xl flex items-center gap-2">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Solo lectura</span>
-            </div>
-            <h3 className="font-bold text-lg mb-6 flex items-center gap-2 border-b pb-3">
+          <section className="border-b border-slate-200 pb-7">
+            <h3 className="mb-5 flex items-center gap-2 text-lg font-semibold text-slate-800">
               <User size={20} className="text-slate-400" /> Datos Institucionales
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -267,17 +251,17 @@ const MiPerfil = () => {
                 <ReadField label="Dirección" value={userData?.direccion} empty="No registrada" />
               </div>
             </div>
-            <div className="mt-5 bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center gap-2">
+            <div className="mt-5 flex items-center gap-2 text-slate-500">
               <Info size={14} className="text-slate-400 flex-shrink-0" />
-              <p className="text-xs text-slate-400 font-medium">
+              <p className="text-xs">
                 Para modificar cualquier dato institucional, solicítalo al Administrador del sistema.
               </p>
             </div>
-          </div>
+          </section>
 
           {/* ✅ NUEVO: FIRMA Y SELLO DIGITAL (solo Doctor) */}
           {esDoctor && (
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+            <section className="border-b border-slate-200 pb-7">
               <h3 className="font-bold text-lg mb-2 flex items-center gap-2 border-b pb-3">
                 <PenTool size={20} className="text-clinical-600" /> Firma y Sello Digital
               </h3>
@@ -318,13 +302,13 @@ const MiPerfil = () => {
                   <Save size={18}/> {guardandoFirma ? 'Guardando...' : 'Guardar Firma y Sello'}
                 </button>
               </div>
-            </div>
+            </section>
           )}
 
           {/* CAMBIO DE CONTRASEÑA PROPIO */}
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-            <h3 className="font-bold text-lg mb-2 flex items-center gap-2 border-b pb-3">
-              <KeyRound size={20} className="text-amber-500" /> Cambiar Mi Contraseña
+          <section className="pb-4">
+            <h3 className="mb-2 flex items-center gap-2 text-lg font-semibold text-slate-800">
+              <KeyRound size={20} className="text-clinical-600" /> Cambiar mi contraseña
             </h3>
             <p className="text-sm text-slate-500 mb-6">
               Solo tú puedes cambiar tu propia contraseña. El administrador puede reseteártela desde Administración de Personal si la olvidas.
@@ -333,51 +317,57 @@ const MiPerfil = () => {
             <form onSubmit={savePassword} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="md:col-span-2">
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
-                    Contraseña Actual
+                  <label htmlFor="profile-current-password" className="ui-field-label">
+                    Contraseña actual
                   </label>
-                  <div className="relative md:w-1/2">
+                  <div className="relative md:max-w-sm">
                     <input required name="currentPass" value={securityForm.currentPass}
+                      id="profile-current-password" autoComplete="current-password"
                       onChange={handleSecurityChange}
                       type={showCurrent?'text':'password'}
-                      className="w-full pr-12 px-4 py-3 border border-amber-200 rounded-xl outline-none focus:border-amber-500 bg-amber-50 font-medium"
+                      className="ui-input pr-12"
                     />
                     <button type="button" onClick={()=>setShowCurrent(!showCurrent)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+                      aria-label={showCurrent ? 'Ocultar contraseña actual' : 'Mostrar contraseña actual'}
+                      className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700">
                       {showCurrent ? <EyeOff size={18}/> : <Eye size={18}/>}
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
-                    Nueva Contraseña
+                  <label htmlFor="profile-new-password" className="ui-field-label">
+                    Nueva contraseña
                   </label>
                   <div className="relative">
                     <input required name="newPass" value={securityForm.newPass}
+                      id="profile-new-password" autoComplete="new-password"
                       onChange={handleSecurityChange}
                       type={showNew?'text':'password'} minLength="15"
-                      className="w-full pr-12 px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-clinical-500 bg-slate-50 font-medium"
+                      className="ui-input pr-12"
                     />
                     <button type="button" onClick={()=>setShowNew(!showNew)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+                      aria-label={showNew ? 'Ocultar nueva contraseña' : 'Mostrar nueva contraseña'}
+                      className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700">
                       {showNew ? <EyeOff size={18}/> : <Eye size={18}/>}
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
-                    Confirmar Nueva Contraseña
+                  <label htmlFor="profile-confirm-password" className="ui-field-label">
+                    Confirmar nueva contraseña
                   </label>
                   <div className="relative">
                     <input required name="confirmPass" value={securityForm.confirmPass}
+                      id="profile-confirm-password" autoComplete="new-password"
                       onChange={handleSecurityChange}
                       type={showConfirm?'text':'password'} minLength="15"
-                      className="w-full pr-12 px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-clinical-500 bg-slate-50 font-medium"
+                      className="ui-input pr-12"
                     />
                     <button type="button" onClick={()=>setShowConfirm(!showConfirm)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+                      aria-label={showConfirm ? 'Ocultar confirmación' : 'Mostrar confirmación'}
+                      className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700">
                       {showConfirm ? <EyeOff size={18}/> : <Eye size={18}/>}
                     </button>
                   </div>
@@ -386,13 +376,13 @@ const MiPerfil = () => {
 
               <div className="flex justify-end pt-2">
                 <button type="submit" disabled={savingPass}
-                  className="px-8 py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-all flex items-center gap-2 shadow-md shadow-amber-200 disabled:opacity-50">
+                  className="ui-button-primary">
                   <ShieldCheck size={18}/>
                   {savingPass ? 'Cambiando...' : 'Cambiar Contraseña'}
                 </button>
               </div>
             </form>
-          </div>
+          </section>
         </div>
       </div>
     </div>
@@ -401,10 +391,10 @@ const MiPerfil = () => {
 
 const MiniField = ({ icon, label, value, mono, color }) => (
   <div>
-    <p className="text-[9px] uppercase font-bold text-slate-400 tracking-widest mb-1 flex items-center gap-1">
+    <p className="mb-1 flex items-center gap-1 text-xs font-medium text-slate-500">
       {icon} {label}
     </p>
-    <p className={`font-bold text-sm bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 ${color||'text-slate-700'} ${mono?'font-mono text-xs':''}`}>
+    <p className={`break-words text-sm font-semibold ${color||'text-slate-700'} ${mono?'font-mono text-xs':''}`}>
       {value || '—'}
     </p>
   </div>
@@ -412,12 +402,8 @@ const MiniField = ({ icon, label, value, mono, color }) => (
 
 const ReadField = ({ label, value, empty='—', highlight }) => (
   <div>
-    <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">{label}</p>
-    <p className={`font-bold text-sm px-4 py-2.5 rounded-xl border ${
-      highlight
-        ? 'bg-clinical-50 text-clinical-700 border-clinical-100'
-        : 'bg-slate-50 text-slate-700 border-slate-100'
-    }`}>
+    <p className="mb-1 text-xs font-medium text-slate-500">{label}</p>
+    <p className={`min-h-6 break-words text-sm font-semibold ${highlight ? 'text-clinical-700' : 'text-slate-700'}`}>
       {value || empty}
     </p>
   </div>

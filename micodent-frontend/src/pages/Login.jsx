@@ -40,55 +40,59 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 font-sans">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-100 p-8">
-        <div className="text-center mb-8">
+    <div className="flex min-h-screen items-center justify-center bg-[#f4f7f7] p-4 font-sans">
+      <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="mb-8 text-center">
           <img
             src="/logo.png"
-            alt="Logo Micodent"
-            className="h-20 mx-auto mb-4 object-contain"
-            onError={(e) => { e.target.style.display = 'none'; }}
+            alt=""
+            className="mx-auto mb-4 h-14 w-14 object-contain"
           />
           <h1 className="text-2xl font-bold text-slate-800">Micodent</h1>
-          <p className="text-sm text-slate-500 font-medium">Clínica Odontológica Jauja</p>
+          <p className="mt-1 text-sm text-slate-500">Acceso al sistema clínico</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase ml-1">ID de Usuario</label>
+            <label htmlFor="login-user" className="ui-field-label">ID de usuario</label>
             <div className="relative mt-1">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                 <User size={18} />
               </div>
               <input
                 type="text"
+                id="login-user"
+                autoComplete="username"
                 required
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-clinical-500 outline-none transition-all font-medium"
+                className="ui-input pl-12"
                 placeholder="Ej. drmiguel"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Contraseña</label>
+            <label htmlFor="login-password" className="ui-field-label">Contraseña</label>
             <div className="relative mt-1">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                 <Lock size={18} />
               </div>
               <input
                 type={showPass ? 'text' : 'password'}
+                id="login-password"
+                autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-12 pr-12 py-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-clinical-500 outline-none transition-all font-medium"
+                className="ui-input pl-12 pr-12"
                 placeholder="••••••••"
               />
               <button
                 type="button"
+                aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 onClick={() => setShowPass(!showPass)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600"
+                className="absolute inset-y-0 right-0 flex min-w-10 items-center justify-center text-slate-500 hover:text-slate-700"
               >
                 {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -98,11 +102,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-4 rounded-2xl text-white font-black shadow-lg transition-all ${
-              isLoading
-                ? 'bg-clinical-300 cursor-not-allowed'
-                : 'bg-clinical-500 hover:bg-clinical-600 hover:-translate-y-0.5'
-            }`}
+            className="ui-button-primary w-full"
           >
             {isLoading ? 'Verificando...' : 'Entrar al Sistema'}
           </button>

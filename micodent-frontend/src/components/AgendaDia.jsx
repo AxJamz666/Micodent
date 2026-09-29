@@ -26,9 +26,9 @@ const AgendaDia = ({ doctores, citas, onSlotClick, onCitaClick }) => {
   }
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
       <div className="grid" style={{ gridTemplateColumns: `80px repeat(${doctores.length}, minmax(220px, 1fr))`, minWidth: `${80 + doctores.length * 220}px` }}>
-        <div className="border-r border-slate-100">
+        <div className="sticky left-0 z-20 border-r border-slate-200 bg-white">
           <div className="h-12 border-b border-slate-100"></div>
           {slots.map(s => (
             <div key={s} style={{ height: ALTURA_SLOT }} className="text-[10px] text-slate-400 font-bold text-right pr-2 pt-1 border-b border-slate-50">

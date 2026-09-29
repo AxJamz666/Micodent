@@ -11,8 +11,8 @@ import { useSession } from '../services/browserSession';
 
 // Etiquetas visuales por nivel
 const NIVEL_CONFIG = {
-  3: { label: 'SUPERADMIN', class: 'bg-purple-100 text-purple-700 border-purple-200' },
-  2: { label: 'ADMIN',      class: 'bg-blue-100 text-blue-700 border-blue-200'       },
+  3: { label: 'SUPERADMIN', class: 'bg-slate-800 text-white border-slate-800' },
+  2: { label: 'ADMIN',      class: 'bg-clinical-50 text-clinical-700 border-clinical-200' },
   1: { label: 'STAFF',      class: 'bg-slate-100 text-slate-600 border-slate-200'    },
 };
 
@@ -170,7 +170,7 @@ const AdministracionPersonal = () => {
       return;
     }
     setConfirmModal({
-      isOpen:true, type:'warning',
+      isOpen:true, type:'danger',
       title: '¿Desactivar acceso?',
       message: `Se desactivará el acceso de "${user.nombre_completo}" y se cerrarán sus sesiones. Su historial clínico y financiero se conservará.`,
       onConfirm: async () => {
@@ -259,53 +259,56 @@ const AdministracionPersonal = () => {
       {/* Restablecimiento y reactivacion usan la misma verificacion administrativa. */}
       {resetModal.isOpen && (
         <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-pop-in">
-            <div className="bg-amber-500 p-5 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2">{resetModal.reactivate ? <RotateCcw size={20}/> : <KeyRound size={20}/>} {resetModal.reactivate ? 'Reactivar acceso' : 'Restablecer contraseña'}</h3>
-              <button type="button" onClick={closeCredentialModal} disabled={savingReset} aria-label="Cerrar" className="hover:bg-white/20 p-1.5 rounded-full transition-colors disabled:opacity-50"><X size={20}/></button>
+          <div className="w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800">{resetModal.reactivate ? <RotateCcw size={20} className="text-clinical-600"/> : <KeyRound size={20} className="text-clinical-600"/>} {resetModal.reactivate ? 'Reactivar acceso' : 'Restablecer contraseña'}</h3>
+              <button type="button" onClick={closeCredentialModal} disabled={savingReset} aria-label="Cerrar" className="ui-icon-button"><X size={18}/></button>
             </div>
             <form onSubmit={handleResetPassword} className="p-6 space-y-5">
-              <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl">
-                <p className="text-sm font-bold text-amber-800">{resetModal.reactivate ? 'Reactivando a:' : 'Nueva contraseña para:'}</p>
-                <p className="text-lg font-black text-amber-900 mt-1">{resetModal.targetUser?.nombre_completo}</p>
-                <p className="text-xs text-amber-700 mt-1 font-mono">ID: {resetModal.targetUser?.id}</p>
-                {resetModal.reactivate && <p className="text-xs text-amber-800 mt-2">La contraseña anterior dejará de funcionar. Los registros históricos se conservarán.</p>}
+              <div className="border-b border-slate-200 pb-4">
+                <p className="text-xs font-medium text-slate-500">{resetModal.reactivate ? 'Reactivar cuenta' : 'Cuenta seleccionada'}</p>
+                <p className="mt-1 break-words text-base font-semibold text-slate-800">{resetModal.targetUser?.nombre_completo}</p>
+                <p className="mt-1 font-mono text-xs text-slate-500">ID: {resetModal.targetUser?.id}</p>
+                {resetModal.reactivate && <p className="mt-2 text-xs text-slate-600">La contraseña anterior dejará de funcionar. Los registros históricos se conservarán.</p>}
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Tu contraseña de administrador</label>
+                <label htmlFor="reset-admin-password" className="ui-field-label">Tu contraseña de administrador</label>
                 <div className="relative">
                   <input required value={resetPassForm.adminPassword}
+                    id="reset-admin-password" autoComplete="current-password"
                     onChange={e=>setResetPassForm({...resetPassForm,adminPassword:e.target.value})}
                     type={showAdminPass?'text':'password'}
-                    className="w-full pr-12 px-4 py-3 border border-red-200 rounded-xl outline-none focus:border-red-400 bg-red-50 font-medium"
+                    className="ui-input pr-12"
                     placeholder="Tu contraseña actual"/>
-                  <button type="button" onClick={()=>setShowAdminPass(!showAdminPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+                  <button type="button" aria-label={showAdminPass ? 'Ocultar contraseña de administrador' : 'Mostrar contraseña de administrador'} onClick={()=>setShowAdminPass(!showAdminPass)} className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700">
                     {showAdminPass?<EyeOff size={18}/>:<Eye size={18}/>}
                   </button>
                 </div>
               </div>
               <div className="space-y-4 pt-2 border-t border-slate-100">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nueva contraseña para el usuario</label>
+                  <label htmlFor="reset-new-password" className="ui-field-label">Nueva contraseña para el usuario</label>
                   <div className="relative">
                     <input required value={resetPassForm.newPassword}
+                      id="reset-new-password" autoComplete="new-password"
                       onChange={e=>setResetPassForm({...resetPassForm,newPassword:e.target.value})}
                       type={showNewPass?'text':'password'} minLength="15"
-                      className="w-full pr-12 px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-clinical-500 bg-slate-50 font-medium"
+                      className="ui-input pr-12"
                       placeholder="Mínimo 15 caracteres"/>
-                    <button type="button" onClick={()=>setShowNewPass(!showNewPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+                    <button type="button" aria-label={showNewPass ? 'Ocultar nueva contraseña' : 'Mostrar nueva contraseña'} onClick={()=>setShowNewPass(!showNewPass)} className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700">
                       {showNewPass?<EyeOff size={18}/>:<Eye size={18}/>}
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Confirmar nueva contraseña</label>
+                  <label htmlFor="reset-confirm-password" className="ui-field-label">Confirmar nueva contraseña</label>
                   <div className="relative">
                     <input required value={resetPassForm.confirmPassword}
+                      id="reset-confirm-password" autoComplete="new-password"
                       onChange={e=>setResetPassForm({...resetPassForm,confirmPassword:e.target.value})}
                       type={showConfPass?'text':'password'} minLength="15"
-                      className="w-full pr-12 px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-clinical-500 bg-slate-50 font-medium"/>
-                    <button type="button" onClick={()=>setShowConfPass(!showConfPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+                      className="ui-input pr-12"/>
+                    <button type="button" aria-label={showConfPass ? 'Ocultar confirmación' : 'Mostrar confirmación'} onClick={()=>setShowConfPass(!showConfPass)} className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700">
                       {showConfPass?<EyeOff size={18}/>:<Eye size={18}/>}
                     </button>
                   </div>
@@ -313,9 +316,9 @@ const AdministracionPersonal = () => {
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={closeCredentialModal} disabled={savingReset}
-                  className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50">Cancelar</button>
+                  className="ui-button-secondary min-w-[90px] flex-none whitespace-nowrap">Cancelar</button>
                 <button type="submit" disabled={savingReset}
-                  className="flex-[2] py-3 bg-amber-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-amber-600 transition-colors shadow-lg disabled:opacity-50">
+                  className="ui-button-primary flex-[2]">
                   <ShieldCheck size={18}/> {savingReset ? 'Guardando...' : resetModal.reactivate ? 'Reactivar acceso' : 'Restablecer contraseña'}
                 </button>
               </div>
@@ -324,15 +327,15 @@ const AdministracionPersonal = () => {
         </div>
       )}
 
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-800">Administración de Personal</h2>
-        <p className="text-slate-500 mt-1">Gestión del equipo clínico y administrativo.</p>
+      <div className="mb-7">
+        <h2 className="ui-page-title">Administración de personal</h2>
+        <p className="ui-page-subtitle">Equipo clínico y administrativo.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {/* LISTA */}
-        <div className="lg:col-span-5 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col h-[750px]">
+        <div className="flex h-[360px] flex-col border-t border-slate-200 pt-4 lg:col-span-5 lg:h-[750px]">
           <h3 className="font-bold text-lg mb-4 border-b pb-3 flex items-center gap-2">
             <ShieldAlert size={20} className="text-slate-400"/> Personal
           </h3>
@@ -355,7 +358,7 @@ const AdministracionPersonal = () => {
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="font-bold text-slate-800 flex items-center gap-1.5">
-                              {u.nivel >= 3 && <Crown size={14} className="text-purple-500"/>}
+                            {u.nivel >= 3 && <Crown size={14} className="text-slate-600"/>}
                               {u.nombre_completo}
                             </p>
                           {!u.activo && <p className="text-xs font-semibold text-red-700 mt-1">Acceso desactivado</p>}
@@ -373,21 +376,21 @@ const AdministracionPersonal = () => {
                             {/* Editar: solo si mi nivel > su nivel, o es mi propio perfil */}
                             {(myNivel > (u.nivel||1) || u.id===myId) && (
                               <button onClick={()=>handleEdit(u)}
-                                className="p-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors" title="Editar datos">
+                                className="ui-icon-button" title="Editar datos" aria-label={`Editar datos de ${u.nombre_completo}`}>
                                 <Edit size={15}/>
                               </button>
                             )}
                             {/* Activos: restablecer; inactivos: reactivar con clave nueva. */}
                             {myNivel > (u.nivel||1) && u.id!==myId && (
                               <button onClick={()=>handleOpenReset(u)}
-                                className="p-1.5 text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors" title={u.activo ? 'Restablecer contraseña' : 'Reactivar acceso'}>
+                                className="ui-icon-button" title={u.activo ? 'Restablecer contraseña' : 'Reactivar acceso'} aria-label={`${u.activo ? 'Restablecer contraseña' : 'Reactivar acceso'} de ${u.nombre_completo}`}>
                                 {u.activo ? <KeyRound size={15}/> : <RotateCcw size={15}/>}
                               </button>
                             )}
                             {/* Desactivar: solo si puedo segun jerarquia */}
                             {canDeactivate(u) && (
                               <button onClick={()=>handleDelete(u)}
-                                className="p-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors" title="Desactivar acceso">
+                                className="ui-icon-button text-red-700 hover:bg-red-50" title="Desactivar acceso" aria-label={`Desactivar acceso de ${u.nombre_completo}`}>
                                 <Trash2 size={15}/>
                               </button>
                             )}
@@ -401,9 +404,9 @@ const AdministracionPersonal = () => {
         </div>
 
         {/* FORMULARIO */}
-        <div className="lg:col-span-7 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 h-fit">
+        <div className="lg:col-span-7 h-fit rounded-lg border border-slate-200 bg-white p-4 sm:p-6">
           <div className="flex justify-between items-center border-b pb-4 mb-6">
-            <h3 className="font-bold text-xl flex items-center gap-2 text-clinical-600">
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800">
               {editingId?<Edit size={22}/>:<UserPlus size={22}/>}
               {editingId?`Editando: ${editingId}`:'Registrar Nuevo Personal'}
             </h3>
@@ -418,14 +421,14 @@ const AdministracionPersonal = () => {
           <form onSubmit={handleSave} className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombres y Apellidos Completos</label>
+                <label className="ui-field-label">Nombres y apellidos completos</label>
                 <input required name="nombre" value={formData.nombre} onChange={handleChange}
-                  className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 focus:bg-white"/>
+                  className="ui-input"/>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Trato</label>
+                <label className="ui-field-label">Trato</label>
                 <select name="gender" value={formData.gender} onChange={handleChange}
-                  className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50">
+                  className="ui-input">
                   <option value="o">Masculino</option>
                   <option value="a">Femenino</option>
                 </select>
@@ -434,34 +437,34 @@ const AdministracionPersonal = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">DNI</label>
+                <label className="ui-field-label">DNI</label>
                 <input required name="dni" value={formData.dni} onChange={handleChange} maxLength="8"
-                  className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50" placeholder="8 dígitos"/>
+                  className="ui-input" placeholder="8 dígitos"/>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Celular</label>
+                <label className="ui-field-label">Celular</label>
                 <input required name="telefono" value={formData.telefono} onChange={handleChange} maxLength="9"
-                  className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50" placeholder="9 dígitos"/>
+                  className="ui-input" placeholder="9 dígitos"/>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+                <label className="ui-field-label">Email</label>
                 <input name="email" value={formData.email} onChange={handleChange} type="email"
-                  className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50"/>
+                  className="ui-input"/>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dirección</label>
+              <label className="ui-field-label">Dirección</label>
               <input name="direccion" value={formData.direccion} onChange={handleChange}
-                className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50"/>
+                className="ui-input"/>
             </div>
 
             {/* Rol + Nivel + Especialidad */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 rounded-2xl border border-slate-100 bg-clinical-50/40">
+            <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-5 md:grid-cols-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Rol en Clínica</label>
+                <label className="ui-field-label">Rol en clínica</label>
                 <select name="rol" value={formData.rol} onChange={handleChange} disabled={editingId === myId}
-                  className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white">
+                  className="ui-input">
                   <option value="Asistente">Asistente</option>
                   <option value="Doctor">Doctor</option>
                   <option value="Administradora">Administradora</option>
@@ -471,11 +474,11 @@ const AdministracionPersonal = () => {
               {/* Solo Superadmins pueden asignar o editar el Nivel de Acceso (y no pueden modificarse a sí mismos aquí) */}
               {myNivel >= 3 && editingId !== myId && (
                 <div>
-                  <label className="block text-xs font-bold text-purple-600 uppercase mb-1 flex items-center gap-1">
-                    <Crown size={12}/> Nivel de Acceso
+                  <label className="ui-field-label flex items-center gap-1">
+                    <Crown size={12}/> Nivel de acceso
                   </label>
                   <select name="nivel" value={formData.nivel} onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-purple-200 rounded-xl outline-none focus:border-purple-400 bg-white">
+                    className="ui-input">
                     <option value={1}>Staff (nivel 1)</option>
                     <option value={2}>Admin (nivel 2)</option>
                   </select>
@@ -485,55 +488,54 @@ const AdministracionPersonal = () => {
               {formData.rol === 'Doctor' && (
                 <>
                   <div>
-                    <label className="block text-xs font-bold text-clinical-600 uppercase mb-1">Especialidad</label>
+                    <label className="ui-field-label">Especialidad</label>
                     <input required name="especialidad" value={formData.especialidad} onChange={handleChange}
                       placeholder="Ej. Ortodoncia"
-                      className="w-full px-4 py-2.5 border border-clinical-200 rounded-xl outline-none focus:border-clinical-500 bg-white"/>
+                      className="ui-input"/>
                   </div>
                       <div>
-                        <label className="block text-xs font-bold text-clinical-600 uppercase mb-1">Nro. COP</label>
+                        <label className="ui-field-label">Nro. COP</label>
                         <input required name="cop" value={formData.cop} onChange={handleChange} maxLength="6"
                           placeholder="Ej. 12345"
-                          className="w-full px-4 py-2.5 border border-clinical-200 rounded-xl outline-none focus:border-clinical-500 bg-white"/>
+                          className="ui-input"/>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-clinical-600 uppercase mb-1">% Comisión</label>
+                        <label className="ui-field-label">% Comisión</label>
                         <input type="number" name="comision_porcentaje" value={formData.comision_porcentaje} onChange={handleChange}
                           min="0" max="100" step="0.01" placeholder="Ej. 40"
-                          className="w-full px-4 py-2.5 border border-clinical-200 rounded-xl outline-none focus:border-clinical-500 bg-white"/>
+                          className="ui-input"/>
                       </div>
                 </>
               )}
             </div>
 
             {/* Credenciales */}
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+            <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">ID de Acceso</label>
+                <label className="ui-field-label">ID de acceso</label>
                 <input required disabled={!!editingId} name="id" value={formData.id} onChange={handleChange}
                   placeholder="usuario123"
-                  className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-mono"/>
+                  className="ui-input font-mono disabled:cursor-not-allowed disabled:bg-slate-100"/>
                 {editingId && <p className="text-[10px] text-slate-400 mt-1">El ID no se puede modificar.</p>}
               </div>
               {!editingId && <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                  Contraseña Inicial
+                <label className="ui-field-label">
+                  Contraseña inicial
                 </label>
                 <div className="relative">
                   <input required={!editingId} name="password" value={formData.password}
                     onChange={handleChange} type={showPass?'text':'password'}
                     placeholder="Mínimo 15 caracteres"
-                    className="w-full pl-4 pr-12 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50"/>
-                  <button type="button" onClick={()=>setShowPass(!showPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+                    className="ui-input pr-12"/>
+                  <button type="button" onClick={()=>setShowPass(!showPass)} aria-label={showPass ? 'Ocultar contraseña inicial' : 'Mostrar contraseña inicial'}
+                    className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700">
                     {showPass?<EyeOff size={18}/>:<Eye size={18}/>}
                   </button>
                 </div>
               </div>}
             </div>
 
-            <button type="submit"
-              className="w-full py-4 bg-clinical-500 text-white rounded-2xl font-bold hover:bg-clinical-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-clinical-100">
+            <button type="submit" className="ui-button-primary w-full">
               <Save size={20}/> {editingId?'Guardar Cambios':'Registrar Personal'}
             </button>
           </form>

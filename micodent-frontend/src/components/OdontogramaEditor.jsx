@@ -256,15 +256,15 @@ const OdontogramaEditor = ({ historiaId, odontogramaVisual, tratamientosAsignado
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-4">
-        <div className="flex-1 w-full px-6 py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-red-50 text-red-700 border-2 border-red-100 text-center">
-          🔴 Diagnóstico
+      <div className="flex flex-col items-center gap-3 border-b border-slate-200 pb-4 md:flex-row">
+        <div className="flex w-full flex-1 items-center justify-center gap-2 text-sm font-semibold text-slate-700">
+          <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-red-600"/> Diagnóstico
         </div>
         <p className="text-xs text-slate-400 font-medium text-center px-2">
           Toca cualquier pieza, o el título de una arcada, para ver y registrar.
         </p>
-        <div className="flex-1 w-full px-6 py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-blue-50 text-blue-700 border-2 border-blue-100 text-center">
-          🔵 Procedimiento
+        <div className="flex w-full flex-1 items-center justify-center gap-2 text-sm font-semibold text-slate-700">
+          <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-blue-600"/> Procedimiento
         </div>
       </div>
 
@@ -274,7 +274,7 @@ const OdontogramaEditor = ({ historiaId, odontogramaVisual, tratamientosAsignado
         <div className="flex-1 min-w-0 bg-slate-50 p-2 rounded-3xl border border-slate-200 shadow-inner overflow-x-auto">
           <div className="space-y-6 pb-2 px-1 flex flex-col items-center">
             <div className="space-y-3 w-full">
-              <button onClick={() => setPiezaActiva('Maxilar Superior Permanente')} className="w-full text-center font-black text-slate-400 hover:text-clinical-600 text-[10px] uppercase tracking-[0.2em] transition-colors">
+              <button onClick={() => setPiezaActiva('Maxilar Superior Permanente')} className="w-full text-center font-semibold text-slate-500 hover:text-clinical-600 text-xs uppercase transition-colors">
                 Permanentes Superiores · toca aquí para toda la arcada
               </button>
               <div className="flex justify-center gap-2">
@@ -284,7 +284,7 @@ const OdontogramaEditor = ({ historiaId, odontogramaVisual, tratamientosAsignado
             </div>
 
             <div className="space-y-3 w-full opacity-90">
-              <p className="text-center font-black text-slate-400 text-[10px] uppercase tracking-[0.2em]">Deciduos (Niños)</p>
+              <p className="text-center font-semibold text-slate-500 text-xs uppercase">Deciduos (Niños)</p>
               <div className="flex justify-center gap-2">
                 <div className="bg-slate-100 p-1.5 rounded-2xl border border-slate-200">{filaDientes([55,54,53,52,51])}</div>
                 <div className="bg-slate-100 p-1.5 rounded-2xl border border-slate-200">{filaDientes([61,62,63,64,65])}</div>
@@ -300,7 +300,7 @@ const OdontogramaEditor = ({ historiaId, odontogramaVisual, tratamientosAsignado
                 <div className="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">{filaDientes([48,47,46,45,44,43,42,41])}</div>
                 <div className="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">{filaDientes([31,32,33,34,35,36,37,38])}</div>
               </div>
-              <button onClick={() => setPiezaActiva('Maxilar Inferior Permanente')} className="w-full text-center font-black text-slate-400 hover:text-clinical-600 text-[10px] uppercase tracking-[0.2em] transition-colors">
+              <button onClick={() => setPiezaActiva('Maxilar Inferior Permanente')} className="w-full text-center font-semibold text-slate-500 hover:text-clinical-600 text-xs uppercase transition-colors">
                 Permanentes Inferiores · toca aquí para toda la arcada
               </button>
             </div>

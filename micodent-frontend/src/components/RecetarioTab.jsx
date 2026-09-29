@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Plus, X, Lock, Printer, FileSignature, RefreshCw, History } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { historiasService } from '../services/api';
@@ -6,12 +6,13 @@ import FirmaMiniBlock from './FirmaMiniBlock';
 import PrintPortal from './PrintPortal';
 import { printDocument } from '../utils/printDocument';
 
-const CampoTexto = ({ label, value, onChange, rows = 3, required = true }) => (
-  <div>
-    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">{label}</label>
-    <textarea required={required} rows={rows} className="w-full px-4 py-3 border rounded-2xl outline-none focus:border-clinical-500 resize-none bg-white border-slate-200" value={value} onChange={e => onChange(e.target.value)} />
-  </div>
-);
+const CampoTexto = ({ label, value, onChange, rows = 3, required = true }) => {
+  const id = useId();
+  return <div>
+    <label htmlFor={id} className="ui-field-label">{label}</label>
+    <textarea id={id} required={required} rows={rows} className="ui-input resize-none" value={value} onChange={e => onChange(e.target.value)} />
+  </div>;
+};
 
 const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor }) => {
   const [showNueva, setShowNueva] = useState(false);
@@ -93,7 +94,7 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
       <div className="flex justify-between items-center border-b pb-4">
         <h3 className="font-bold text-xl flex items-center gap-2 text-clinical-600"><FileSignature size={24}/> Recetario</h3>
         {esDoctor && (
-          <button onClick={() => setShowNueva(true)} className="px-6 py-2.5 bg-slate-800 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-slate-700 shadow-md transition-all">
+          <button onClick={() => setShowNueva(true)} className="ui-button-primary">
             <Plus size={18}/> Nueva Receta
           </button>
         )}
@@ -136,16 +137,16 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
       )}
 
       {showNueva && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Nueva Receta" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
-            <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg">Nueva Receta</h3>
-              <button onClick={() => setShowNueva(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+            <div className="ui-dialog-header">
+              <h3 className="font-semibold text-base">Nueva Receta</h3>
+              <button onClick={() => setShowNueva(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
             </div>
             <form onSubmit={handleCrearReceta} className="p-6 space-y-5">
               <CampoTexto label="Rp:" value={formReceta.rp} onChange={v => setFormReceta({...formReceta, rp: v})} rows={4} />
               <CampoTexto label="Indicaciones" value={formReceta.indicaciones} onChange={v => setFormReceta({...formReceta, indicaciones: v})} rows={3} required={false} />
-              <button type="submit" disabled={guardando} className="w-full py-4 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 shadow-lg transition-all disabled:opacity-50">
+              <button type="submit" disabled={guardando} className="ui-button-primary w-full">
                 {guardando ? 'Guardando y firmando...' : 'Guardar y Firmar'}
               </button>
             </form>
@@ -154,22 +155,22 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
       )}
 
       {recetaAReemitir && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Corregir Receta" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
-            <div className="bg-amber-500 p-5 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2"><RefreshCw size={18}/> Corregir Receta</h3>
-              <button onClick={() => setRecetaAReemitir(null)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+            <div className="ui-dialog-header">
+              <h3 className="font-semibold text-base flex items-center gap-2"><RefreshCw size={18}/> Corregir Receta</h3>
+              <button onClick={() => setRecetaAReemitir(null)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
             </div>
             <form onSubmit={handleReemitir} className="p-6 space-y-5">
-              <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl">
-                <p className="text-xs text-amber-800">La receta original quedará <strong>anulada</strong> (no se podrá imprimir) y se emitirá esta versión como una receta nueva y firmada.</p>
+              <div className="ui-dialog-note">
+                <p>La receta original quedará <strong>anulada</strong> (no se podrá imprimir) y se emitirá esta versión como una receta nueva y firmada.</p>
               </div>
               <CampoTexto label="Motivo de la corrección" value={formReemitir.motivo} onChange={v => setFormReemitir({...formReemitir, motivo: v})} rows={2} />
               <CampoTexto label="Rp: (corregido)" value={formReemitir.rp} onChange={v => setFormReemitir({...formReemitir, rp: v})} rows={4} />
               <CampoTexto label="Indicaciones (corregidas)" value={formReemitir.indicaciones} onChange={v => setFormReemitir({...formReemitir, indicaciones: v})} rows={3} required={false} />
               <div className="flex gap-2">
-                <button type="button" onClick={() => setRecetaAReemitir(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors">Cancelar</button>
-                <button type="submit" disabled={reemitiendo} className="flex-[2] py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 shadow-lg transition-all disabled:opacity-50">
+                <button type="button" onClick={() => setRecetaAReemitir(null)} className="ui-button-secondary flex-1">Cancelar</button>
+                <button type="submit" disabled={reemitiendo} className="ui-button-primary flex-[2]">
                   {reemitiendo ? 'Guardando...' : 'Anular y Emitir Corregida'}
                 </button>
               </div>
@@ -179,11 +180,11 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
       )}
 
       {historialReceta && (
-        <div className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-label="Historial de esta Receta" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2"><History size={20}/> Historial de esta Receta</h3>
-              <button onClick={() => setHistorialReceta(null)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={20}/></button>
+            <div className="ui-dialog-header">
+              <h3 className="font-semibold text-base flex items-center gap-2"><History size={18}/> Historial de esta Receta</h3>
+              <button onClick={() => setHistorialReceta(null)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
             </div>
             <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
               <div className="space-y-6 border-l-2 border-slate-300 ml-4 pl-6 relative">
