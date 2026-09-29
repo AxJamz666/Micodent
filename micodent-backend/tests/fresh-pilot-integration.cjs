@@ -47,10 +47,16 @@ async function main() {
       JWT_SECRET: crypto.randomBytes(40).toString('hex') });
     appConn = await mysql.createConnection(require('../src/config/environment').databaseOptions());
     const setup = require('../scripts/setup-fresh-pilot');
+    const inspected = await setup.inspectDestination(appConn);
+    assert.equal(inspected.database, 'micodent_dev');
+    assert.match(inspected.engine, /^10\.4\.32-MariaDB/);
+    await rootConn.query('USE micodent_dev');
+    await assert.rejects(setup.inspectDestination(rootConn), /WRONG_DESTINATION/);
     const issued = await setup.install(appConn);
     assert.equal(issued.username, 'gabriela');
     assert(issued.password.length >= 24);
     await assert.rejects(setup.install(appConn), /DATABASE_NOT_EMPTY/);
+    await assert.rejects(setup.inspectDestination(appConn), /DATABASE_NOT_EMPTY/);
     const [tables] = await appConn.query('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_TYPE=\'BASE TABLE\'');
     assert.equal(tables.length, 35);
     const [[counts]] = await appConn.query(`SELECT

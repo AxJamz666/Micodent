@@ -8,25 +8,30 @@ const s1a = require('../migrations/001_s1a');
 const { checksum: s1aChecksum, baselineKind } = require('./migrate-s1a');
 const clinical = require('./migrate-clinical-files');
 
-async function install(conn, { password = crypto.randomBytes(24).toString('base64url') } = {}) {
-  const [[identity]] = await conn.query('SELECT DATABASE() AS db, CURRENT_USER() AS account');
+async function inspectDestination(conn) {
+  const [[identity]] = await conn.query('SELECT DATABASE() AS db, CURRENT_USER() AS account, VERSION() AS version');
   if (identity.db !== 'micodent_dev' || !identity.account.startsWith('dev_micodent@')) {
     throw new Error('WRONG_DESTINATION');
   }
+  if (!/^10\.4\.32-MariaDB/i.test(identity.version)) throw new Error('UNTESTED_DATABASE_VERSION');
+  const [tables] = await conn.query('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');
+  if (tables.length) throw new Error('DATABASE_NOT_EMPTY');
+  return { database: identity.db, engine: identity.version };
+}
+
+async function install(conn, { password = crypto.randomBytes(24).toString('base64url') } = {}) {
   const [[lock]] = await conn.query("SELECT GET_LOCK('micodent_dev_fresh_install', 0) AS acquired");
   if (Number(lock.acquired) !== 1) throw new Error('INSTALL_ALREADY_RUNNING');
   let ddlStarted = false;
   try {
-    const [existing] = await conn.query('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');
-    if (existing.length) throw new Error('DATABASE_NOT_EMPTY');
+    const { engine } = await inspectDestination(conn);
     const schema = fs.readFileSync(path.resolve(__dirname, '../migrations/000_fresh_legacy_schema.sql'), 'utf8');
     const statements = schema.match(/CREATE TABLE[\s\S]*?;/g);
     if (statements?.length !== 24 || /\b(?:INSERT|REPLACE|UPDATE|DELETE)\s+INTO\b/i.test(schema)) {
       throw new Error('INVALID_FRESH_SCHEMA');
     }
     // Historical DDL contains a MySQL-only CHECK expression; MariaDB uses REGEXP.
-    const [[server]] = await conn.query('SELECT VERSION() AS version');
-    const mariadb = /mariadb/i.test(server.version);
+    const mariadb = /mariadb/i.test(engine);
     ddlStarted = true;
     await conn.query('SET FOREIGN_KEY_CHECKS=0');
     try {
@@ -65,9 +70,16 @@ async function install(conn, { password = crypto.randomBytes(24).toString('base6
 }
 
 async function main() {
-  if (process.argv[2] !== '--apply') throw new Error('EXPLICIT_APPLY_REQUIRED');
+  const mode = process.argv[2];
+  if (!['--check', '--apply'].includes(mode)) throw new Error('EXPLICIT_MODE_REQUIRED');
   const conn = await mysql.createConnection(databaseOptions());
   try {
+    if (mode === '--check') {
+      const destination = await inspectDestination(conn);
+      console.log(`Destino apto para instalacion nueva: ${destination.database}, ${destination.engine}, sin tablas.`);
+      console.log('Solo lectura. No se creo ni modifico ninguna tabla.');
+      return;
+    }
     const result = await install(conn);
     console.log('Instalacion nueva completada. Usuario inicial: ' + result.username);
     console.log('Contrasena inicial, visible solo ahora en esta PC: ' + result.password);
@@ -83,4 +95,4 @@ if (require.main === module) main().catch(error => {
   process.exitCode = 1;
 });
 
-module.exports = { install };
+module.exports = { install, inspectDestination };
