@@ -48,4 +48,16 @@ module.exports = async ({ api, conn, tokens, check }) => {
     assert.deepEqual(after, before);
     assert.equal(Number(auditAfter.total), Number(auditBefore.total));
   });
+  await check('E09/M19: finanzas y laboratorio rechazan cuerpos excesivos', async () => {
+    const oversized = { descripcion: 'x'.repeat(70 * 1024) };
+    for (const [method, route] of [
+      ['PUT', '/dashboard/configuracion-pos'],
+      ['POST', '/gastos'],
+      ['POST', '/laboratorio/consulta/1'],
+    ]) {
+      const response = await api(method, route, oversized, tokens.qaadmin);
+      assert.equal(response.status, 413, `${method} ${route}`);
+      assert.equal(response.body.ok, false);
+    }
+  });
 };

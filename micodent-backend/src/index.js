@@ -52,6 +52,10 @@ app.use('/api/citas', express.json({ limit: '64kb' }));
 app.use('/api/citas', express.urlencoded({ extended: true, limit: '64kb' }));
 app.use('/api/pacientes', express.json({ limit: '64kb' }));
 app.use('/api/pacientes', express.urlencoded({ extended: true, limit: '64kb' }));
+for (const route of ['/api/dashboard', '/api/gastos', '/api/laboratorio']) {
+  app.use(route, express.json({ limit: '64kb' }));
+  app.use(route, express.urlencoded({ extended: true, limit: '64kb' }));
+}
 
 app.use(express.json({ limit: '50mb' }));
 
