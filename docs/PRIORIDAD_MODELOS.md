@@ -19,7 +19,7 @@ modelo no altera las pruebas, respaldos, aceptaciones ni limites de despliegue.
 | E09 | Agenda y API | Cierre tecnico en DEV; aceptacion operativa E13/E16 pendiente | GPT-6 Sol |
 | E10 | Base de datos y rendimiento | No iniciada como etapa | GPT-6 Sol |
 | E11 | Proteccion del trabajo y mantenimiento | No iniciada como etapa | GPT-6 Sol |
-| E12 | Diseno y experiencia premium | Interfaz tecnica implementada en DEV; aceptacion de usuarios pendiente | GPT-6 Sol |
+| E12 | Diseno y experiencia premium | Cerrada en DEV; propietario aprobo el diseno visual; despliegue y aceptacion clinica pendientes | GPT-6 Sol |
 | E13 | Despliegue local | Piloto Gabriela preparado en aislamiento; instalacion, recuperacion y aceptacion pendientes | GPT-6 Sol |
 | E14 | Recuperacion operativa | Respaldo piloto; restauraciones por instalacion pendientes | GPT-6 Astra |
 | E15 | Actualizacion de laptops | No iniciada | GPT-6 Sol |

@@ -1,7 +1,8 @@
 # E12 - Diseno y experiencia premium en DEV
 
-Estado: implementacion tecnica de interfaz terminada en la rama
-`codex/e12-diseno-premium`; aceptacion de usuarios y despliegue pendientes.
+Estado: E12 cerrada en DEV tras la aprobacion visual del propietario el
+2026-09-29. Rama `codex/e12-diseno-premium`; despliegue y aceptacion clinica
+en instalaciones reales pendientes de sus etapas respectivas.
 Base: RC4 + S1 + E09 + candidato E13 `ed4f19a`. Modelo acordado: GPT-6 Sol.
 Fecha: 2026-09-29.
 
@@ -47,10 +48,10 @@ politica de retencion propia, fuera de E12.
 Las capturas y resultados sinteticos finales estan en
 `E:\MICODENT_QA\e12-visual-extended-final`. No incluyen datos clinicos reales.
 
-## Pendiente para aceptacion
+## Condiciones posteriores al cierre visual
 
-1. Edy y Miguel: comprobar que textos, jerarquia de cobros y acciones de
-   historia/agenda resultan claros en su flujo diario.
+1. Edy y Miguel: validar operativamente textos, jerarquia de cobros y acciones
+   de historia/agenda en E16, despues del despliegue controlado.
 2. Probar manualmente impresion de historia, receta y orden RX, incluido mapa,
    sello, firma y odontograma, en impresoras reales antes de desplegar.
 3. La cabecera de historia imprimible conserva una sede fija historica.

@@ -25,7 +25,7 @@ publicarla no equivale a integrarla ni a desplegarla.
 | E09 Agenda/API | Cierre tecnico en DEV; sin despliegue ni aceptacion clinica | Validacion operativa E13/E16; dependencias en E09_AGENDA_API_AVANCE.md |
 | E10 BD/rendimiento | No iniciada como etapa | Indices, restricciones y migraciones controladas |
 | E11 Trabajo/mantenimiento | No iniciada como etapa | Prevencion de perdida de formularios y modularidad |
-| E12 UX/UI | Interfaz tecnica E12 en DEV; aceptacion pendiente | Prueba con usuarios e impresiones reales; ver E12_DISENO_PREMIUM_DEV.md |
+| E12 UX/UI | Cerrada en DEV; diseno visual aprobado por el propietario | Prueba operativa con usuarios e impresiones reales en E16; ver E12_DISENO_PREMIUM_DEV.md |
 | E13 Despliegue local | Launcher RC4 probado; paquete nuevo Gabriela preparado y probado en MariaDB aislada | Instalacion en laptop, backup/restauracion y aceptacion; datos reales bloqueados |
 | E14 Recuperacion operativa | Respaldo piloto reportado; etapa abierta | Politica y restauraciones repetibles de BD + archivos |
 | E15 Actualizaciones | No iniciada | Identificar, respaldar y actualizar cada laptop por separado |
