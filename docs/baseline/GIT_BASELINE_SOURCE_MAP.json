@@ -1,0 +1,1332 @@
+{
+  "id": "MICODENT-QUALITY-20261004",
+  "referenceCommit": "bbc15f187b1191169aafc3e8c651da38f9348f17",
+  "total": 219,
+  "files": [
+    {
+      "originalPath": "AGENTS.md",
+      "publishedPath": "AGENTS.md",
+      "sha256": "5c6aec0d29c405ba7bfaf48e53e2301f51531c139d54d45c1c242dd9565578f7",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/ACADEMIC_TEST_CASES.md",
+      "publishedPath": "docs/quality/ACADEMIC_TEST_CASES.md",
+      "sha256": "741dde18590eb2f78f2081b5f8109fdaeaa111389bd382c555b7e4aae4fceaf6",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/COVERAGE_TEST_PLAN.md",
+      "publishedPath": "docs/quality/COVERAGE_TEST_PLAN.md",
+      "sha256": "0f3169022303efdef65d9930574337d98da6737f88a26e61d814ec603089071a",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/CYPRESS_E2E_REPORT.md",
+      "publishedPath": "docs/quality/CYPRESS_E2E_REPORT.md",
+      "sha256": "f16dbeeccdc74fd8f0d147c58b13c15739dbbd9640e4b70b27fbecc062dcca05",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/DUPLICATION_REFACTOR_PLAN.md",
+      "publishedPath": "docs/quality/DUPLICATION_REFACTOR_PLAN.md",
+      "sha256": "6b648735747ea23244fd28114c6974a2ba778f22e6d8066bf63e7ca81ba1a860",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/GLOBAL_COVERAGE_80_PLAN.md",
+      "publishedPath": "docs/quality/GLOBAL_COVERAGE_80_PLAN.md",
+      "sha256": "d879490a7d6126f68ac6d22cdccf5d9296cb3eaf433d6dd9a93751f6ba22b4ef",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/INFORME_TECNICO_CALIDAD_MICODENT.md",
+      "publishedPath": "docs/quality/INFORME_TECNICO_CALIDAD_MICODENT.md",
+      "sha256": "27d6e72b93895d4697df9b277a39d4a0e662f465e17fbb35dd700bbec3b1f479",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/NEW_CODE_COVERAGE_MAP.md",
+      "publishedPath": "docs/quality/NEW_CODE_COVERAGE_MAP.md",
+      "sha256": "135f0f56a949727df8eed0a8f6b03f1c83121a8c9404a7ccdc8543b581970c81",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/POST_SONAR_DELTA.md",
+      "publishedPath": "docs/quality/POST_SONAR_DELTA.md",
+      "sha256": "1e8830c3dcecd7a900ab58f6f796b921e0440e35db592082cf084f7fb1995f6a",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/SONAR_EVIDENCE_INDEX.md",
+      "publishedPath": "docs/quality/SONAR_EVIDENCE_INDEX.md",
+      "sha256": "4fd6c59e0b38c1790d6232a5a2223691f0214bb2efb8a7e550f76b930891c41f",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/SONAR_REMEDIATION_LOG.md",
+      "publishedPath": "docs/quality/SONAR_REMEDIATION_LOG.md",
+      "sha256": "1cefe959a1900d6f6a3f865f21a2684589bf1346ba8320683b3d7b6a42b323a9",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/sonar-family1.csv",
+      "publishedPath": "docs/quality/sonar-family1.csv",
+      "sha256": "10c793d7fb4a8af5ee881b094d587fd552610e21544190884aa405e1c3e8429f",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/sonar-family2.csv",
+      "publishedPath": "docs/quality/sonar-family2.csv",
+      "sha256": "8135c9270388c05e0a462487e66439ed9bd06b0bd1bdfea38d4f1d6f69af8ee5",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/sonar-family3.csv",
+      "publishedPath": "docs/quality/sonar-family3.csv",
+      "sha256": "d38e6068644861728c20fef9c81e8646959e8ad3298da52483bffe9b1b02b8da",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/sonar-family4a.csv",
+      "publishedPath": "docs/quality/sonar-family4a.csv",
+      "sha256": "9a8af9de208fe99fef11af6eb75a778daa69b8c326077d0c6b5df328bd51fab1",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/sonar-family4b.csv",
+      "publishedPath": "docs/quality/sonar-family4b.csv",
+      "sha256": "bc860d95b416ab1f67aa005109b581b679c753b091dc756505214eb64c273c65",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/sonar-family4c.csv",
+      "publishedPath": "docs/quality/sonar-family4c.csv",
+      "sha256": "f2ea6060106f72713d0c5192c599c177f82a8008e570a5e46a9576edc9be9278",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/sonar-family4d.csv",
+      "publishedPath": "docs/quality/sonar-family4d.csv",
+      "sha256": "17fe420d9905de8ee703c42aa7f55f895e32920e37f25225e9806b0ebe741fd7",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "docs/quality/sonar-post-delta.csv",
+      "publishedPath": "docs/quality/sonar-post-delta.csv",
+      "sha256": "f690d1ceb02c09c3d2da35a49eabb47eb7512549421da3660a85da00eb91a6a2",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/coverage/lcov.info",
+      "publishedPath": "docs/baseline/evidence/backend-lcov.info",
+      "sha256": "e1e4f4e4c150ab59d0b25c241cbac9de6dba62ae1c14e8ec6cdacb698692f088",
+      "kind": "ARCHIVED_GENERATED_EVIDENCE"
+    },
+    {
+      "originalPath": "micodent-backend/package-lock.json",
+      "publishedPath": "micodent-backend/package-lock.json",
+      "sha256": "1cb0f998a4c7427f742b03d4556e289fe2c6f6ef6d0a91e847f7c234f2d42761",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/package.json",
+      "publishedPath": "micodent-backend/package.json",
+      "sha256": "18509afcbd5524f503f95ddef93f9612399e32c82d6eeb3036093e8a1cb1e342",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/scripts/audit-clinical-files.js",
+      "publishedPath": "micodent-backend/scripts/audit-clinical-files.js",
+      "sha256": "2f8061f9c6cf13bf5221929b7b26a04ccfd14eeac2b3d38d38a2f97dbb2e1267",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/scripts/check-secrets.js",
+      "publishedPath": "micodent-backend/scripts/check-secrets.js",
+      "sha256": "54cf0ab14ae0bd0b0de3bdb51110065f727935170fd86a38b10b3d9f5f47dbea",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/scripts/migrate-clinical-files.js",
+      "publishedPath": "micodent-backend/scripts/migrate-clinical-files.js",
+      "sha256": "e796cb5f16db74ac1aa4042f92871788e2fc835d14d9ab53f7c56eef2261ebf5",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/scripts/migrate-hotfix.js",
+      "publishedPath": "micodent-backend/scripts/migrate-hotfix.js",
+      "sha256": "ed539c9b72dede13e32d579792f6fb262ec65e1b1b97874caeb2eee274b26d59",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/scripts/migrate-s1a.js",
+      "publishedPath": "micodent-backend/scripts/migrate-s1a.js",
+      "sha256": "9a1b1a07877ef16c8070b0b5b3e06be4486f963ef6120900c4225a4a593beda8",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/scripts/package-e13-pilot.ps1",
+      "publishedPath": "micodent-backend/scripts/package-e13-pilot.ps1",
+      "sha256": "bf67f64bcbe169705923e7212ce79e32133e5a15b53bd05048fd0e36c6da7194",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/scripts/package-frontend.js",
+      "publishedPath": "micodent-backend/scripts/package-frontend.js",
+      "sha256": "c1f90c722341d91ab83349650d3200958adaa66d200c398a9bbab5cde693970c",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/scripts/package-hotfix.cjs",
+      "publishedPath": "micodent-backend/scripts/package-hotfix.cjs",
+      "sha256": "34662f8fc62d5103dd1d05eb517d310b9c983dfa59b0a24371257db7bdaf36ba",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/scripts/setup-fresh-pilot.js",
+      "publishedPath": "micodent-backend/scripts/setup-fresh-pilot.js",
+      "sha256": "d9fc141630550e7d3384c038770f0f4bd42c45c9761af11e583be0d1afe1b140",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/scripts/test-coverage.cjs",
+      "publishedPath": "micodent-backend/scripts/test-coverage.cjs",
+      "sha256": "e1dced6bbcf0a26605898eb9496a15e0b4751cd9166c9b7759dfa8f5c6ef7ab2",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/scripts/verify-s1a-preservation.js",
+      "publishedPath": "micodent-backend/scripts/verify-s1a-preservation.js",
+      "sha256": "b5ef33500c84bc515ae35436757cac479fcd5351f7f483b67acf5ac012c01384",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/config/browserTransport.js",
+      "publishedPath": "micodent-backend/src/config/browserTransport.js",
+      "sha256": "d0d7b5d761c9cdde9551c25bb7c68d100ae50b97aa869bc8ed66accb4c04db91",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/config/db.js",
+      "publishedPath": "micodent-backend/src/config/db.js",
+      "sha256": "b967627aa01e7ab4e1717b5d4c5ee764096f03fe03b460b98ecf1da32a6bd5b6",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/config/environment.js",
+      "publishedPath": "micodent-backend/src/config/environment.js",
+      "sha256": "582958e1a9b78e282667f953055f74f8d24672d602ab9541621be8fbfe2166fe",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/config/multer.js",
+      "publishedPath": "micodent-backend/src/config/multer.js",
+      "sha256": "82f99a1cbdb5e12414dd20a692effa98d4e883585b42b5f14495ff0f45c0363d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/auditoria.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/auditoria.controller.js",
+      "sha256": "58fa2c426cefa5131d384c9b1ef1cfc2e888a621ccc5675384925cf70743190c",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/auth.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/auth.controller.js",
+      "sha256": "429d6d29f70a5e84e5f08d755649d268d8ff075be903a4013ae4519df9f47bf4",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/citas.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/citas.controller.js",
+      "sha256": "4ee5994c3326f80bcc63ee0c8f3898698903063df96979373478a36c29c19bd9",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/cobros.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/cobros.controller.js",
+      "sha256": "400fa7e482f5af8d45ee83745f7b9f0d22bf58944b811454ea9eba0eaa8aae32",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/dashboard.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/dashboard.controller.js",
+      "sha256": "c29e41edbe9cd9ec2ddff3c6c31d9a1e9fdf3018b721c9edaebab095506e352c",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/gastos.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/gastos.controller.js",
+      "sha256": "820f39bc15b873c11ef21f36ca53ce01d57c51a6475970b3a366b68703e7f9d3",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/historias.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/historias.controller.js",
+      "sha256": "db84f1580d60da9b4ded635202e4918d91f10a2536057a0115f0708a862c8662",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/laboratorio.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/laboratorio.controller.js",
+      "sha256": "6c69d95fd23c2f4e05c65401d42fddf456c4564155cd2c85e85d95045e91950a",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/pacientes.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/pacientes.controller.js",
+      "sha256": "8b3cb8e5ef23dbdbdaf2c572a4c1f3631d5d0a13b79750e290217b7a6507e688",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/pos.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/pos.controller.js",
+      "sha256": "8495baae6c22c0e121919fabd4d1a8e37c995cac41e0f14c1bbe125424e64745",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/produccion.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/produccion.controller.js",
+      "sha256": "e338e4901d10baf24e69859ea0f66f78ca335c7614ec8e79f68bc838a3029c75",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/controllers/usuarios.controller.js",
+      "publishedPath": "micodent-backend/src/controllers/usuarios.controller.js",
+      "sha256": "719f7f734757b7d52dcc89cfc81d9c57d840f4de0327625e70de2a6cd8556ab0",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/index.js",
+      "publishedPath": "micodent-backend/src/index.js",
+      "sha256": "2b9a2ea8001f600983998bdc71ecaf6783411171752f2fcb7f520ce1d8a2e4c7",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/middleware/auth.js",
+      "publishedPath": "micodent-backend/src/middleware/auth.js",
+      "sha256": "fb4baf857d2ba1e753254d6fd04aa2a5e2c0545d8c3e768642befc872c3ea6aa",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/middleware/limitarAutenticacion.js",
+      "publishedPath": "micodent-backend/src/middleware/limitarAutenticacion.js",
+      "sha256": "8a5d221b7f29c013904e854ac49633642ee28949fd383ea55510c0b9041eac1f",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/routes/auditoria.routes.js",
+      "publishedPath": "micodent-backend/src/routes/auditoria.routes.js",
+      "sha256": "66aca7a7285416df7900dbe578e35485bc81be87b892a118c43cf5d9886bb52b",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/routes/auth.routes.js",
+      "publishedPath": "micodent-backend/src/routes/auth.routes.js",
+      "sha256": "eeff481b5c67532d3717b1d0589256bf64f3242cc68b04ee03a4928fd2d2018f",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/routes/citas.routes.js",
+      "publishedPath": "micodent-backend/src/routes/citas.routes.js",
+      "sha256": "d283d3fed71589942ca22b840f74d67205877d1393c9c4dd1f9a6d8b726e8c25",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/routes/dashboard.routes.js",
+      "publishedPath": "micodent-backend/src/routes/dashboard.routes.js",
+      "sha256": "0fc99bc5817c912c06d22609e2b547d2da96dcebe9655c46c47a8c140a9347b1",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/routes/gastos.routes.js",
+      "publishedPath": "micodent-backend/src/routes/gastos.routes.js",
+      "sha256": "df51a004ff0eb8c829a34ace6b54104aa343e2dce15bd778db9183a23d7af256",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/routes/historias.routes.js",
+      "publishedPath": "micodent-backend/src/routes/historias.routes.js",
+      "sha256": "3033205ec43d938581a7a0b5447c374dbcb809cba164004d6f04c2ae3c975aea",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/routes/laboratorio.routes.js",
+      "publishedPath": "micodent-backend/src/routes/laboratorio.routes.js",
+      "sha256": "e0ab96052d376cbe0118e141bc1b95ca9c76428992a265bf29fa1403039b1b79",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/routes/pacientes.routes.js",
+      "publishedPath": "micodent-backend/src/routes/pacientes.routes.js",
+      "sha256": "2ab3834d62f629a63d4078bf1e39d67dd93237823281bc3b7fd78da7d38532cb",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/routes/usuarios.routes.js",
+      "publishedPath": "micodent-backend/src/routes/usuarios.routes.js",
+      "sha256": "fb8b938683543d2cd4e83e765c82d7f98720b2d210891b3893c9616d21fad3b7",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/services/accessPolicy.js",
+      "publishedPath": "micodent-backend/src/services/accessPolicy.js",
+      "sha256": "f581b34ec387c1697514d72f1545c6dc24aa3c58431f5413714729beab839687",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/services/browserTransport.js",
+      "publishedPath": "micodent-backend/src/services/browserTransport.js",
+      "sha256": "6f48364b3bd39e36684b3aed3d4656ad2bbc5b28dbc2b5b5e31fdeefe4d14d11",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/services/clinicalFiles.js",
+      "publishedPath": "micodent-backend/src/services/clinicalFiles.js",
+      "sha256": "8deb6d4cb6906443a9bc871398ee1986cfba8dbd7b423da1cdd66bb8010c3673",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/services/clinicalUpload.js",
+      "publishedPath": "micodent-backend/src/services/clinicalUpload.js",
+      "sha256": "1c19e52e98ba12250b72607d7f05c8b61aa9bf14057a9febd140b462e427245e",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/services/finanzas.js",
+      "publishedPath": "micodent-backend/src/services/finanzas.js",
+      "sha256": "e227a09710c8096bf3895e15d12285881a038d2fae6522a1a0750544a01f66d5",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/services/operacionFinanciera.js",
+      "publishedPath": "micodent-backend/src/services/operacionFinanciera.js",
+      "sha256": "6255594bd917936eb27ee4f5f299c01a68a446338ee77bb0606fc62eb7d53085",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/services/password.service.js",
+      "publishedPath": "micodent-backend/src/services/password.service.js",
+      "sha256": "6a5d4e18112d80d19cec503a3eb6afbcc8b4a6407bb4545c999e2182b87e3979",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/services/security.js",
+      "publishedPath": "micodent-backend/src/services/security.js",
+      "sha256": "59d2c983b264cbc3eed51d71c8b47afe3d1652040433e96f5f381e6d9f7094ac",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/services/session.service.js",
+      "publishedPath": "micodent-backend/src/services/session.service.js",
+      "sha256": "8d8ddd4893c3b563aa70cdc766801196128b4eb29e62a347bad58b3be0e29c86",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/utils/auditoriaFinanciera.js",
+      "publishedPath": "micodent-backend/src/utils/auditoriaFinanciera.js",
+      "sha256": "f30a89e1825833f2d3b2a2c4c9a704ab3894b39107c73fd43c403a4d80b52122",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/utils/auditoriaSeguridad.js",
+      "publishedPath": "micodent-backend/src/utils/auditoriaSeguridad.js",
+      "sha256": "1b08afeba90299bbfa69c2e1f6080bd50b368851d15fcc0a1b36ab1f00294b4d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/utils/fecha.js",
+      "publishedPath": "micodent-backend/src/utils/fecha.js",
+      "sha256": "03db5205e230a269729838200b3630e83296e5c3c7e06879a6806f220505b956",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/utils/jsonFields.js",
+      "publishedPath": "micodent-backend/src/utils/jsonFields.js",
+      "sha256": "7d18a18985be010ed27cb55784bb2e1eeeccc5bc3a108928c5923616aed5c7d8",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/src/utils/securityError.js",
+      "publishedPath": "micodent-backend/src/utils/securityError.js",
+      "sha256": "278115b5ab391a7b043c49515cb91363f7d9f461551ad3e22bdd36c903454535",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/agenda-browser.cjs",
+      "publishedPath": "micodent-backend/tests/agenda-browser.cjs",
+      "sha256": "e3b9838656791e7e759705b0f6e225192d84f5bbda95f357ceb77fb030c4b364",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/agenda-integration.cjs",
+      "publishedPath": "micodent-backend/tests/agenda-integration.cjs",
+      "sha256": "363f412e5537698d225feed9f0f3107f1b363cd886261ff42160fd14fceaec0d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/api-contract-integration.cjs",
+      "publishedPath": "micodent-backend/tests/api-contract-integration.cjs",
+      "sha256": "df0bfb1f1645cde54ae7b4adef456f5393c45bb380203d6d383dbe1701463cb5",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/baseline-browser.cjs",
+      "publishedPath": "micodent-backend/tests/baseline-browser.cjs",
+      "sha256": "2a2a9d97b2b16e0487625362e21eb87ca7812e7f9450eae553554ce01e35c10d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/browser-isolated.cjs",
+      "publishedPath": "micodent-backend/tests/browser-isolated.cjs",
+      "sha256": "76cbbc3b7577e417fd6cf9070c41983fc2b6959c3140e95d93764bceb706b6d8",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/clinical-files-integration.cjs",
+      "publishedPath": "micodent-backend/tests/clinical-files-integration.cjs",
+      "sha256": "6c246061fd36cf518aef868720592c42e81e8ccb57f069d8055976b6eb9d9dce",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/finance-browser.cjs",
+      "publishedPath": "micodent-backend/tests/finance-browser.cjs",
+      "sha256": "c84b5e351275b794b119e39bcf7225a257dd51951b960ac059aad13d1d02b66d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/fresh-pilot-integration.cjs",
+      "publishedPath": "micodent-backend/tests/fresh-pilot-integration.cjs",
+      "sha256": "5a7ccb719620ad342f349a42bdbe20daa19ff806c36d0ed66adad50578a7da69",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/helpers/academic-db.cjs",
+      "publishedPath": "micodent-backend/tests/helpers/academic-db.cjs",
+      "sha256": "2db845e4b706f3f26e81525c2242a3d7602d4168f4b2eabec7ab12976f0120bf",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/helpers/cookie-app.cjs",
+      "publishedPath": "micodent-backend/tests/helpers/cookie-app.cjs",
+      "sha256": "462c746584b13345302c44260b1ecb80aa9070b3fd4dd6163e4f25eb570c021d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/helpers/cookie-client.cjs",
+      "publishedPath": "micodent-backend/tests/helpers/cookie-client.cjs",
+      "sha256": "3da74760affbf08d10cde2925f7fc796de8626dcb3ca75b6ab07e49e01a84931",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/helpers/coverage-p1-db.cjs",
+      "publishedPath": "micodent-backend/tests/helpers/coverage-p1-db.cjs",
+      "sha256": "085a5765ed236bf408e7c21f61cc29fb2617766d8e54cca139112ec201f64fc1",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/hotfix-browser.cjs",
+      "publishedPath": "micodent-backend/tests/hotfix-browser.cjs",
+      "sha256": "bf13876a86463ac22e953923215986e1425113d44913c36b1d6d65d639fdf765",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/hotfix-integration.cjs",
+      "publishedPath": "micodent-backend/tests/hotfix-integration.cjs",
+      "sha256": "13b6178f96f445b764e5147ba585278086366ffff07310333d86b94e285f1feb",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/integration/security.test.js",
+      "publishedPath": "micodent-backend/tests/integration/security.test.js",
+      "sha256": "b44821ac65cd34394d33479986a2833b4c158ec492d826a69945435028547009",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/pos-debt-browser.cjs",
+      "publishedPath": "micodent-backend/tests/pos-debt-browser.cjs",
+      "sha256": "d46b4db9594ef1d495c7f0f9e476ffe43657fe2e9c5b808395352f7db43c21da",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/pos-debt-integration.cjs",
+      "publishedPath": "micodent-backend/tests/pos-debt-integration.cjs",
+      "sha256": "7c3c995f0a51d23ab1797b54205538c004b3b60e1fdcb1a717f7059ba9ad1e6d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/s1a-browser.cjs",
+      "publishedPath": "micodent-backend/tests/s1a-browser.cjs",
+      "sha256": "811eb34ca76fdc950e7471a28da763eeb9c763103cc49441f04957350c0f9868",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/s1a-hotfix-integration.cjs",
+      "publishedPath": "micodent-backend/tests/s1a-hotfix-integration.cjs",
+      "sha256": "4200307f9a2dd7bf2df58079e0178da7d02d506753959d4f0a1c738b79611eab",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/s1a-startup.cjs",
+      "publishedPath": "micodent-backend/tests/s1a-startup.cjs",
+      "sha256": "3fbf231bc3763b03f420587427ce918bcb075850f801eeeea31a2d653ab59e99",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/academic-a-agenda.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/academic-a-agenda.test.cjs",
+      "sha256": "25b0b66627e70566b281d6cf8f3814ec7ea9c0763e0d6a53058848fc07d6a4e7",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/academic-a-history.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/academic-a-history.test.cjs",
+      "sha256": "32a4e937ffa2252d981b44fa3269a41b3fdbecc06bef820e4c9d4728cab09a3f",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/academic-a-patients.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/academic-a-patients.test.cjs",
+      "sha256": "e0ec18f6472ff659482e31ccb9f6eda5cdadfd47bcb6115fe48ca2b79ace8138",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/academic-b-expenses.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/academic-b-expenses.test.cjs",
+      "sha256": "6fecf007a355763e7b7dc1571c814a87db38430506e5c14a93241bff09e6c8ed",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/academic-b-laboratory.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/academic-b-laboratory.test.cjs",
+      "sha256": "aaeb956a0fd0021837fd943c688ca071efd6458ed147d3cf4c9017b5f9976e1d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/academic-b-patients.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/academic-b-patients.test.cjs",
+      "sha256": "c44cdb0678e6500db8f4a00984f84275b1cf49b8b7fae23d7df394e9a99e5664",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/academic-b-summary.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/academic-b-summary.test.cjs",
+      "sha256": "d99c7f217833c8a2f847ff373a033718924ef0cae76e8d3f9164ee579fa104f3",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/academic-b-users.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/academic-b-users.test.cjs",
+      "sha256": "016b1c0e6437efdc725b441711a187464f087959d51c1cb518a71ea5d833bf46",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/academic-c-attachments.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/academic-c-attachments.test.cjs",
+      "sha256": "68590a5ca7de9aedf706bfaa8c083d16cb9bb99a1f085d5482948a6648dfc022",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/academic-c-documents.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/academic-c-documents.test.cjs",
+      "sha256": "6f0f2c9acf7fb39ce4ef9557f6d07472b2f21eaefa96c72ab3c2b90f1e1aca9f",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/academic-c-payments.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/academic-c-payments.test.cjs",
+      "sha256": "061cdadd1d61544054ec1be17336d9248e064cc7ba13886829b9abdd30dff4c9",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/access-policy.test.js",
+      "publishedPath": "micodent-backend/tests/unit/access-policy.test.js",
+      "sha256": "c2cbf71d18d6f059eeb6e17a4563b93b98d2078a55ad603c618b804fa4739958",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/arranque.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/arranque.test.cjs",
+      "sha256": "40fd44c113191c709ee25628fc99e9d6a2be52bbe15e9d75e3d70e7e1c02828d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/clinical-files.test.js",
+      "publishedPath": "micodent-backend/tests/unit/clinical-files.test.js",
+      "sha256": "ab83db07022e9bd45fc6957148f192e96192c0fb1e31e7d2af67f072de4a8230",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/clinical-upload.test.js",
+      "publishedPath": "micodent-backend/tests/unit/clinical-upload.test.js",
+      "sha256": "41474bb11f8568a05c403305017bdcb35d863d16db2ef5adaaf6d9c1f4175c7d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/cookie-transport.test.js",
+      "publishedPath": "micodent-backend/tests/unit/cookie-transport.test.js",
+      "sha256": "9a036ad4a62d4a4c663602625d89bf495a87ffd606d4999e8ae86e0a4ac04308",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/coverage-p1.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/coverage-p1.test.cjs",
+      "sha256": "39c99973183b6c72aca644a5f3d261f3444ce6cb28e2f98b92bb73fce3efb419",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/errors.test.js",
+      "publishedPath": "micodent-backend/tests/unit/errors.test.js",
+      "sha256": "b431527e8a7be91ba7a5111403b8b598ef07fb56677bf58b45ef054204cd6b52",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/finanzas.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/finanzas.test.cjs",
+      "sha256": "f812248fb66490042258e63f36b7caf709f28a3eda2af32a1a8797af5a36d305",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/migration-baseline.test.js",
+      "publishedPath": "micodent-backend/tests/unit/migration-baseline.test.js",
+      "sha256": "935b1709d5ef0de814c5884a802c5ad84e5afee4ec3913ba8acc30bcc0715508",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/password.test.js",
+      "publishedPath": "micodent-backend/tests/unit/password.test.js",
+      "sha256": "6583e75153c7f75f862229e7e9c591392aa73192b75d11f84941de3c21359933",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/route-guards.test.js",
+      "publishedPath": "micodent-backend/tests/unit/route-guards.test.js",
+      "sha256": "068a45e1acc28209209dd5d508ffadd12ac3046856912d2b2f5d6475649e3a93",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/secrets.test.js",
+      "publishedPath": "micodent-backend/tests/unit/secrets.test.js",
+      "sha256": "ea92639aa540a4383c92fdb37a387493b87ae19f6ac9e3176772ca83e7aa786b",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/sonar-family4c.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/sonar-family4c.test.cjs",
+      "sha256": "6880ebc133a576e3caa9e53566c71db579b55b6f3bf622b440621b5a59626fef",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/sonar-family4d.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/sonar-family4d.test.cjs",
+      "sha256": "a7af077bab8162d01ccef95ae2f8372de2639b279b83ab610fbda739245a1c2e",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-backend/tests/unit/sonar-post-delta.test.cjs",
+      "publishedPath": "micodent-backend/tests/unit/sonar-post-delta.test.cjs",
+      "sha256": "035b5cfaa3fe2f9a21d192df460c91e1ad42b137e5fa03fb1a7dac0e44981990",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/coverage/lcov.info",
+      "publishedPath": "docs/baseline/evidence/frontend-lcov.info",
+      "sha256": "b36b08031fa02c243b390e89105ef1bb630c01885b9beb270f04729a7c691a42",
+      "kind": "ARCHIVED_GENERATED_EVIDENCE"
+    },
+    {
+      "originalPath": "micodent-frontend/cypress.config.cjs",
+      "publishedPath": "micodent-frontend/cypress.config.cjs",
+      "sha256": "35e92c4b21a4a55d4d1a4a6f10b0475f2b968d2e67dc751da8bdf14b30241efe",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/cypress/e2e/micodent.cy.cjs",
+      "publishedPath": "micodent-frontend/cypress/e2e/micodent.cy.cjs",
+      "sha256": "296c03b75d99420700f7d931c6149b18d74bc00a7ae9cbf80e78c362c05a157e",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/cypress/fixtures/synthetic-api.cjs",
+      "publishedPath": "micodent-frontend/cypress/fixtures/synthetic-api.cjs",
+      "sha256": "445b8afac7c41ae6ec98b470a4e946eefe8437f92874d2459894ec02374d667b",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/cypress/support/e2e.cjs",
+      "publishedPath": "micodent-frontend/cypress/support/e2e.cjs",
+      "sha256": "58602322eea64b799ab1482ae45c22a06004fb03d3a2f304f5b757d2f632f3b2",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/package-lock.json",
+      "publishedPath": "micodent-frontend/package-lock.json",
+      "sha256": "1b59a8d590dcccd1c5d408db0867a0eb6ccfd7be5e61e21765d49ecec6ee2b00",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/package.json",
+      "publishedPath": "micodent-frontend/package.json",
+      "sha256": "2383f85fc19c93c5657244c6a670aaff5d50e7e73ddd6441f71295a7ec76b6c3",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/scripts/test-e2e.mjs",
+      "publishedPath": "micodent-frontend/scripts/test-e2e.mjs",
+      "sha256": "e8de77d59b13b49ee4802d7bd5b55a67b8fcdb652178529a6a698a2ff7792435",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/App.jsx",
+      "publishedPath": "micodent-frontend/src/App.jsx",
+      "sha256": "2c38a7a39ba02098a10d63dc4e9a839c382f1b2efeafefa258ee695491460873",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/assets/hero.png",
+      "publishedPath": "micodent-frontend/src/assets/hero.png",
+      "sha256": "881ffbcaafc212e49addad08846a5b82761355fa20624253af3477ba33262c5c",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/assets/react.svg",
+      "publishedPath": "micodent-frontend/src/assets/react.svg",
+      "sha256": "35ef61ed53b323ae94a16a8ec659b3d0af3880698791133f23b084085ab1c2e5",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/assets/vite.svg",
+      "publishedPath": "micodent-frontend/src/assets/vite.svg",
+      "sha256": "2f1f6c6f90a0ef7422cbb4cfafcd8ad329c507a18afdc34cc21fa72179b9c54a",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/AgendaDia.jsx",
+      "publishedPath": "micodent-frontend/src/components/AgendaDia.jsx",
+      "sha256": "1ff58c868c1c902cfa088f122fd5c8affbb3a9f0ed746afd23746d1fad01fc4d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/AgendaMes.jsx",
+      "publishedPath": "micodent-frontend/src/components/AgendaMes.jsx",
+      "sha256": "391c11fc3a57f472ff41cacff8195bc08ecf01ec38230893fff6d5704ce2dc74",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/AgendaSemana.jsx",
+      "publishedPath": "micodent-frontend/src/components/AgendaSemana.jsx",
+      "sha256": "8ea499117d2fedba380803ae0a63a7a6cdd394e0d62f17b7b75c3b2c35f1e1f6",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/AppErrorBoundary.jsx",
+      "publishedPath": "micodent-frontend/src/components/AppErrorBoundary.jsx",
+      "sha256": "7f2c6fe7e78d21d8a5af8f8c9ab799d3f6d5decf6d7a98f47d77d8fb06e654ed",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/CitaModal.jsx",
+      "publishedPath": "micodent-frontend/src/components/CitaModal.jsx",
+      "sha256": "92e5eb90a915fd59de20f618db09a32fb649b6a338b6901ff161f647bbafd03d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/ClinicalImage.jsx",
+      "publishedPath": "micodent-frontend/src/components/ClinicalImage.jsx",
+      "sha256": "cc8c3b0ab3339832cdead5664f31d791a4cdc34728fe614124524673a391e7e5",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/ConfiguracionPos.jsx",
+      "publishedPath": "micodent-frontend/src/components/ConfiguracionPos.jsx",
+      "sha256": "6498f798bb968817aa0881e983c1360d17d00f94a63021b36719bf99931b2991",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/ConfirmModal.jsx",
+      "publishedPath": "micodent-frontend/src/components/ConfirmModal.jsx",
+      "sha256": "ba2c4ab47dba5afdeb40a6e0198f2d36972e0a638ff7d3ef8687c72153322f72",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/Diente.jsx",
+      "publishedPath": "micodent-frontend/src/components/Diente.jsx",
+      "sha256": "2f42902bc87fd10ab38537017218441904e3fcbc8877e0a745c1978ae1236a5b",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/DocumentActions.jsx",
+      "publishedPath": "micodent-frontend/src/components/DocumentActions.jsx",
+      "sha256": "f03c2fd379b0a0ed33bc6e7f10ca0fb865572d6c57314b966251e314c766385b",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/FirmaMiniBlock.jsx",
+      "publishedPath": "micodent-frontend/src/components/FirmaMiniBlock.jsx",
+      "sha256": "f79f98ee7e8acb4cf159afa01d7812443e6dd1730540fc7842ebcff47ffee463",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/InputV.jsx",
+      "publishedPath": "micodent-frontend/src/components/InputV.jsx",
+      "sha256": "b4c27b5b93f661e44178f1e6c9e0b3878b642795aeafd04001ee5b6edb974c1b",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/MetodoPago.jsx",
+      "publishedPath": "micodent-frontend/src/components/MetodoPago.jsx",
+      "sha256": "3fdc4ddf2e07841d151443004650afe634c1edd26ad8ecd307de7f7b6d0e4af0",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/ModalDialog.jsx",
+      "publishedPath": "micodent-frontend/src/components/ModalDialog.jsx",
+      "sha256": "09e89c4358850e7dfa5ca33a69901cf96d92b753a57082cb8642f3eec4fc7e43",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/OdontogramaEditor.jsx",
+      "publishedPath": "micodent-frontend/src/components/OdontogramaEditor.jsx",
+      "sha256": "57a29f10da475c3cfb607f333909b379eda0639d9df6cdf25804c23c7e6a2306",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/OrdenRadiografiaTab.jsx",
+      "publishedPath": "micodent-frontend/src/components/OrdenRadiografiaTab.jsx",
+      "sha256": "0997fea0005f54cda514bb6fa2c2b1d08f37b0c9d986d4395c5b0a6ad17506f0",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/PiezaSelector.jsx",
+      "publishedPath": "micodent-frontend/src/components/PiezaSelector.jsx",
+      "sha256": "b3aaef47a028545d5df4f526ff14db6ba684e2f0fae34a3bbd7108b6779fd1a6",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/PrintPortal.jsx",
+      "publishedPath": "micodent-frontend/src/components/PrintPortal.jsx",
+      "sha256": "0ff1bb71345d3adae28296f2c6147a1734618eea66dd606a4b3ba92e6fb91be1",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/RecetarioTab.jsx",
+      "publishedPath": "micodent-frontend/src/components/RecetarioTab.jsx",
+      "sha256": "f5e56758746071e2b3a2beb7a06a3f595b04ec634b7131f55d940b966df4290c",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/RxTeethPrint.jsx",
+      "publishedPath": "micodent-frontend/src/components/RxTeethPrint.jsx",
+      "sha256": "1623e3d34e1e9306a6c0721b9856edfe8ede6c76bd6ba31be75eeea2112799e4",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/SessionBoundary.jsx",
+      "publishedPath": "micodent-frontend/src/components/SessionBoundary.jsx",
+      "sha256": "c32cb5244d9934c4311786e1647a59695fd62e6367e8d8fe5febee27ab03eeda",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/components/SignaturePad.jsx",
+      "publishedPath": "micodent-frontend/src/components/SignaturePad.jsx",
+      "sha256": "7b8ade91d150256fb79c5f5af48b9c74d47b8911a53f369d6f86fc3c6df6809f",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/index.css",
+      "publishedPath": "micodent-frontend/src/index.css",
+      "sha256": "8a7bd066f862f94e0e5e9b43c3d2bfaece962003c0c02602a6d917167648f081",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/layouts/MainLayout.jsx",
+      "publishedPath": "micodent-frontend/src/layouts/MainLayout.jsx",
+      "sha256": "199ac06c91454ba49a073818343e966a8a682d0265b25611088e1adea1f9fe54",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/main.jsx",
+      "publishedPath": "micodent-frontend/src/main.jsx",
+      "sha256": "16304947d66263a518b378a10ebbf9c7d044965fdfc1f0ccbc1a4a1a203e270a",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/pages/AdministracionPersonal.jsx",
+      "publishedPath": "micodent-frontend/src/pages/AdministracionPersonal.jsx",
+      "sha256": "ad5c1b34d9d16d0f215da0a5bad95c5bdfab0e69fead947b5b778566006ff079",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/pages/Agenda.jsx",
+      "publishedPath": "micodent-frontend/src/pages/Agenda.jsx",
+      "sha256": "748c545f9fe216d6cc7561f4531256ac6fcd7d23a6f764b24f29eb207dad805d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/pages/Dashboard.jsx",
+      "publishedPath": "micodent-frontend/src/pages/Dashboard.jsx",
+      "sha256": "82cbc8fb0a8c3daf158d4c81051d7e02e4e0a1dc4f417ef36e0536ebbc6a0b5c",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/pages/FinanzasDashboard.jsx",
+      "publishedPath": "micodent-frontend/src/pages/FinanzasDashboard.jsx",
+      "sha256": "017866d6b42c9e2121172d7418134904a6e11258173942101616de43359a9996",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/pages/Historias.jsx",
+      "publishedPath": "micodent-frontend/src/pages/Historias.jsx",
+      "sha256": "dd172d3df0aa61178043388a4936c0a9821947dd7294a0ccf9e9e4665faa3de7",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/pages/Login.jsx",
+      "publishedPath": "micodent-frontend/src/pages/Login.jsx",
+      "sha256": "4b5e14f2c3deda9a76f4cba777582bcdf7ea5bdf1b350c3d555181f36a2baef5",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/pages/MiPerfil.jsx",
+      "publishedPath": "micodent-frontend/src/pages/MiPerfil.jsx",
+      "sha256": "4f693bbe25d69ce2df0ee5f29ee44742bfcb4393c365d3a7e47d60aacac22f4b",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/pages/PacienteDetalle.jsx",
+      "publishedPath": "micodent-frontend/src/pages/PacienteDetalle.jsx",
+      "sha256": "4508eafbe0ec3d4394f902d65215784dc8ee622a49e82eb76fe0bf095c97c8ea",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/pages/Pacientes.jsx",
+      "publishedPath": "micodent-frontend/src/pages/Pacientes.jsx",
+      "sha256": "8a35288836d04ffd61be735ee0defb5da9c0d05c8dd410507fb98dcc1afd89b0",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/pages/Produccion.jsx",
+      "publishedPath": "micodent-frontend/src/pages/Produccion.jsx",
+      "sha256": "266c3d8fedd9f41f8b806f640703bebbaa413dd8e3f2ba032b6700529fe3ac60",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/services/api.js",
+      "publishedPath": "micodent-frontend/src/services/api.js",
+      "sha256": "a4fdd1cbb14daee60c6bcebe475b6bbdaa628ceb75274ab5fc0700235b39f6c7",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/services/browserSession.js",
+      "publishedPath": "micodent-frontend/src/services/browserSession.js",
+      "sha256": "812e8d723c08b04587b6f146f0d9db38b8780de6b53fb4215e651e5e55a10658",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/services/session.js",
+      "publishedPath": "micodent-frontend/src/services/session.js",
+      "sha256": "8529f93b58e31da3a3bc959845cec2abcea8781186f2a6b87dc591a2d8b93c7a",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/services/sessionState.js",
+      "publishedPath": "micodent-frontend/src/services/sessionState.js",
+      "sha256": "6bea188e6a03fec10b8aaa4f582967efd35e91f48048b48b3c83c229a243c65b",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/utils/agendaUtils.js",
+      "publishedPath": "micodent-frontend/src/utils/agendaUtils.js",
+      "sha256": "8288e790152f78bbed2452b24688eb49d5397113d60f97f0bbc815fc3c105b07",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/utils/data.js",
+      "publishedPath": "micodent-frontend/src/utils/data.js",
+      "sha256": "3fdaefc94de0b30a74cb6e263708aeadb602d5d715496e232155f44f2a7ee905",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/utils/financeEvents.js",
+      "publishedPath": "micodent-frontend/src/utils/financeEvents.js",
+      "sha256": "28616e814f3c87dca2a93a4c5b993517219a6634761ede52c976e1b5709e4dd9",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/utils/modalFocus.js",
+      "publishedPath": "micodent-frontend/src/utils/modalFocus.js",
+      "sha256": "f1aba3155726ea2f033d8f9ebe2e4579a60c8601a6056b133d13655a7542d2b3",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/utils/passwordPolicy.js",
+      "publishedPath": "micodent-frontend/src/utils/passwordPolicy.js",
+      "sha256": "0385781b10f1771b559904913f9f7c46fbb17548d4d4bcb7e0661cf138dbfe1d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/utils/printDocument.js",
+      "publishedPath": "micodent-frontend/src/utils/printDocument.js",
+      "sha256": "21c8247cfa1175bf20022391b07b98b596ca2259898ea7ff8500d11bb9a0f328",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/utils/rxTeeth.js",
+      "publishedPath": "micodent-frontend/src/utils/rxTeeth.js",
+      "sha256": "10974756bea57dc4e7af95a7745c675b2ca521ab35e6e2e8f8f940edefd744ec",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/src/utils/tratamientosDb.js",
+      "publishedPath": "micodent-frontend/src/utils/tratamientosDb.js",
+      "sha256": "c344538e5fd4b486fdbdad41dd81a4568fcbe8b47ef35e5caa232b7ab0edd348",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/test-results/cypress/run.json",
+      "publishedPath": "docs/baseline/evidence/cypress-run.json",
+      "sha256": "e3576dc40dee90061234c453ed8f00b5d3a5272a62b72b52cc57d55ba48ba55a",
+      "kind": "ARCHIVED_GENERATED_EVIDENCE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/academic-a-documents.test.mjs",
+      "publishedPath": "micodent-frontend/tests/academic-a-documents.test.mjs",
+      "sha256": "619da0900f5d1c17834661c5663931bf35431217f7a1bb10a02199853b2aeb24",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/academic-a-lists.test.mjs",
+      "publishedPath": "micodent-frontend/tests/academic-a-lists.test.mjs",
+      "sha256": "0403acc9ca97aba3c29f4115cecfcf0deb15ebc3775f4d26a75893f821789016",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/academic-a-patient.test.mjs",
+      "publishedPath": "micodent-frontend/tests/academic-a-patient.test.mjs",
+      "sha256": "f71921789aa7347828155238e896a2821c9fd3577b63fa4ff478435a34f32cc9",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/academic-a-session.test.mjs",
+      "publishedPath": "micodent-frontend/tests/academic-a-session.test.mjs",
+      "sha256": "4034fffbab92edb21e43caeeec6535bee66f964bc4bab22e202aeedc9a95ee8e",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/academic-b-data-api.test.mjs",
+      "publishedPath": "micodent-frontend/tests/academic-b-data-api.test.mjs",
+      "sha256": "6e41fcfe5fae91a577eb2258c9e9eb321a1a7e5bc163b79c3f97ca6d08b4fee8",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/academic-b-finance.test.mjs",
+      "publishedPath": "micodent-frontend/tests/academic-b-finance.test.mjs",
+      "sha256": "5a82a9c98012e47d53893c52c956424164bd297fd23c2f235ce4da1b5fcbaed4",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/academic-b-history.test.mjs",
+      "publishedPath": "micodent-frontend/tests/academic-b-history.test.mjs",
+      "sha256": "bc85820b068c1689922854227cb08fb097719ff4c06f99fba28f879e72c4c840",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/academic-b-profile-login.test.mjs",
+      "publishedPath": "micodent-frontend/tests/academic-b-profile-login.test.mjs",
+      "sha256": "31e51cba46d5c15c424b2485c744c6ad1a64f946c1e5376f477dc38ce7ad3dea",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/academic-c-attachments.test.mjs",
+      "publishedPath": "micodent-frontend/tests/academic-c-attachments.test.mjs",
+      "sha256": "79720ee7575dd9aca22210323155f58d33bd31401173bee3106e49ea793537e8",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/academic-c-keyboard.test.mjs",
+      "publishedPath": "micodent-frontend/tests/academic-c-keyboard.test.mjs",
+      "sha256": "a9526a49c1c864db2c39d7d5cf1987123ac22f3c0ebd111b125ed10d1fe5630e",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/accessibility.test.mjs",
+      "publishedPath": "micodent-frontend/tests/accessibility.test.mjs",
+      "sha256": "b63150d64a9ab7f294e097c23c98f5fc30024d351c23695bb54f5319894a1858",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/agendaUtils.test.mjs",
+      "publishedPath": "micodent-frontend/tests/agendaUtils.test.mjs",
+      "sha256": "a26fa12d1044cf3e042942134836485ab0bf25164b3d8c6cb8fd4f7b3383f759",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/coverage-g1-navigation.test.mjs",
+      "publishedPath": "micodent-frontend/tests/coverage-g1-navigation.test.mjs",
+      "sha256": "5460b7398d634341f4e523483189a5d31aa10e9b55dda4364fc463f01dc3ed9d",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/coverage-p1-modals.test.mjs",
+      "publishedPath": "micodent-frontend/tests/coverage-p1-modals.test.mjs",
+      "sha256": "f5ed3d9fbd273037d7c7ac2fd3674c65c0d2acf973a46e4739cc56196b83100c",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/coverage-p1-pages.test.mjs",
+      "publishedPath": "micodent-frontend/tests/coverage-p1-pages.test.mjs",
+      "sha256": "31de9e59bf839d70735bc4f1eaf1d53e6be1bf6ec88b334b04825cf2c0fe0e2e",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/coverage-p1-personal.test.mjs",
+      "publishedPath": "micodent-frontend/tests/coverage-p1-personal.test.mjs",
+      "sha256": "e09569ff5d7dc28325ef685ac49472a93e72cd6f6343e470620eec7f4ef64639",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/coverage-p2-clinical.test.mjs",
+      "publishedPath": "micodent-frontend/tests/coverage-p2-clinical.test.mjs",
+      "sha256": "3613eab215941d3e41cbfcadaa4b31c2fde7d9fc62c6e22308f5e2639ec97244",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/coverage-p2-finance.test.mjs",
+      "publishedPath": "micodent-frontend/tests/coverage-p2-finance.test.mjs",
+      "sha256": "88dcb470e3686c343132b5651273211b947b45b2514a9f3de83446dc19885455",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/coverage-p2-patient.test.mjs",
+      "publishedPath": "micodent-frontend/tests/coverage-p2-patient.test.mjs",
+      "sha256": "7addce26704c6df7500185ca536d894f5dbc3059360b37031584bb64e6afe895",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/data.test.mjs",
+      "publishedPath": "micodent-frontend/tests/data.test.mjs",
+      "sha256": "7ccc2cd3bf8ec749f2d9b58a62c4af3f573b7f49b3b1a04db06d33ed4f636c36",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/duplication-d1.test.mjs",
+      "publishedPath": "micodent-frontend/tests/duplication-d1.test.mjs",
+      "sha256": "bc603f72fc32693becf18e762f86de9e6110d6689d5dd73dd66221811c533a8a",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/financeEvents.test.mjs",
+      "publishedPath": "micodent-frontend/tests/financeEvents.test.mjs",
+      "sha256": "eb9219810139d0bfd22d0b546d10a7dd442f6bfeabb388d56f8699634c50cf3b",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/helpers/component-boundaries.mjs",
+      "publishedPath": "micodent-frontend/tests/helpers/component-boundaries.mjs",
+      "sha256": "2e796c5fc812e4b705efb9365644a066dd6a50ebd3a5425b3e80bb46bf1b57b4",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/helpers/component-runtime.mjs",
+      "publishedPath": "micodent-frontend/tests/helpers/component-runtime.mjs",
+      "sha256": "bc91339b988b0bc26b913bd2371525815fd68981cc55b8cf1df3b64f691ead4b",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/modal-dialog.browser.mjs",
+      "publishedPath": "micodent-frontend/tests/modal-dialog.browser.mjs",
+      "sha256": "d8d826bbe7fc642ceb7e725a161945e13d332b38923ffa635113a9cf946a59b3",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/modal-dialog.test.mjs",
+      "publishedPath": "micodent-frontend/tests/modal-dialog.test.mjs",
+      "sha256": "34b14f19a16715e789234f50db69c8a2bfdd25de57a5e8d7464d406a7f4a2f60",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/rxTeeth.test.mjs",
+      "publishedPath": "micodent-frontend/tests/rxTeeth.test.mjs",
+      "sha256": "2ce35d6390bf9f35f4d23d24132aa2c422f0bfcc379b41daf78bdb3120346c80",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/security.test.mjs",
+      "publishedPath": "micodent-frontend/tests/security.test.mjs",
+      "sha256": "80fba327007e316fdd6f6da444bd7cd0e351b4065eb538c7fb10c92ff2b0f477",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/sessionState.test.mjs",
+      "publishedPath": "micodent-frontend/tests/sessionState.test.mjs",
+      "sha256": "575ac5d2dd1990d416708abf80b9ffa41aef5bff8116c7d4f29ec543d3568b79",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/sonar-family4a.test.mjs",
+      "publishedPath": "micodent-frontend/tests/sonar-family4a.test.mjs",
+      "sha256": "b4e8d0f607b9e244756a70ab875fd222d4f9ea0efd223999cc45de3e53bcb2dc",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/sonar-family4b.test.mjs",
+      "publishedPath": "micodent-frontend/tests/sonar-family4b.test.mjs",
+      "sha256": "2d35a78fbae7c7162067dd546780ba132003228e2dc6d44798c05d7ae6492485",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/sonar-family4c.test.mjs",
+      "publishedPath": "micodent-frontend/tests/sonar-family4c.test.mjs",
+      "sha256": "81cdf0613d17036cb12d2e3e0274bc7718491112850a0347ebfeddb04795d28b",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/sonar-family4d.browser.mjs",
+      "publishedPath": "micodent-frontend/tests/sonar-family4d.browser.mjs",
+      "sha256": "6b39279dc652cdce3f0bbbde22a4b40a5064860a563aa6f2a489e5a99d3790a2",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/sonar-family4d.test.mjs",
+      "publishedPath": "micodent-frontend/tests/sonar-family4d.test.mjs",
+      "sha256": "7c818a04470bd9f5850d20456ab93b3e82b2f4ecd7c2bad32a48f91baec69840",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/sonar-post-delta.browser.mjs",
+      "publishedPath": "micodent-frontend/tests/sonar-post-delta.browser.mjs",
+      "sha256": "d95dbb52cf586f1d14aeb844d6210da37676afe747137424bf095cb223917fc8",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/tests/sonar-post-delta.test.mjs",
+      "publishedPath": "micodent-frontend/tests/sonar-post-delta.test.mjs",
+      "sha256": "5b996fe42838ee3ddf57e6759b6f9b88cbf536000b105ae6410a55c17860a839",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "micodent-frontend/vite.config.js",
+      "publishedPath": "micodent-frontend/vite.config.js",
+      "sha256": "00f5d7c5acfa874223e622e95d6fd4b3cfd3e7ea8e25424be5dd031c1f3b5459",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    },
+    {
+      "originalPath": "sonar-project.properties",
+      "publishedPath": "sonar-project.properties",
+      "sha256": "095ff220c2cd2f005da787c9249da60cab82b2e93cbec8f72560236f829dd1bb",
+      "kind": "UNCHANGED_BASELINE_FILE"
+    }
+  ],
+  "documents": [
+    {
+      "path": "SONAR_EVIDENCE_POST/Informe_Tecnico_Calidad_MICODENT.docx",
+      "sha256": "ba00e67798510c3ee91485b2c61f43b4410542a937d7d500f690cafb5b0ec6bd"
+    },
+    {
+      "path": "SONAR_EVIDENCE_POST/MICODENT_Baseline_Oficial_Calidad.docx",
+      "sha256": "8414df98128caba76f478566310794bc9fb4f3d23f3dd369a5ef0852607e767a"
+    }
+  ],
+  "limits": "Historical validated evidence; no new application test run and no production certification"
+}

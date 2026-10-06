@@ -1,0 +1,162 @@
+{
+  "phase": "CYPRESS_E2E",
+  "executedAt": "2026-10-04T16:15:31.261Z",
+  "cypressVersion": "16.1.1",
+  "browser": "edge",
+  "browserVersion": "154.0.4258.53",
+  "totalTests": 10,
+  "totalPassed": 10,
+  "totalFailed": 0,
+  "totalSkipped": 0,
+  "totalPending": 0,
+  "durationMs": 30468,
+  "blockedApiRequests": 0,
+  "runs": [
+    {
+      "spec": "cypress\\e2e\\micodent.cy.cjs",
+      "tests": [
+        {
+          "title": [
+            "MICODENT - isolated synthetic API E2E, additional to academic 60/60",
+            "CYP-E2E-01 Login valido y sesion verificada"
+          ],
+          "state": "passed",
+          "attempts": [
+            {
+              "state": "passed",
+              "error": null
+            }
+          ]
+        },
+        {
+          "title": [
+            "MICODENT - isolated synthetic API E2E, additional to academic 60/60",
+            "CYP-E2E-02 Login invalido conserva formulario y permite reintento"
+          ],
+          "state": "passed",
+          "attempts": [
+            {
+              "state": "passed",
+              "error": null
+            }
+          ]
+        },
+        {
+          "title": [
+            "MICODENT - isolated synthetic API E2E, additional to academic 60/60",
+            "CYP-E2E-03 Listado, busqueda, vacio y limpieza de pacientes"
+          ],
+          "state": "passed",
+          "attempts": [
+            {
+              "state": "passed",
+              "error": null
+            }
+          ]
+        },
+        {
+          "title": [
+            "MICODENT - isolated synthetic API E2E, additional to academic 60/60",
+            "CYP-E2E-04 Apertura de ficha y retorno al directorio sin mutacion"
+          ],
+          "state": "passed",
+          "attempts": [
+            {
+              "state": "passed",
+              "error": null
+            }
+          ]
+        },
+        {
+          "title": [
+            "MICODENT - isolated synthetic API E2E, additional to academic 60/60",
+            "CYP-E2E-05 Cita ficticia: formulario, guardado simulado, recarga y detalle"
+          ],
+          "state": "passed",
+          "attempts": [
+            {
+              "state": "passed",
+              "error": null
+            }
+          ]
+        },
+        {
+          "title": [
+            "MICODENT - isolated synthetic API E2E, additional to academic 60/60",
+            "CYP-E2E-06 Historia clinica: antecedentes, diagnostico y evolucion"
+          ],
+          "state": "passed",
+          "attempts": [
+            {
+              "state": "passed",
+              "error": null
+            }
+          ]
+        },
+        {
+          "title": [
+            "MICODENT - isolated synthetic API E2E, additional to academic 60/60",
+            "CYP-E2E-07 Tratamiento: borrador, tipo y cierre seguro sin firma ni escritura"
+          ],
+          "state": "passed",
+          "attempts": [
+            {
+              "state": "passed",
+              "error": null
+            }
+          ]
+        },
+        {
+          "title": [
+            "MICODENT - isolated synthetic API E2E, additional to academic 60/60",
+            "CYP-E2E-08 Finanzas: importes, filtro por doctor y pestañas"
+          ],
+          "state": "passed",
+          "attempts": [
+            {
+              "state": "passed",
+              "error": null
+            }
+          ]
+        },
+        {
+          "title": [
+            "MICODENT - isolated synthetic API E2E, additional to academic 60/60",
+            "CYP-E2E-09 Doctor sin administracion: menu y rutas protegidas"
+          ],
+          "state": "passed",
+          "attempts": [
+            {
+              "state": "passed",
+              "error": null
+            }
+          ]
+        },
+        {
+          "title": [
+            "MICODENT - isolated synthetic API E2E, additional to academic 60/60",
+            "CYP-E2E-10 Logout confirmado y ruta autenticada inaccesible"
+          ],
+          "state": "passed",
+          "attempts": [
+            {
+              "state": "passed",
+              "error": null
+            }
+          ]
+        }
+      ],
+      "screenshots": [
+        {
+          "path": "test-results\\cypress\\screenshots\\micodent.cy.cjs\\CYP-E2E-01-login-verificado (4).png"
+        },
+        {
+          "path": "test-results\\cypress\\screenshots\\micodent.cy.cjs\\CYP-E2E-05-cita-sintetica (3).png"
+        },
+        {
+          "path": "test-results\\cypress\\screenshots\\micodent.cy.cjs\\CYP-E2E-08-finanzas-sinteticas (3).png"
+        }
+      ]
+    }
+  ]
+}
