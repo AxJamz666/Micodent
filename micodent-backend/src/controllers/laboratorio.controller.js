@@ -19,10 +19,12 @@ const getTrabajosPorConsulta = async (req, res) => {
         [trabajo.id]
       );
       trabajo.pagos = pagos;
-      const totalPagado = pagos.reduce((sum, p) => sum + parseFloat(p.monto), 0);
+      const totalPagado = pagos.reduce((sum, p) => sum + Number.parseFloat(p.monto), 0);
       trabajo.total_pagado = totalPagado;
-      trabajo.saldo_pendiente = parseFloat(trabajo.monto_total) - totalPagado;
-      trabajo.estado = totalPagado >= parseFloat(trabajo.monto_total) ? 'pagado' : (totalPagado > 0 ? 'parcial' : 'pendiente');
+      trabajo.saldo_pendiente = Number.parseFloat(trabajo.monto_total) - totalPagado;
+      if (totalPagado >= Number.parseFloat(trabajo.monto_total)) trabajo.estado = 'pagado';
+      else if (totalPagado > 0) trabajo.estado = 'parcial';
+      else trabajo.estado = 'pendiente';
     }
     res.json({ ok: true, data: trabajos });
   } catch (err) {
@@ -50,7 +52,7 @@ const getTrabajos = async (req, res) => {
        HAVING (t.monto_total - total_pagado) ${condicionSaldo}
        ORDER BY ${orden}`
     );
-    res.json({ ok: true, data: rows.map(r => ({ ...r, saldo_pendiente: parseFloat(r.monto_total) - parseFloat(r.total_pagado) })) });
+    res.json({ ok: true, data: rows.map(r => ({ ...r, saldo_pendiente: Number.parseFloat(r.monto_total) - Number.parseFloat(r.total_pagado) })) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ ok: false, mensaje: 'Error al obtener los trabajos de laboratorio.' });

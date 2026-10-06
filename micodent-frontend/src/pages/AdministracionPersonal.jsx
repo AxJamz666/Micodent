@@ -16,6 +16,206 @@ const NIVEL_CONFIG = {
   1: { label: 'STAFF',      class: 'bg-slate-100 text-slate-600 border-slate-200'    },
 };
 
+const mensajeDesactivacion = (target, myId) => {
+  if (target.nivel >= 3) return 'No se puede desactivar a un Superadministrador.';
+  if (target.id === myId) return 'No puedes desactivar tu propio acceso.';
+  if (!target.activo) return 'Este acceso ya esta desactivado.';
+  return 'No puedes desactivar a un usuario de igual o mayor nivel.';
+};
+
+const TarjetaPersonal = ({ usuario: u, editingId, myNivel, myId, onEdit, onReset, onDeactivate }) => {
+  const nivelCfg = NIVEL_CONFIG[u.nivel] || NIVEL_CONFIG[1];
+  let userDetail;
+  if (u.rol === 'Doctor') {
+    const commissionText = u.comision_porcentaje ? u.comision_porcentaje + '%' : 'sin definir';
+    userDetail = `COP: ${u.cop || 'S/N'} · Comisión: ${commissionText}`;
+  } else {
+    userDetail = `Cel: ${u.telefono || '-'}`;
+  }
+  return (
+    <div data-user-id={u.id}
+      className={`p-4 border rounded-2xl flex flex-col gap-3 transition-colors ${editingId===u.id?'border-clinical-500 bg-clinical-50':'bg-slate-50 hover:border-clinical-200'}`}>
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="font-bold text-slate-800 flex items-center gap-1.5">
+            {u.nivel >= 3 && <Crown size={14} className="text-slate-600"/>}
+            {u.nombre_completo}
+          </p>
+          {!u.activo && <p className="text-xs font-semibold text-red-700 mt-1">Acceso desactivado</p>}
+          <p className="text-xs text-slate-500 mt-1">
+            {userDetail}
+          </p>
+        </div>
+        <span className={`text-[10px] font-black tracking-widest px-2 py-1 rounded-lg border ${nivelCfg.class}`}>
+          {nivelCfg.label}
+        </span>
+      </div>
+      <div className="flex items-center justify-between pt-3 border-t border-slate-200/60">
+        <span className="text-xs text-slate-500 font-mono">ID: <b className="text-slate-700">{u.id}</b></span>
+        <div className="flex gap-1.5">
+          {(myNivel > (u.nivel||1) || u.id===myId) && (
+            <button onClick={()=>onEdit(u)}
+              className="ui-icon-button" title="Editar datos" aria-label={`Editar datos de ${u.nombre_completo}`}>
+              <Edit size={15}/>
+            </button>
+          )}
+          {myNivel > (u.nivel||1) && u.id!==myId && (
+            <button onClick={()=>onReset(u)}
+              className="ui-icon-button" title={u.activo ? 'Restablecer contraseña' : 'Reactivar acceso'} aria-label={`${u.activo ? 'Restablecer contraseña' : 'Reactivar acceso'} de ${u.nombre_completo}`}>
+              {u.activo ? <KeyRound size={15}/> : <RotateCcw size={15}/>}
+            </button>
+          )}
+          {u.activo && u.id !== myId && myNivel > (u.nivel || 1) && (
+            <button onClick={()=>onDeactivate(u)}
+              className="ui-icon-button text-red-700 hover:bg-red-50" title="Desactivar acceso" aria-label={`Desactivar acceso de ${u.nombre_completo}`}>
+              <Trash2 size={15}/>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FormularioPersonal = ({ editingId, myId, myNivel, formData, showPass, handleChange, handleSave, resetForm, setShowPass }) => (
+    <div className="lg:col-span-7 h-fit rounded-lg border border-slate-200 bg-white p-4 sm:p-6">
+    <div className="flex justify-between items-center border-b pb-4 mb-6">
+      <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800">
+        {editingId?<Edit size={22}/>:<UserPlus size={22}/>}
+        {editingId?`Editando: ${editingId}`:'Registrar Nuevo Personal'}
+      </h3>
+      {editingId && (
+        <button type="button" onClick={resetForm}
+          className="text-xs flex items-center gap-1 font-bold text-slate-400 hover:text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg">
+          <X size={14}/> Cancelar
+        </button>
+      )}
+    </div>
+
+    <form onSubmit={handleSave} className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="md:col-span-2">
+          <label htmlFor="personal-nombre" className="ui-field-label">Nombres y apellidos completos</label>
+          <input id="personal-nombre" required name="nombre" value={formData.nombre} onChange={handleChange}
+            className="ui-input"/>
+        </div>
+        <div>
+          <label htmlFor="personal-trato" className="ui-field-label">Trato</label>
+          <select id="personal-trato" name="gender" value={formData.gender} onChange={handleChange}
+            className="ui-input">
+            <option value="o">Masculino</option>
+            <option value="a">Femenino</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label htmlFor="personal-dni" className="ui-field-label">DNI</label>
+          <input id="personal-dni" required name="dni" value={formData.dni} onChange={handleChange} maxLength="8"
+            className="ui-input" placeholder="8 dígitos"/>
+        </div>
+        <div>
+          <label htmlFor="personal-telefono" className="ui-field-label">Celular</label>
+          <input id="personal-telefono" required name="telefono" value={formData.telefono} onChange={handleChange} maxLength="9"
+            className="ui-input" placeholder="9 dígitos"/>
+        </div>
+        <div>
+          <label htmlFor="personal-email" className="ui-field-label">Email</label>
+          <input id="personal-email" name="email" value={formData.email} onChange={handleChange} type="email"
+            className="ui-input"/>
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="personal-direccion" className="ui-field-label">Dirección</label>
+        <input id="personal-direccion" name="direccion" value={formData.direccion} onChange={handleChange}
+          className="ui-input"/>
+      </div>
+
+      {/* Rol + Nivel + Especialidad */}
+      <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-5 md:grid-cols-3">
+        <div>
+          <label htmlFor="personal-rol" className="ui-field-label">Rol en clínica</label>
+          <select id="personal-rol" name="rol" value={formData.rol} onChange={handleChange} disabled={editingId === myId}
+            className="ui-input">
+            <option value="Asistente">Asistente</option>
+            <option value="Doctor">Doctor</option>
+            <option value="Administradora">Administradora</option>
+          </select>
+        </div>
+
+        {/* Solo Superadmins pueden asignar o editar el Nivel de Acceso (y no pueden modificarse a sí mismos aquí) */}
+        {myNivel >= 3 && editingId !== myId && (
+          <div>
+            <label className="ui-field-label flex items-center gap-1">
+              <Crown size={12}/> Nivel de acceso
+            </label>
+            <select name="nivel" value={formData.nivel} onChange={handleChange}
+              className="ui-input">
+              <option value={1}>Staff (nivel 1)</option>
+              <option value={2}>Admin (nivel 2)</option>
+            </select>
+          </div>
+        )}
+
+        {formData.rol === 'Doctor' && (
+          <>
+            <div>
+              <label htmlFor="personal-especialidad" className="ui-field-label">Especialidad</label>
+              <input id="personal-especialidad" required name="especialidad" value={formData.especialidad} onChange={handleChange}
+                placeholder="Ej. Ortodoncia"
+                className="ui-input"/>
+            </div>
+                <div>
+                  <label htmlFor="personal-cop" className="ui-field-label">Nro. COP</label>
+                  <input id="personal-cop" required name="cop" value={formData.cop} onChange={handleChange} maxLength="6"
+                    placeholder="Ej. 12345"
+                    className="ui-input"/>
+                </div>
+                <div>
+                  <label htmlFor="personal-comision" className="ui-field-label">% Comisión</label>
+                  <input id="personal-comision" type="number" name="comision_porcentaje" value={formData.comision_porcentaje} onChange={handleChange}
+                    min="0" max="100" step="0.01" placeholder="Ej. 40"
+                    className="ui-input"/>
+                </div>
+          </>
+        )}
+      </div>
+
+      {/* Credenciales */}
+      <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="personal-id" className="ui-field-label">ID de acceso</label>
+          <input id="personal-id" required disabled={!!editingId} name="id" value={formData.id} onChange={handleChange}
+            placeholder="usuario123"
+            className="ui-input font-mono disabled:cursor-not-allowed disabled:bg-slate-100"/>
+          {editingId && <p className="text-[10px] text-slate-400 mt-1">El ID no se puede modificar.</p>}
+        </div>
+        {!editingId && <div>
+          <label htmlFor="personal-password" className="ui-field-label">
+            Contraseña inicial
+          </label>
+          <div className="relative">
+            <input id="personal-password" required={!editingId} name="password" value={formData.password}
+              onChange={handleChange} type={showPass?'text':'password'}
+              placeholder="Mínimo 15 caracteres"
+              className="ui-input pr-12"/>
+            <button type="button" onClick={()=>setShowPass(!showPass)} aria-label={showPass ? 'Ocultar contraseña inicial' : 'Mostrar contraseña inicial'}
+              className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700">
+              {showPass?<EyeOff size={18}/>:<Eye size={18}/>}
+            </button>
+          </div>
+        </div>}
+      </div>
+
+      <button type="submit" className="ui-button-primary w-full">
+        <Save size={20}/> {editingId?'Guardar Cambios':'Registrar Personal'}
+      </button>
+    </form>
+  </div>
+);
+
 const AdministracionPersonal = () => {
   const [users,      setUsers]      = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,7 +271,7 @@ const AdministracionPersonal = () => {
     if (['dni','telefono','cop'].includes(name))  value = value.replace(/\D/g,'');
     else if (name==='nombre') value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g,'');
     else if (name==='id')     value = value.replace(/[^a-zA-Z0-9]/g,'');
-    else if (name==='nivel')  value = parseInt(value);
+    else if (name==='nivel')  value = Number.parseInt(value);
     setFormData({ ...formData, [name]: value });
   };
 
@@ -82,9 +282,9 @@ const AdministracionPersonal = () => {
   };
 
   const buildNombreCompleto = (nombre, rol, gender) => {
-    const prefix =
-      rol === 'Doctor'         ? (gender==='o' ? 'Dr.' : 'Dra.') :
-      rol === 'Administradora' ? 'Adm.' : 'Asist.';
+    let prefix = 'Asist.';
+    if (rol === 'Doctor') prefix = gender === 'o' ? 'Dr.' : 'Dra.';
+    else if (rol === 'Administradora') prefix = 'Adm.';
     return { prefix, nombre_completo: `${prefix} ${nombre}` };
   };
 
@@ -114,8 +314,8 @@ const AdministracionPersonal = () => {
         nombre:          formData.nombre.split(' ')[0],
         nombre_completo,
         prefix,
-        nivel:           parseInt(formData.nivel) || 1,
-        comision_porcentaje: formData.comision_porcentaje ? parseFloat(formData.comision_porcentaje) : null,
+        nivel:           Number.parseInt(formData.nivel) || 1,
+        comision_porcentaje: formData.comision_porcentaje ? Number.parseFloat(formData.comision_porcentaje) : null,
       };
       if (editingId) {
         delete payload.password;
@@ -158,15 +358,7 @@ const AdministracionPersonal = () => {
 
   const handleDelete = (user) => {
     if (!canDeactivate(user)) {
-      toast.error(
-        user.nivel >= 3
-          ? 'No se puede desactivar a un Superadministrador.'
-          : user.id === myId
-            ? 'No puedes desactivar tu propio acceso.'
-            : !user.activo
-              ? 'Este acceso ya esta desactivado.'
-              : 'No puedes desactivar a un usuario de igual o mayor nivel.'
-      );
+      toast.error(mensajeDesactivacion(user, myId));
       return;
     }
     setConfirmModal({
@@ -243,6 +435,16 @@ const AdministracionPersonal = () => {
     u.rol?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.id?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const credentialAction = resetModal.reactivate ? 'Reactivar acceso' : 'Restablecer contraseña';
+  const renderPersonnelList = () => {
+    if (loading) return <p className="text-center text-slate-400 py-10">Cargando...</p>;
+    if (filteredUsers.length === 0) return <p className="text-center text-slate-400 py-10">Sin resultados.</p>;
+    return <>{filteredUsers.map(u => (
+      <TarjetaPersonal key={u.id} usuario={u} editingId={editingId}
+        myNivel={myNivel} myId={myId} onEdit={handleEdit}
+        onReset={handleOpenReset} onDeactivate={handleDelete} />
+    ))}</>;
+  };
 
   return (
     <div className="animate-fade-in text-slate-800 pb-10">
@@ -319,7 +521,7 @@ const AdministracionPersonal = () => {
                   className="ui-button-secondary min-w-[90px] flex-none whitespace-nowrap">Cancelar</button>
                 <button type="submit" disabled={savingReset}
                   className="ui-button-primary flex-[2]">
-                  <ShieldCheck size={18}/> {savingReset ? 'Guardando...' : resetModal.reactivate ? 'Reactivar acceso' : 'Restablecer contraseña'}
+                  <ShieldCheck size={18}/> {savingReset ? 'Guardando...' : credentialAction}
                 </button>
               </div>
             </form>
@@ -346,200 +548,14 @@ const AdministracionPersonal = () => {
               className="w-full pl-10 pr-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50"/>
           </div>
           <div className="space-y-3 overflow-y-auto flex-1 pr-1">
-            {loading
-              ? <p className="text-center text-slate-400 py-10">Cargando...</p>
-              : filteredUsers.length===0
-                ? <p className="text-center text-slate-400 py-10">Sin resultados.</p>
-                : filteredUsers.map(u => {
-                    const nivelCfg = NIVEL_CONFIG[u.nivel] || NIVEL_CONFIG[1];
-                    return (
-                      <div key={u.id} data-user-id={u.id}
-                        className={`p-4 border rounded-2xl flex flex-col gap-3 transition-colors ${editingId===u.id?'border-clinical-500 bg-clinical-50':'bg-slate-50 hover:border-clinical-200'}`}>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-bold text-slate-800 flex items-center gap-1.5">
-                            {u.nivel >= 3 && <Crown size={14} className="text-slate-600"/>}
-                              {u.nombre_completo}
-                            </p>
-                          {!u.activo && <p className="text-xs font-semibold text-red-700 mt-1">Acceso desactivado</p>}
-                          <p className="text-xs text-slate-500 mt-1">
-                          {u.rol==='Doctor'?`COP: ${u.cop||'S/N'} · Comisión: ${u.comision_porcentaje ? u.comision_porcentaje+'%' : 'sin definir'}`:`Cel: ${u.telefono||'-'}`}
-                        </p>
-                          </div>
-                          <span className={`text-[10px] font-black tracking-widest px-2 py-1 rounded-lg border ${nivelCfg.class}`}>
-                            {nivelCfg.label}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between pt-3 border-t border-slate-200/60">
-                          <span className="text-xs text-slate-500 font-mono">ID: <b className="text-slate-700">{u.id}</b></span>
-                          <div className="flex gap-1.5">
-                            {/* Editar: solo si mi nivel > su nivel, o es mi propio perfil */}
-                            {(myNivel > (u.nivel||1) || u.id===myId) && (
-                              <button onClick={()=>handleEdit(u)}
-                                className="ui-icon-button" title="Editar datos" aria-label={`Editar datos de ${u.nombre_completo}`}>
-                                <Edit size={15}/>
-                              </button>
-                            )}
-                            {/* Activos: restablecer; inactivos: reactivar con clave nueva. */}
-                            {myNivel > (u.nivel||1) && u.id!==myId && (
-                              <button onClick={()=>handleOpenReset(u)}
-                                className="ui-icon-button" title={u.activo ? 'Restablecer contraseña' : 'Reactivar acceso'} aria-label={`${u.activo ? 'Restablecer contraseña' : 'Reactivar acceso'} de ${u.nombre_completo}`}>
-                                {u.activo ? <KeyRound size={15}/> : <RotateCcw size={15}/>}
-                              </button>
-                            )}
-                            {/* Desactivar: solo si puedo segun jerarquia */}
-                            {canDeactivate(u) && (
-                              <button onClick={()=>handleDelete(u)}
-                                className="ui-icon-button text-red-700 hover:bg-red-50" title="Desactivar acceso" aria-label={`Desactivar acceso de ${u.nombre_completo}`}>
-                                <Trash2 size={15}/>
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-            }
+            {renderPersonnelList()}
           </div>
         </div>
 
         {/* FORMULARIO */}
-        <div className="lg:col-span-7 h-fit rounded-lg border border-slate-200 bg-white p-4 sm:p-6">
-          <div className="flex justify-between items-center border-b pb-4 mb-6">
-            <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800">
-              {editingId?<Edit size={22}/>:<UserPlus size={22}/>}
-              {editingId?`Editando: ${editingId}`:'Registrar Nuevo Personal'}
-            </h3>
-            {editingId && (
-              <button type="button" onClick={resetForm}
-                className="text-xs flex items-center gap-1 font-bold text-slate-400 hover:text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg">
-                <X size={14}/> Cancelar
-              </button>
-            )}
-          </div>
-
-          <form onSubmit={handleSave} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2">
-                <label className="ui-field-label">Nombres y apellidos completos</label>
-                <input required name="nombre" value={formData.nombre} onChange={handleChange}
-                  className="ui-input"/>
-              </div>
-              <div>
-                <label className="ui-field-label">Trato</label>
-                <select name="gender" value={formData.gender} onChange={handleChange}
-                  className="ui-input">
-                  <option value="o">Masculino</option>
-                  <option value="a">Femenino</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="ui-field-label">DNI</label>
-                <input required name="dni" value={formData.dni} onChange={handleChange} maxLength="8"
-                  className="ui-input" placeholder="8 dígitos"/>
-              </div>
-              <div>
-                <label className="ui-field-label">Celular</label>
-                <input required name="telefono" value={formData.telefono} onChange={handleChange} maxLength="9"
-                  className="ui-input" placeholder="9 dígitos"/>
-              </div>
-              <div>
-                <label className="ui-field-label">Email</label>
-                <input name="email" value={formData.email} onChange={handleChange} type="email"
-                  className="ui-input"/>
-              </div>
-            </div>
-
-            <div>
-              <label className="ui-field-label">Dirección</label>
-              <input name="direccion" value={formData.direccion} onChange={handleChange}
-                className="ui-input"/>
-            </div>
-
-            {/* Rol + Nivel + Especialidad */}
-            <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-5 md:grid-cols-3">
-              <div>
-                <label className="ui-field-label">Rol en clínica</label>
-                <select name="rol" value={formData.rol} onChange={handleChange} disabled={editingId === myId}
-                  className="ui-input">
-                  <option value="Asistente">Asistente</option>
-                  <option value="Doctor">Doctor</option>
-                  <option value="Administradora">Administradora</option>
-                </select>
-              </div>
-
-              {/* Solo Superadmins pueden asignar o editar el Nivel de Acceso (y no pueden modificarse a sí mismos aquí) */}
-              {myNivel >= 3 && editingId !== myId && (
-                <div>
-                  <label className="ui-field-label flex items-center gap-1">
-                    <Crown size={12}/> Nivel de acceso
-                  </label>
-                  <select name="nivel" value={formData.nivel} onChange={handleChange}
-                    className="ui-input">
-                    <option value={1}>Staff (nivel 1)</option>
-                    <option value={2}>Admin (nivel 2)</option>
-                  </select>
-                </div>
-              )}
-
-              {formData.rol === 'Doctor' && (
-                <>
-                  <div>
-                    <label className="ui-field-label">Especialidad</label>
-                    <input required name="especialidad" value={formData.especialidad} onChange={handleChange}
-                      placeholder="Ej. Ortodoncia"
-                      className="ui-input"/>
-                  </div>
-                      <div>
-                        <label className="ui-field-label">Nro. COP</label>
-                        <input required name="cop" value={formData.cop} onChange={handleChange} maxLength="6"
-                          placeholder="Ej. 12345"
-                          className="ui-input"/>
-                      </div>
-                      <div>
-                        <label className="ui-field-label">% Comisión</label>
-                        <input type="number" name="comision_porcentaje" value={formData.comision_porcentaje} onChange={handleChange}
-                          min="0" max="100" step="0.01" placeholder="Ej. 40"
-                          className="ui-input"/>
-                      </div>
-                </>
-              )}
-            </div>
-
-            {/* Credenciales */}
-            <div className="grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-2">
-              <div>
-                <label className="ui-field-label">ID de acceso</label>
-                <input required disabled={!!editingId} name="id" value={formData.id} onChange={handleChange}
-                  placeholder="usuario123"
-                  className="ui-input font-mono disabled:cursor-not-allowed disabled:bg-slate-100"/>
-                {editingId && <p className="text-[10px] text-slate-400 mt-1">El ID no se puede modificar.</p>}
-              </div>
-              {!editingId && <div>
-                <label className="ui-field-label">
-                  Contraseña inicial
-                </label>
-                <div className="relative">
-                  <input required={!editingId} name="password" value={formData.password}
-                    onChange={handleChange} type={showPass?'text':'password'}
-                    placeholder="Mínimo 15 caracteres"
-                    className="ui-input pr-12"/>
-                  <button type="button" onClick={()=>setShowPass(!showPass)} aria-label={showPass ? 'Ocultar contraseña inicial' : 'Mostrar contraseña inicial'}
-                    className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700">
-                    {showPass?<EyeOff size={18}/>:<Eye size={18}/>}
-                  </button>
-                </div>
-              </div>}
-            </div>
-
-            <button type="submit" className="ui-button-primary w-full">
-              <Save size={20}/> {editingId?'Guardar Cambios':'Registrar Personal'}
-            </button>
-          </form>
-        </div>
+        <FormularioPersonal editingId={editingId} myId={myId} myNivel={myNivel}
+          formData={formData} showPass={showPass} handleChange={handleChange}
+          handleSave={handleSave} resetForm={resetForm} setShowPass={setShowPass} />
 
       </div>
     </div>

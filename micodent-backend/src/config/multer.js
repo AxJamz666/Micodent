@@ -14,10 +14,10 @@ function createUpload(root) {
   const stagingDir = path.join(root, '.staging');
   fs.mkdirSync(root, { recursive: true });
   const rootStat = fs.lstatSync(root);
-  if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) throw Error('CLINICAL_STORAGE_INVALID');
+  if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) throw new Error('CLINICAL_STORAGE_INVALID');
   fs.mkdirSync(stagingDir, { recursive: true });
   const stagingStat = fs.lstatSync(stagingDir);
-  if (!stagingStat.isDirectory() || stagingStat.isSymbolicLink()) throw Error('CLINICAL_STORAGE_INVALID');
+  if (!stagingStat.isDirectory() || stagingStat.isSymbolicLink()) throw new Error('CLINICAL_STORAGE_INVALID');
   const storage = {
     _handleFile(req, file, cb) {
       const ext = path.extname(file.originalname).toLowerCase();

@@ -2,8 +2,8 @@ const db = require('../config/db');
 const { fechaLima } = require('../utils/fecha');
 const { registrarAuditoriaFinanciera } = require('../utils/auditoriaFinanciera');
 
-const CATEGORIAS_VALIDAS = ['luz', 'agua', 'internet', 'alquiler', 'materiales', 'sueldos', 'imprevistos'];
-const CATEGORIAS_CON_MES_CONSUMO = ['luz', 'agua', 'internet', 'alquiler'];
+const CATEGORIAS_VALIDAS = new Set(['luz', 'agua', 'internet', 'alquiler', 'materiales', 'sueldos', 'imprevistos']);
+const CATEGORIAS_CON_MES_CONSUMO = new Set(['luz', 'agua', 'internet', 'alquiler']);
 function validarImporteFecha({ monto, fecha_pago }) {
   const { cents, fail } = require('../services/finanzas');
   if (!cents(monto)) fail('El monto debe ser mayor a cero.');
@@ -39,11 +39,11 @@ const crearGasto = async (req, res) => {
     const { categoria, descripcion, monto, fecha_pago, mes_consumo } = req.body;
     validarImporteFecha(req.body);
 
-    if (!categoria || !CATEGORIAS_VALIDAS.includes(categoria)) {
+    if (!categoria || !CATEGORIAS_VALIDAS.has(categoria)) {
       await conn.rollback();
       return res.status(400).json({ ok: false, mensaje: 'Categoría de gasto no válida.' });
     }
-    if (!monto || parseFloat(monto) <= 0) {
+    if (!monto || Number.parseFloat(monto) <= 0) {
       await conn.rollback();
       return res.status(400).json({ ok: false, mensaje: 'El monto debe ser mayor a cero.' });
     }
@@ -52,7 +52,7 @@ const crearGasto = async (req, res) => {
       return res.status(400).json({ ok: false, mensaje: 'La fecha de pago es obligatoria.' });
     }
 
-    const mesConsumoFinal = CATEGORIAS_CON_MES_CONSUMO.includes(categoria) ? (mes_consumo || null) : null;
+    const mesConsumoFinal = CATEGORIAS_CON_MES_CONSUMO.has(categoria) ? (mes_consumo || null) : null;
 
     const [result] = await conn.query(
       `INSERT INTO gastos_clinica (categoria, descripcion, monto, fecha_pago, mes_consumo, registrado_por)
@@ -62,7 +62,7 @@ const crearGasto = async (req, res) => {
 
     await registrarAuditoriaFinanciera(conn, {
       usuario_id: req.usuario.id, modulo: 'gastos', accion: `Registró un gasto de "${categoria}"`,
-      detalle: { gasto_id: result.insertId, categoria, monto: parseFloat(monto), fecha_pago, mes_consumo: mesConsumoFinal },
+      detalle: { gasto_id: result.insertId, categoria, monto: Number.parseFloat(monto), fecha_pago, mes_consumo: mesConsumoFinal },
     });
 
     await conn.commit();
@@ -85,7 +85,7 @@ const editarGasto = async (req, res) => {
     const { categoria, descripcion, monto, fecha_pago, mes_consumo } = req.body;
     validarImporteFecha(req.body);
 
-    if (!CATEGORIAS_VALIDAS.includes(categoria)) {
+    if (!CATEGORIAS_VALIDAS.has(categoria)) {
       await conn.rollback();
       return res.status(400).json({ ok: false, mensaje: 'Categoría de gasto no válida.' });
     }
@@ -100,7 +100,7 @@ const editarGasto = async (req, res) => {
       return res.status(409).json({ ok: false, mensaje: 'Este gasto está anulado. Reactívalo primero para poder editarlo.' });
     }
 
-    const mesConsumoFinal = CATEGORIAS_CON_MES_CONSUMO.includes(categoria) ? (mes_consumo || null) : null;
+    const mesConsumoFinal = CATEGORIAS_CON_MES_CONSUMO.has(categoria) ? (mes_consumo || null) : null;
 
     await conn.query(
       `UPDATE gastos_clinica SET categoria=?, descripcion=?, monto=?, fecha_pago=?, mes_consumo=? WHERE id=?`,
@@ -110,8 +110,8 @@ const editarGasto = async (req, res) => {
     await registrarAuditoriaFinanciera(conn, {
       usuario_id: req.usuario.id, modulo: 'gastos', accion: `Editó un gasto (ID ${id})`,
       detalle: {
-        antes: { categoria: gastoActual.categoria, monto: parseFloat(gastoActual.monto), fecha_pago: gastoActual.fecha_pago, mes_consumo: gastoActual.mes_consumo },
-        despues: { categoria, monto: parseFloat(monto), fecha_pago, mes_consumo: mesConsumoFinal },
+        antes: { categoria: gastoActual.categoria, monto: Number.parseFloat(gastoActual.monto), fecha_pago: gastoActual.fecha_pago, mes_consumo: gastoActual.mes_consumo },
+        despues: { categoria, monto: Number.parseFloat(monto), fecha_pago, mes_consumo: mesConsumoFinal },
       },
     });
 
@@ -147,7 +147,7 @@ const eliminarGasto = async (req, res) => {
 
     await registrarAuditoriaFinanciera(conn, {
       usuario_id: req.usuario.id, modulo: 'gastos', accion: `Anuló un gasto (ID ${id})`,
-      detalle: { gasto_id: id, categoria: gasto.categoria, monto: parseFloat(gasto.monto) },
+      detalle: { gasto_id: id, categoria: gasto.categoria, monto: Number.parseFloat(gasto.monto) },
     });
 
     await conn.commit();
@@ -182,7 +182,7 @@ const reactivarGasto = async (req, res) => {
 
     await registrarAuditoriaFinanciera(conn, {
       usuario_id: req.usuario.id, modulo: 'gastos', accion: `Reactivó un gasto (ID ${id})`,
-      detalle: { gasto_id: id, categoria: gasto.categoria, monto: parseFloat(gasto.monto) },
+      detalle: { gasto_id: id, categoria: gasto.categoria, monto: Number.parseFloat(gasto.monto) },
     });
 
     await conn.commit();
@@ -224,7 +224,7 @@ const crearPenalidad = async (req, res) => {
   try {
     await conn.beginTransaction();
     const { doctor_id, consulta_id, trabajo_laboratorio_id, monto, motivo, fecha } = req.body;
-    if (!doctor_id || !monto || parseFloat(monto) <= 0 || !motivo) {
+    if (!doctor_id || !monto || Number.parseFloat(monto) <= 0 || !motivo) {
       await conn.rollback();
       return res.status(400).json({ ok: false, mensaje: 'Doctor, monto y motivo son obligatorios.' });
     }
@@ -236,7 +236,7 @@ const crearPenalidad = async (req, res) => {
 
     await registrarAuditoriaFinanciera(conn, {
       usuario_id: req.usuario.id, modulo: 'gastos', accion: `Registró una penalidad al Dr(a). ${doctor_id}`,
-      detalle: { penalidad_id: result.insertId, doctor_id, monto: parseFloat(monto), motivo },
+      detalle: { penalidad_id: result.insertId, doctor_id, monto: Number.parseFloat(monto), motivo },
     });
 
     await conn.commit();

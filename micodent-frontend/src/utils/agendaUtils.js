@@ -1,8 +1,7 @@
 export const generarSlotsHorario = () => {
   const slots = [];
   for (let h = 8; h < 20; h++) {
-    slots.push(`${String(h).padStart(2, '0')}:00`);
-    slots.push(`${String(h).padStart(2, '0')}:30`);
+    slots.push(`${String(h).padStart(2, '0')}:00`, `${String(h).padStart(2, '0')}:30`);
   }
   return slots;
 };
@@ -69,10 +68,12 @@ export const obtenerDiasGrillaMes = (fecha) => {
   finGrilla.setDate(ultimoDiaMes.getDate() + diasHastaFinSemana);
 
   const dias = [];
-  const cursor = new Date(inicioGrilla);
-  while (cursor <= finGrilla) {
-    dias.push(new Date(cursor));
-    cursor.setDate(cursor.getDate() + 1);
+  const diaUTC = date => Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const totalDias = (diaUTC(finGrilla) - diaUTC(inicioGrilla)) / 86400000 + 1;
+  for (let i = 0; i < totalDias; i++) {
+    const dia = new Date(inicioGrilla);
+    dia.setDate(inicioGrilla.getDate() + i);
+    dias.push(dia);
   }
   return dias;
 };

@@ -14,6 +14,6 @@ export default function MetodoPago({ value = 'Efectivo', onChange, monto, config
     {value === 'Tarjeta' && (config ? <div className="border-l-2 border-amber-600 bg-amber-50 p-3 text-sm" data-pos-preview>
       <p>Recargo POS ({Number(config.porcentaje).toFixed(2)}%): {money(surcharge / 100)}</p>
       <p className="font-bold">Total a cobrar: {money((cents + surcharge) / 100)}</p>
-    </div> : <p role="status" className="text-sm text-amber-800">Recargo no disponible. Cierra y vuelve a abrir el formulario.</p>)}
+    </div> : <output className="block text-sm text-amber-800">Recargo no disponible. Cierra y vuelve a abrir el formulario.</output>)}
   </fieldset>;
 }

@@ -21,7 +21,7 @@ export default function ClinicalImage({ record, alt, className }) {
       responseType: 'blob', signal: controller.signal, timeout: 30000,
     }).then(({ data }) => {
       if (!active) return;
-      if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'].includes(data.type)) throw Error('UNSUPPORTED_CLINICAL_FILE');
+      if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'].includes(data.type)) throw new Error('UNSUPPORTED_CLINICAL_FILE');
       url = URL.createObjectURL(data);
       update({ state: data.type === 'application/pdf' ? 'attachment' : 'decoding', url });
     }).catch(() => update({ state: 'error' }));
@@ -31,9 +31,9 @@ export default function ClinicalImage({ record, alt, className }) {
   const current = asset?.id === id && asset?.inline === inline ? asset : null;
   const state = current?.state || 'loading';
   return <span data-clinical-state={state} className="contents">
-    {state === 'loading' && <span role="status" className="p-3 text-sm text-slate-400">Cargando archivo...</span>}
+    {state === 'loading' && <output className="p-3 text-sm text-slate-400">Cargando archivo...</output>}
     {state === 'error' && <span role="alert" className="p-3 text-center text-sm text-slate-500">
-      Archivo no disponible.
+      Archivo no disponible.{' '}
       <button type="button" title="Reintentar carga" aria-label="Reintentar carga" className="ml-2 p-2" onClick={e => { e.stopPropagation(); setAttempt(v => v + 1); }}><RefreshCw size={16}/></button>
     </span>}
     {state === 'attachment' && <a href={current.url} download={`anexo-${id}.pdf`} onClick={e => e.stopPropagation()}

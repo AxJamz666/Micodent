@@ -12,6 +12,9 @@ const ARCADAS = [
   { nombre: 'Maxilar Inferior Deciduo', piezas: [85,84,83,82,81,71,72,73,74,75] },
 ];
 const arcadaDePieza = (numero) => ARCADAS.find(a => a.piezas.includes(numero))?.nombre || null;
+const puedeEliminarRegistro = (item, miUserId, eliminarAbiertoId) =>
+  item.bloqueada && item.registrado_por === miUserId &&
+  (!item.adendas || item.adendas.length === 0) && eliminarAbiertoId !== item.id;
 
 const CampoTexto = ({ label, value, onChange, rows = 2 }) => (
   <div>
@@ -122,6 +125,44 @@ const PanelOdontograma = ({ lado, color, label, historiaId, piezaActiva, registr
     }
   };
 
+  const renderEntryForm = () => {
+    if (!mostrarForm) return (
+      <button onClick={() => setMostrarForm(true)} className={`w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-colors ${btnBg}`}>
+        <Plus size={14}/> Nuevo {label.toLowerCase()}
+      </button>
+    );
+    if (confirmarArcada) return (
+      <div className="p-3 rounded-2xl border border-amber-200 bg-amber-50 space-y-3">
+        <p className="text-xs font-bold text-amber-800">{confirmarArcada.tratamiento.nombre}</p>
+        <p className="text-[10px] text-amber-700">Se aplicará a toda la arcada ({confirmarArcada.nombreArcada}, 16 piezas), no solo a esta pieza.</p>
+        <div className="flex gap-2">
+          <button onClick={() => setConfirmarArcada(null)} className="flex-1 py-2 bg-white text-slate-600 rounded-xl font-bold text-xs border border-slate-200">Cancelar</button>
+          <button disabled={guardando} onClick={() => ejecutarGuardado(confirmarArcada.tratamiento, confirmarArcada.nombreArcada, 'Toda la arcada')} className="flex-1 py-2 bg-amber-500 text-white rounded-xl font-bold text-xs disabled:opacity-50">
+            {guardando ? 'Guardando...' : 'Confirmar'}
+          </button>
+        </div>
+      </div>
+    );
+    return (
+      <form onSubmit={handleGuardarNuevo} className="p-3 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
+        <div>
+          <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</label>
+          <select required value={tratamientoElegidoId} onChange={e => setTratamientoElegidoId(e.target.value)} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-clinical-500 bg-white text-sm font-medium">
+            <option value="">Selecciona de la lista...</option>
+            {listaTratamientos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
+          </select>
+        </div>
+        <CampoTexto label="Detalles (opcional)" value={notas} onChange={setNotas} />
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setMostrarForm(false)} className="flex-1 py-2 bg-white text-slate-600 rounded-xl font-bold text-xs border border-slate-200">Cancelar</button>
+          <button type="submit" disabled={guardando} className={`flex-[2] py-2 text-white rounded-xl font-bold text-xs disabled:opacity-50 ${submitBg}`}>
+            {guardando ? 'Guardando...' : 'Guardar y Firmar'}
+          </button>
+        </div>
+      </form>
+    );
+  };
+
   return (
     <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden w-52 flex-shrink-0 flex flex-col max-h-[600px]">
       <div className={`p-4 text-white ${headerBg}`}>
@@ -138,7 +179,7 @@ const PanelOdontograma = ({ lado, color, label, historiaId, piezaActiva, registr
               <div className="flex justify-between items-start mb-1 gap-1">
                 <p className="text-[10px] font-bold text-slate-500">{item.registrado_por_nombre || '—'} · {item.fecha}</p>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {item.bloqueada && item.registrado_por === miUserId && (!item.adendas || item.adendas.length === 0) && eliminarAbiertoId !== item.id && (
+                  {puedeEliminarRegistro(item, miUserId, eliminarAbiertoId) && (
                     <button onClick={() => { setEliminarAbiertoId(item.id); setEliminarMotivo(''); }} className="text-slate-400 hover:text-red-600" title="Eliminar por error de pieza">
                       <Trash2 size={13} />
                     </button>
@@ -193,39 +234,7 @@ const PanelOdontograma = ({ lado, color, label, historiaId, piezaActiva, registr
           ))
         )}
 
-        {!mostrarForm ? (
-          <button onClick={() => setMostrarForm(true)} className={`w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-colors ${btnBg}`}>
-            <Plus size={14}/> Nuevo {label.toLowerCase()}
-          </button>
-        ) : confirmarArcada ? (
-          <div className="p-3 rounded-2xl border border-amber-200 bg-amber-50 space-y-3">
-            <p className="text-xs font-bold text-amber-800">{confirmarArcada.tratamiento.nombre}</p>
-            <p className="text-[10px] text-amber-700">Se aplicará a toda la arcada ({confirmarArcada.nombreArcada}, 16 piezas), no solo a esta pieza.</p>
-            <div className="flex gap-2">
-              <button onClick={() => setConfirmarArcada(null)} className="flex-1 py-2 bg-white text-slate-600 rounded-xl font-bold text-xs border border-slate-200">Cancelar</button>
-              <button disabled={guardando} onClick={() => ejecutarGuardado(confirmarArcada.tratamiento, confirmarArcada.nombreArcada, 'Toda la arcada')} className="flex-1 py-2 bg-amber-500 text-white rounded-xl font-bold text-xs disabled:opacity-50">
-                {guardando ? 'Guardando...' : 'Confirmar'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleGuardarNuevo} className="p-3 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
-            <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</label>
-              <select required value={tratamientoElegidoId} onChange={e => setTratamientoElegidoId(e.target.value)} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-clinical-500 bg-white text-sm font-medium">
-                <option value="">Selecciona de la lista...</option>
-                {listaTratamientos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-              </select>
-            </div>
-            <CampoTexto label="Detalles (opcional)" value={notas} onChange={setNotas} />
-            <div className="flex gap-2">
-              <button type="button" onClick={() => setMostrarForm(false)} className="flex-1 py-2 bg-white text-slate-600 rounded-xl font-bold text-xs border border-slate-200">Cancelar</button>
-              <button type="submit" disabled={guardando} className={`flex-[2] py-2 text-white rounded-xl font-bold text-xs disabled:opacity-50 ${submitBg}`}>
-                {guardando ? 'Guardando...' : 'Guardar y Firmar'}
-              </button>
-            </div>
-          </form>
-        )}
+        {renderEntryForm()}
       </div>
     </div>
   );

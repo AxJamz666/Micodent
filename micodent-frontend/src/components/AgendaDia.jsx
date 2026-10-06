@@ -45,12 +45,15 @@ const AgendaDia = ({ doctores, citas, onSlotClick, onCitaClick }) => {
 
             <div className="relative">
               {slots.map(s => (
-                <div
+                <button
+                  type="button"
                   key={s}
+                  disabled={ocupaSlot(doc.id, s)}
+                  aria-label={`Agendar con ${doc.nombre_completo} a las ${formatearHora12h(s)}`}
                   onClick={() => { if (!ocupaSlot(doc.id, s)) onSlotClick(doc.id, s); }}
                   style={{ height: ALTURA_SLOT }}
-                  className={`border-b border-slate-50 ${!ocupaSlot(doc.id, s) ? 'hover:bg-clinical-50/50 cursor-pointer' : ''}`}
-                ></div>
+                  className={`block w-full border-b border-slate-50 ${!ocupaSlot(doc.id, s) ? 'hover:bg-clinical-50/50 cursor-pointer' : ''}`}
+                ></button>
               ))}
 
               {citasDeDoctor(doc.id).map(cita => {

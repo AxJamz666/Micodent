@@ -49,7 +49,7 @@ export function createSessionState(storage, nonce = () => crypto.randomUUID()) {
   };
   const validSession = value => {
     if (!value || typeof value.id !== 'string' || typeof value.csrf !== 'string'
-        || !/^[a-f0-9]{64}$/.test(value.id) || !/^[a-f0-9]{64}$/.test(value.csrf)) throw Error('INVALID_SESSION_CONTEXT');
+        || !/^[a-f0-9]{64}$/.test(value.id) || !/^[a-f0-9]{64}$/.test(value.csrf)) throw new Error('INVALID_SESSION_CONTEXT');
     return { id: value.id, csrf: value.csrf };
   };
   const announce = value => {
@@ -71,8 +71,11 @@ export function createSessionState(storage, nonce = () => crypto.randomUUID()) {
     },
     requestContext: ({ login = false, bootstrap = false } = {}) => {
       assertCurrent();
-      if (login ? snapshot.status !== 'anonymous' : bootstrap ? snapshot.status !== 'checking'
-        : snapshot.status !== 'ready' || !session) throw sessionChangedError();
+      let invalidContext;
+      if (login) invalidContext = snapshot.status !== 'anonymous';
+      else if (bootstrap) invalidContext = snapshot.status !== 'checking';
+      else invalidContext = snapshot.status !== 'ready' || !session;
+      if (invalidContext) throw sessionChangedError();
       return { epoch, id: session?.id, csrf: session?.csrf };
     },
     acceptLogin: (value, expected) => {

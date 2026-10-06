@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
+const path = require('node:path');
 
 const db = require('./config/db');
 const browserTransport = require('./config/browserTransport');
@@ -24,6 +24,7 @@ const auditoriaRoutes = require('./routes/auditoria.routes');
 // ======================================================
 
 const app = express();
+app.disable('x-powered-by');
 const PORT = process.env.PORT || 4000;
 
 // Carpeta donde se encuentra el frontend compilado.

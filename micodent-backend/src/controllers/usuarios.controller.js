@@ -5,6 +5,12 @@ const passwords = require('../services/password.service');
 const { auditSecurity } = require('../utils/auditoriaSeguridad');
 const { SecurityError, sendSecurityError } = require('../utils/securityError');
 
+function compareUserIds(a, b) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
 // GET /api/usuarios
 const getUsuarios = async (req, res) => {
   try {
@@ -15,6 +21,7 @@ const getUsuarios = async (req, res) => {
     );
     res.json({ ok: true, data: rows });
   } catch (err) {
+    console.error('USERS_READ_FAILED', err?.code === 'ECONNREFUSED' ? 'CONNECTION_REFUSED' : 'OPERATION_FAILED');
     res.status(500).json({ ok: false, mensaje: 'Error al obtener usuarios.' });
   }
 };
@@ -69,7 +76,7 @@ const editarUsuario = async (req, res) => {
     if (!validRate(comision_porcentaje)) throw new SecurityError(400, 'INVALID_RATE', 'Porcentaje de comision invalido.');
     await security.transaction(async conn => {
       const locked = new Map();
-      for (const userId of [...new Set([req.usuario.id, id])].sort()) {
+      for (const userId of [...new Set([req.usuario.id, id])].sort(compareUserIds)) {
         locked.set(userId, await security.loadUser(conn, userId, true));
       }
       const actor = await security.assertSession(conn, req.auth, locked.get(req.usuario.id));
@@ -108,7 +115,7 @@ const eliminarUsuario = async (req, res) => {
     const id = passwords.normalizeUserId(req.params.id);
     await security.transaction(async conn => {
       const locked = new Map();
-      for (const userId of [...new Set([req.usuario.id, id])].sort()) {
+      for (const userId of [...new Set([req.usuario.id, id])].sort(compareUserIds)) {
         locked.set(userId, await security.loadUser(conn, userId, true));
       }
       const actor = await security.assertSession(conn, req.auth, locked.get(req.usuario.id));
@@ -178,6 +185,7 @@ const getDoctores = async (req, res) => {
     );
     res.json({ ok: true, data: rows });
   } catch (err) {
+    console.error('DOCTORS_READ_FAILED', err?.code === 'ECONNREFUSED' ? 'CONNECTION_REFUSED' : 'OPERATION_FAILED');
     res.status(500).json({ ok: false, mensaje: 'Error al obtener doctores.' });
   }
 };

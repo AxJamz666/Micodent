@@ -103,7 +103,7 @@ const Dashboard = () => {
           color="bg-green-100 text-green-600"
           icon={<TrendingUp size={28}/>}
           label="Ingresos Hoy"
-          value={`S/ ${parseFloat(stats?.ingresosHoy || 0).toFixed(2)}`}
+          value={`S/ ${Number.parseFloat(stats?.ingresosHoy || 0).toFixed(2)}`}
         />
         <KpiCard
           color="bg-orange-100 text-orange-600"
@@ -196,8 +196,8 @@ const Dashboard = () => {
             {ultimas.length === 0
               ? <p className="text-sm text-slate-400 text-center py-6">No hay historias registradas aún.</p>
               : <div className="space-y-3">
-                  {ultimas.map((h, i) => (
-                    <div key={i} className="flex justify-between items-center p-3 hover:bg-slate-50 rounded-xl transition-colors border border-transparent hover:border-slate-100">
+                  {ultimas.map(h => (
+                    <div key={`${h.paciente_id}:${h.nro_historia}`} className="flex justify-between items-center p-3 hover:bg-slate-50 rounded-xl transition-colors border border-transparent hover:border-slate-100">
                       <div>
                         <p className="font-bold text-sm text-slate-800">{h.apellidos}, {h.nombres}</p>
                         <p className="text-xs text-slate-400">{h.nro_historia} • {h.fecha_creacion}</p>

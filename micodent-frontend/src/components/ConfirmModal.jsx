@@ -1,4 +1,5 @@
 import { AlertTriangle, Trash2, RotateCcw } from 'lucide-react';
+import ModalDialog from './ModalDialog';
 
 const ConfirmModal = ({
   isOpen,
@@ -34,11 +35,12 @@ const ConfirmModal = ({
   const { icon, iconBg, btn } = config[type] || config.danger;
 
   return (
-    <div className="dialog-overlay fixed inset-0 z-[500] flex items-center justify-center bg-slate-900/50 p-4">
+    <ModalDialog className="dialog-overlay fixed inset-0 z-[500] flex items-center justify-center bg-slate-900/50 p-4"
+      role="alertdialog" aria-labelledby="confirm-modal-title"
+      onRequestClose={onCancel} closeDisabled={busy}
+      onClick={(e) => e.stopPropagation()}>
       <div
-        role="alertdialog" aria-modal="true" aria-labelledby="confirm-modal-title"
         className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-lg"
-        onClick={(e) => e.stopPropagation()}
       >
         <div>
           <h3 id="confirm-modal-title" className="mb-3 flex items-center gap-2 text-lg font-semibold text-slate-800"><span className={iconBg}>{icon}</span>{title}</h3>
@@ -61,7 +63,7 @@ const ConfirmModal = ({
           </div>
         </div>
       </div>
-    </div>
+    </ModalDialog>
   );
 };
 

@@ -14,6 +14,22 @@ function publicUser(user) {
     especialidad: user.especialidad || '', cop: user.cop || '' };
 }
 
+async function loadUser(conn, id, lock = false) {
+  const [rows] = await conn.execute(`SELECT ${USER_FIELDS} FROM usuarios WHERE id = ?${lock ? ' FOR UPDATE' : ''}`, [id]);
+  return rows[0];
+}
+
+function compareUserIds(a, b) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+async function revokeUser(conn, id) {
+  await conn.execute('UPDATE usuarios SET auth_version = auth_version + 1 WHERE id = ?', [id]);
+  await conn.execute('UPDATE seguridad_sesiones SET revocada_en = CURRENT_TIMESTAMP(3) WHERE usuario_id = ? AND revocada_en IS NULL', [id]);
+}
+
 function createSessionService(db, options, audit = auditSecurity) {
   async function transaction(work) {
     const conn = await db.getConnection();
@@ -28,10 +44,6 @@ function createSessionService(db, options, audit = auditSecurity) {
     } finally { conn.release(); }
   }
 
-  async function loadUser(conn, id, lock = false) {
-    const [rows] = await conn.execute(`SELECT ${USER_FIELDS} FROM usuarios WHERE id = ?${lock ? ' FOR UPDATE' : ''}`, [id]);
-    return rows[0];
-  }
 
   function verifyToken(token) {
     try {
@@ -48,7 +60,7 @@ function createSessionService(db, options, audit = auditSecurity) {
   async function assertSession(conn, auth, lockedUser = null) {
     if (!auth || auth.claims.exp <= Math.floor(Date.now() / 1000)) throw invalidSession();
     const user = lockedUser || await loadUser(conn, auth.claims.sub);
-    if (!user || !user.activo || user.auth_version !== auth.claims.av) throw invalidSession();
+    if (!user?.activo || user.auth_version !== auth.claims.av) throw invalidSession();
     const [rows] = await conn.execute(`SELECT usuario_id, auth_version, expira_epoch, revocada_en
       FROM seguridad_sesiones WHERE token_hash = ?`, [auth.tokenHash]);
     const session = rows[0];
@@ -90,10 +102,6 @@ function createSessionService(db, options, audit = auditSecurity) {
     });
   }
 
-  async function revokeUser(conn, id) {
-    await conn.execute('UPDATE usuarios SET auth_version = auth_version + 1 WHERE id = ?', [id]);
-    await conn.execute('UPDATE seguridad_sesiones SET revocada_en = CURRENT_TIMESTAMP(3) WHERE usuario_id = ? AND revocada_en IS NULL', [id]);
-  }
 
   async function logout(auth, all = false) {
     await transaction(async conn => {
@@ -138,7 +146,7 @@ function createSessionService(db, options, audit = auditSecurity) {
     const hash = await passwords.hashPassword(next);
     await transaction(async conn => {
       // A stable lock order prevents opposite admin/target operations from acquiring rows in opposite order.
-      const ids = [...new Set([auth.claims.sub, targetId])].sort();
+      const ids = [...new Set([auth.claims.sub, targetId])].sort(compareUserIds);
       const locked = new Map();
       for (const id of ids) locked.set(id, await loadUser(conn, id, true));
       const actor = await assertSession(conn, auth, locked.get(auth.claims.sub));

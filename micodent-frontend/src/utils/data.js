@@ -26,9 +26,13 @@ const labels = { monto: 'Monto', categoria: 'Categoría', descripcion: 'Descripc
   margen: 'Margen de la clínica', motivo: 'Motivo', antes: 'Anterior', despues: 'Actual' };
 export function activityFields(value) {
   const obj = jsonValue(value, {});
-  const human = item => item == null ? 'Sin dato' : typeof item === 'object'
-    ? Object.entries(item).map(([k, v]) => `${labels[k] || k.replaceAll('_', ' ')}: ${human(v)}`).join('; ')
-    : String(item);
+  const human = item => {
+    if (item == null) return 'Sin dato';
+    if (typeof item === 'object') {
+      return Object.entries(item).map(([k, v]) => `${labels[k] || k.replaceAll('_', ' ')}: ${human(v)}`).join('; ');
+    }
+    return String(item);
+  };
   return Object.entries(obj).filter(([k]) => !/^\d+$/.test(k)).map(([key, val]) => [
     labels[key] || key.replaceAll('_', ' '),
     /^(monto|comision|costo_aplicado|margen|recargo_pos)$/.test(key) ? money(val) : human(val),

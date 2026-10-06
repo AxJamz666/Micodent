@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  User, Phone, Mail, ShieldCheck, KeyRound,
-  Eye, EyeOff, Info, RefreshCw, MapPin,
+  User, ShieldCheck, KeyRound,
+  Eye, EyeOff, Info, RefreshCw,
   Briefcase, CreditCard, IdCard, PenTool, UploadCloud, Save
 } from 'lucide-react';
 import { authService, usuariosService } from '../services/api';
 import toast from 'react-hot-toast';
+import SignaturePad from '../components/SignaturePad';
 import { useNavigate } from 'react-router-dom';
 import { browserSession } from '../services/browserSession';
 import { passwordPolicyError } from '../utils/passwordPolicy';
@@ -13,71 +14,6 @@ import { passwordPolicyError } from '../utils/passwordPolicy';
 // ==========================================
 // PIZARRA DIGITAL PARA DIBUJAR LA FIRMA
 // ==========================================
-const SignaturePad = ({ onEnd, initialImage }) => {
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (initialImage) {
-      const img = new Image();
-      img.onload = () => ctx.drawImage(img, 0, 0);
-      img.src = initialImage;
-    }
-  }, [initialImage]);
-
-  const startDrawing = (e) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches?.[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches?.[0].clientY) - rect.top;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    setIsDrawing(true);
-  };
-
-  const draw = (e) => {
-    if (!isDrawing) return;
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches?.[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches?.[0].clientY) - rect.top;
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  };
-
-  const stopDrawing = () => {
-    if (isDrawing) {
-      setIsDrawing(false);
-      onEnd(canvasRef.current.toDataURL('image/png'));
-    }
-  };
-
-  const clearPad = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    onEnd(null);
-  };
-
-  return (
-    <div className="flex flex-col items-center gap-2 w-full">
-      <canvas
-        ref={canvasRef}
-        width={350}
-        height={120}
-        className="bg-white border-2 border-dashed border-slate-300 rounded-xl cursor-crosshair touch-none shadow-inner max-w-full"
-        onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
-        onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}
-      />
-      <button type="button" onClick={clearPad} className="text-xs font-bold text-red-500 hover:text-red-700 underline">Borrar y firmar de nuevo</button>
-    </div>
-  );
-};
 
 const MiPerfil = () => {
   const navigate = useNavigate();
@@ -174,7 +110,8 @@ const MiPerfil = () => {
         sello_digital: selloDigital,
       });
       toast.success('Firma y sello guardados correctamente.');
-    } catch (err) {
+    } catch {
+      // Failed persistence keeps the edited assets for retry and uses the existing fixed error notice.
       toast.error('Error al guardar firma y sello.');
     } finally {
       setGuardandoFirma(false);
@@ -191,6 +128,7 @@ const MiPerfil = () => {
   }
 
   const esDoctor = userData?.rol === 'Doctor';
+  const sexo = userData?.gender === 'a' ? 'Femenino' : 'Masculino';
 
   return (
     <div className="animate-fade-in text-slate-800 pb-10 max-w-7xl mx-auto">
@@ -216,7 +154,7 @@ const MiPerfil = () => {
                 <MiniField icon={<IdCard size={14}/>}    label="ID de Acceso"
                   value={localStorage.getItem('userId')} mono />
                 <MiniField icon={<User size={14}/>}      label="Sexo"
-                  value={userData?.gender==='a'?'Femenino':'Masculino'} />
+                  value={sexo} />
                 {esDoctor && userData?.especialidad && (
                   <MiniField icon={<Briefcase size={14}/>} label="Especialidad"
                     value={userData.especialidad} color="text-clinical-700" />
@@ -240,7 +178,7 @@ const MiPerfil = () => {
               <ReadField label="Nombre Completo"    value={userData?.nombre_completo} />
               <ReadField label="DNI"                value={userData?.dni}          empty="No registrado" />
               <ReadField label="Rol en la Clínica"  value={userData?.rol} />
-              <ReadField label="Sexo"               value={userData?.gender==='a'?'Femenino':'Masculino'} />
+              <ReadField label="Sexo"               value={sexo} />
               {esDoctor && <>
                 <ReadField label="Especialidad Médica" value={userData?.especialidad} empty="No registrada" highlight />
                 <ReadField label="Nro. COP"             value={userData?.cop}          empty="No registrado" highlight />
@@ -281,7 +219,7 @@ const MiPerfil = () => {
                     <div className="flex flex-col items-center gap-2">
                       <img src={selloDigital} alt="Sello" className="h-28 object-contain border border-slate-200 rounded-xl bg-white p-2" />
                       <label className="text-xs font-bold text-clinical-600 hover:text-clinical-700 cursor-pointer underline">
-                        Reemplazar sello
+                        Reemplazar sello{' '}
                         <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleSelloUpload} />
                       </label>
                       <button type="button" onClick={() => setSelloDigital(null)} className="text-sm text-red-700 underline">Eliminar sello</button>

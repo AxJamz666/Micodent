@@ -10,7 +10,7 @@ const missing = () => new SecurityError(404, 'CLINICAL_FILE_UNAVAILABLE', 'Archi
 function storedName(value) {
   const match = typeof value === 'string' && /^\/uploads\/([^/\\\x00-\x1f:%?#]+)$/.exec(value);
   const name = match?.[1];
-  if (!name || /[. ]$/.test(name) || /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(?:\.|$)/i.test(name)
+  if (!name || /[. ]$/.test(name) || /^(con|prn|aux|nul|com\d|lpt\d)(?:\.|$)/i.test(name)
       || !types.has(path.extname(name).toLowerCase())) throw missing();
   return name;
 }
@@ -21,7 +21,7 @@ function clinicalFileHandler({ db, root }) {
       'Content-Security-Policy': "default-src 'none'; sandbox", 'Cross-Origin-Resource-Policy': 'same-origin' });
     let file;
     try {
-      if (!/^[1-9][0-9]*$/.test(req.params.id) || !Number.isSafeInteger(Number(req.params.id))) throw missing();
+      if (!/^[1-9]\d*$/.test(req.params.id) || !Number.isSafeInteger(Number(req.params.id))) throw missing();
       const [rows] = await db.execute(`SELECT r.url_archivo FROM radiografias r
         INNER JOIN historias_clinicas h ON h.id=r.historia_id
         LEFT JOIN radiografias_anulaciones a ON a.radiografia_id=r.id AND a.restaurada_en IS NULL

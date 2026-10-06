@@ -16,8 +16,10 @@ export function selectedRxTeeth(orden) {
   const tomography = normalize(orden?.piezas_tomografia);
   const periapical = normalize(orden?.periapicales_piezas);
   return TOOTH_ROWS.flat().filter(number => tomography.has(number) || periapical.has(number))
-    .map(number => ({
-      number,
-      type: tomography.has(number) && periapical.has(number) ? 'T/P' : tomography.has(number) ? 'T' : 'P',
-    }));
+    .map(number => {
+      let type = 'P';
+      if (tomography.has(number) && periapical.has(number)) type = 'T/P';
+      else if (tomography.has(number)) type = 'T';
+      return { number, type };
+    });
 }

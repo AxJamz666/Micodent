@@ -36,7 +36,7 @@ const getStats = async (req, res) => {
     res.json({
       ok: true,
       data: {
-        ingresosHoy: parseFloat(ingresosHoy),
+        ingresosHoy: Number.parseFloat(ingresosHoy),
         sinHistoria: sinHistoria,
         deudores: deudores,
         totalHistorias: totalHistorias
@@ -139,14 +139,14 @@ const getFinanciero = async (req, res) => {
     );
 
     const porDoctorConNeto = porDoctor.map(d => {
-      const comisionBruta = parseFloat(d.comision_bruta);
-      const penalidades = parseFloat(d.penalidades);
+      const comisionBruta = Number.parseFloat(d.comision_bruta);
+      const penalidades = Number.parseFloat(d.penalidades);
       return {
         ...d,
-        total_cobrado: parseFloat(d.total_cobrado),
+        total_cobrado: Number.parseFloat(d.total_cobrado),
         comision_bruta: comisionBruta,
         penalidades,
-        comision_neta: parseFloat((comisionBruta - penalidades).toFixed(2)),
+        comision_neta: Number.parseFloat((comisionBruta - penalidades).toFixed(2)),
       };
     });
 
@@ -165,7 +165,7 @@ const getFinanciero = async (req, res) => {
        GROUP BY categoria`,
       [fechaDesde, fechaHasta]
     );
-    const totalGastosOperativos = gastosPorCategoria.reduce((sum, g) => sum + parseFloat(g.total), 0);
+    const totalGastosOperativos = gastosPorCategoria.reduce((sum, g) => sum + Number.parseFloat(g.total), 0);
 
     const [[cash]] = await connection.query(`SELECT COALESCE(SUM(p.monto),0) AS cobrado,COALESCE(SUM(p.recargo_pos),0) AS recargos,
       COALESCE(SUM(p.comision_generada),0) AS comision,COALESCE(SUM(f.costo_aplicado),0) AS costos,
@@ -194,7 +194,7 @@ const getFinanciero = async (req, res) => {
           flujoNeto: (ingresosCaja - salidasCaja) / 100,
         },
         porDoctor: porDoctorConNeto,
-        costoLaboratorioPagado: parseFloat(costoLaboratorioPagado),
+        costoLaboratorioPagado: Number.parseFloat(costoLaboratorioPagado),
         gastosPorCategoria,
         totalGastosOperativos,
         totales: { totalFacturado: Number(quoted.total), totalCobrado, totalComisionNeta, totalComisionBruta: Number(cash.comision),

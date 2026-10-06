@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Lock, Printer, FileText, RefreshCw, History } from 'lucide-react';
+import { Plus, X, Printer, FileText, RefreshCw, History } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { historiasService } from '../services/api';
 import PiezaSelector from './PiezaSelector';
 import RxTeethPrint from './RxTeethPrint';
 import FirmaMiniBlock from './FirmaMiniBlock';
 import PrintPortal from './PrintPortal';
+import ModalDialog from './ModalDialog';
+import DocumentActions from './DocumentActions';
 import { printDocument } from '../utils/printDocument';
 
 const EXTRAORALES_OPCIONES = [
@@ -72,7 +74,7 @@ const calcularEdad = (fecha) => {
   let age = today.getFullYear() - birthDate.getFullYear();
   const m = today.getMonth() - birthDate.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-  return age;
+  return String(age);
 };
 
 const FormularioOrden = ({ form, setForm }) => {
@@ -98,17 +100,17 @@ const FormularioOrden = ({ form, setForm }) => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="ui-field-label">Tipo de Solicitud</label>
+        <fieldset className="min-w-0">
+          <legend className="ui-field-label w-full">Tipo de Solicitud</legend>
           <div className="flex gap-2">
             {[{ v: 'rx_informe', l: 'Rx + Informe' }, { v: 'todo_virtual', l: 'Todo Virtual' }].map(op => (
-              <button key={op.v} type="button" onClick={() => setForm(prev => ({ ...prev, tipo_solicitud: op.v }))}
+              <button key={op.v} type="button" aria-pressed={form.tipo_solicitud === op.v} onClick={() => setForm(prev => ({ ...prev, tipo_solicitud: op.v }))}
                 className={`flex-1 px-4 py-2.5 rounded-xl border text-sm font-bold transition-colors ${form.tipo_solicitud === op.v ? 'bg-clinical-50 border-clinical-300 text-clinical-700' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
                 {op.l}
               </button>
             ))}
           </div>
-        </div>
+        </fieldset>
         <div>
           <label htmlFor="orden-envio-virtual" className="ui-field-label">Envío Virtual</label>
           <select id="orden-envio-virtual" value={form.envio_virtual} onChange={e => setForm(prev => ({ ...prev, envio_virtual: e.target.value }))}
@@ -353,22 +355,10 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
                   <p className="text-sm text-slate-800 mt-1">{orden.tipo_solicitud === 'todo_virtual' ? 'Todo Virtual' : 'Rx + Informe'}</p>
                   {orden.motivo && <p className="text-xs text-slate-500 mt-1 line-clamp-1">{orden.motivo}</p>}
                 </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {orden.reemplaza_a && (
-                    <button onClick={() => setHistorialOrden(orden)} className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Historial de correcciones">
-                      <History size={16}/>
-                    </button>
-                  )}
-                  {esDoctor && (
-                    <button onClick={() => abrirReemitir(orden)} className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Corregir (anula esta y emite una nueva)">
-                      <RefreshCw size={16}/>
-                    </button>
-                  )}
-                  <button onClick={() => setSelectedOrden(orden)} className="p-2 text-slate-400 hover:text-clinical-600 hover:bg-clinical-50 rounded-lg transition-colors" title="Ver / Imprimir">
-                    <Printer size={16}/>
-                  </button>
-                  <Lock size={14} className="text-slate-400" />
-                </div>
+                <DocumentActions hasHistory={orden.reemplaza_a} canCorrect={esDoctor}
+                  onShowHistory={() => setHistorialOrden(orden)}
+                  onCorrect={() => abrirReemitir(orden)}
+                  onPreview={() => setSelectedOrden(orden)} />
               </div>
             </div>
           ))}
@@ -376,7 +366,7 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
       )}
 
       {showNueva && (
-        <div role="dialog" aria-modal="true" aria-label="Nueva Orden de Radiografía" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Nueva Orden de Radiografía" onRequestClose={() => setShowNueva(false)} closeDisabled={guardando} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
             <div className="ui-dialog-header">
               <h3 className="font-semibold text-base">Nueva Orden de Radiografía</h3>
@@ -389,11 +379,11 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
               </button>
             </form>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {ordenAReemitir && (
-        <div role="dialog" aria-modal="true" aria-label="Corregir Orden" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Corregir Orden" onRequestClose={() => setOrdenAReemitir(null)} closeDisabled={reemitiendo} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
             <div className="ui-dialog-header">
               <h3 className="font-semibold text-base flex items-center gap-2"><RefreshCw size={18}/> Corregir Orden</h3>
@@ -414,11 +404,11 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
               </button>
             </form>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {historialOrden && (
-        <div role="dialog" aria-modal="true" aria-label="Historial de esta Orden" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Historial de esta Orden" onRequestClose={() => setHistorialOrden(null)} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[85vh]">
             <div className="ui-dialog-header">
               <h3 className="font-semibold text-base flex items-center gap-2"><History size={18}/> Historial de esta Orden</h3>
@@ -453,7 +443,7 @@ const OrdenRadiografiaTab = ({ historiaId, ordenes, onGuardado, pacienteInfo, es
               </div>
             </div>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {selectedOrden && (

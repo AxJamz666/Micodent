@@ -220,7 +220,7 @@ const guardarAntecedentes = async (req, res) => {
 
     const { historiaId } = req.params;
 
-    if (!historiaId || isNaN(historiaId)) {
+    if (!historiaId || Number.isNaN(+historiaId)) {
       await conn.rollback();
       return res.status(400).json({ ok: false, mensaje: 'No se pudo identificar la historia clínica. Recarga la página e inténtalo de nuevo.' });
     }
@@ -472,7 +472,7 @@ const subirRadiografia = async (req, res) => {
     const { historiaId } = req.params;
     const { descripcion, tipo } = req.body;
     if (!req.file) return res.status(400).json({ ok: false, mensaje: 'No se recibió ningún archivo.' });
-    if (!/^[1-9][0-9]*$/.test(historiaId) || !Number.isSafeInteger(Number(historiaId))
+    if (!/^[1-9]\d*$/.test(historiaId) || !Number.isSafeInteger(Number(historiaId))
         || typeof descripcion !== 'string' && descripcion !== undefined
         || typeof tipo !== 'string' && tipo !== undefined
         || (descripcion?.length || 0) > 1000 || (tipo?.length || 0) > 50) {
@@ -513,6 +513,7 @@ const subirRadiografia = async (req, res) => {
   } catch (err) {
     if (conn) { await conn.rollback().catch(() => {}); conn.release(); }
     // An uncertain commit may have persisted the row. Keep its bytes for reconciliation.
+    console.error('CLINICAL_UPLOAD_FAILED', err?.code === 'ECONNREFUSED' ? 'CONNECTION_REFUSED' : 'OPERATION_FAILED');
     res.status(500).json({ ok: false, mensaje: 'Error al subir imagen.' });
   } finally {
     if (req.file?.path && (!publishedPath || !commitStarted)) await fs.unlink(req.file.path).catch(() => {});
@@ -535,6 +536,7 @@ const getRadiografias = async (req, res) => {
     );
     res.json({ ok: true, data: rows });
   } catch (err) {
+    console.error('CLINICAL_IMAGES_READ_FAILED', err?.code === 'ECONNREFUSED' ? 'CONNECTION_REFUSED' : 'OPERATION_FAILED');
     res.status(500).json({ ok: false, mensaje: 'Error al obtener imágenes.' });
   }
 };
@@ -544,7 +546,7 @@ const eliminarRadiografia = async (req, res) => {
   let conn;
   try {
     const { id } = req.params;
-    if (!/^[1-9][0-9]*$/.test(id)) return res.status(400).json({ ok: false, mensaje: 'Anexo no válido.' });
+    if (!/^[1-9]\d*$/.test(id)) return res.status(400).json({ ok: false, mensaje: 'Anexo no válido.' });
     conn = await db.getConnection(); await conn.beginTransaction();
     const [rows] = await conn.execute('SELECT historia_id, descripcion FROM radiografias WHERE id=? FOR UPDATE', [id]);
     if (!rows.length) return res.status(404).json({ ok: false, mensaje: 'Imagen no encontrada.' });
@@ -562,6 +564,7 @@ const eliminarRadiografia = async (req, res) => {
     await conn.commit();
     res.json({ ok: true, mensaje: 'Anexo anulado; el archivo se conserva.' });
   } catch (err) {
+    console.error('CLINICAL_IMAGE_ARCHIVE_FAILED', err?.code === 'ECONNREFUSED' ? 'CONNECTION_REFUSED' : 'OPERATION_FAILED');
     res.status(500).json({ ok: false, mensaje: 'Error al eliminar imagen.' });
   } finally {
     if (conn) { await conn.rollback().catch(() => {}); conn.release(); }
@@ -572,7 +575,7 @@ const restaurarRadiografia = async (req, res) => {
   let conn;
   try {
     const { id } = req.params;
-    if (!/^[1-9][0-9]*$/.test(id)) return res.status(400).json({ ok: false, mensaje: 'Anexo no válido.' });
+    if (!/^[1-9]\d*$/.test(id)) return res.status(400).json({ ok: false, mensaje: 'Anexo no válido.' });
     conn = await db.getConnection(); await conn.beginTransaction();
     const [rows] = await conn.execute('SELECT historia_id, descripcion, url_archivo FROM radiografias WHERE id=? FOR UPDATE', [id]);
     if (!rows.length) return res.status(404).json({ ok: false, mensaje: 'Imagen no encontrada.' });
@@ -581,7 +584,7 @@ const restaurarRadiografia = async (req, res) => {
     let available = false;
     try {
       const directory = await fs.lstat(uploadDir);
-      if (!directory.isDirectory() || directory.isSymbolicLink()) throw Error('CLINICAL_STORAGE_INVALID');
+      if (!directory.isDirectory() || directory.isSymbolicLink()) throw new Error('CLINICAL_STORAGE_INVALID');
       const stat = await fs.lstat(path.join(uploadDir, storedName(rows[0].url_archivo)));
       available = stat.isFile() && !stat.isSymbolicLink() && stat.size > 0;
     } catch { /* Keep the archived record until its bytes can be recovered. */ }
@@ -593,6 +596,7 @@ const restaurarRadiografia = async (req, res) => {
     await conn.commit();
     res.json({ ok: true, mensaje: 'Anexo restaurado.' });
   } catch (err) {
+    console.error('CLINICAL_IMAGE_RESTORE_FAILED', err?.code === 'ECONNREFUSED' ? 'CONNECTION_REFUSED' : 'OPERATION_FAILED');
     res.status(500).json({ ok: false, mensaje: 'Error al restaurar anexo.' });
   } finally {
     if (conn) { await conn.rollback().catch(() => {}); conn.release(); }
@@ -678,7 +682,7 @@ const editarConsulta = async (req, res) => {
     await db.query(
       `INSERT INTO auditoria_historias (historia_id, usuario_id, accion, fecha_accion, hora_accion)
        VALUES (?, ?, ?, ?, ?)`,
-      [rows[0].historia_id, req.usuario.id, `Editó el tratamiento: "${descripcion}" — Nuevo costo: S/ ${parseFloat(costo_total).toFixed(2)}`, fecha, hora]
+      [rows[0].historia_id, req.usuario.id, `Editó el tratamiento: "${descripcion}" — Nuevo costo: S/ ${Number.parseFloat(costo_total).toFixed(2)}`, fecha, hora]
     );
 
     res.json({ ok: true, mensaje: 'Tratamiento actualizado.' });
@@ -733,6 +737,7 @@ const getCentrosReferencia = async (req, res) => {
     const [rows] = await db.query('SELECT * FROM centros_referencia WHERE activo = 1 ORDER BY nombre ASC');
     res.json({ ok: true, data: rows });
   } catch (err) {
+    console.error('CLINICAL_REFERENCE_CENTERS_READ_FAILED', err?.code === 'ECONNREFUSED' ? 'CONNECTION_REFUSED' : 'OPERATION_FAILED');
     res.status(500).json({ ok: false, mensaje: 'Error al obtener centros de referencia.' });
   }
 };

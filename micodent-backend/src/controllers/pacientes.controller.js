@@ -85,6 +85,7 @@ const getPacienteById = async (req, res) => {
     }
     res.json({ ok: true, data: rows[0] });
   } catch (err) {
+    console.error('PATIENT_READ_FAILED', err?.code === 'ECONNREFUSED' ? 'CONNECTION_REFUSED' : 'OPERATION_FAILED');
     res.status(500).json({ ok: false, mensaje: 'Error al obtener paciente.' });
   }
 };
@@ -108,7 +109,7 @@ const crearPaciente = async (req, res) => {
 
     const anioNacimiento = new Date(fecha_nacimiento).getFullYear();
     const anioActual = new Date().getFullYear();
-    if (!fecha_nacimiento || isNaN(anioNacimiento) || anioNacimiento < 1900 || anioNacimiento > anioActual) {
+    if (!fecha_nacimiento || Number.isNaN(anioNacimiento) || anioNacimiento < 1900 || anioNacimiento > anioActual) {
       await conn.rollback();
       return res.status(400).json({ ok: false, mensaje: 'La fecha de nacimiento no es válida.' });
     }
@@ -205,7 +206,7 @@ const editarPaciente = async (req, res) => {
 
     const anioNacimiento = new Date(fecha_nacimiento).getFullYear();
     const anioActual = new Date().getFullYear();
-    if (!fecha_nacimiento || isNaN(anioNacimiento) || anioNacimiento < 1900 || anioNacimiento > anioActual) {
+    if (!fecha_nacimiento || Number.isNaN(anioNacimiento) || anioNacimiento < 1900 || anioNacimiento > anioActual) {
       await conn.rollback();
       return res.status(400).json({ ok: false, mensaje: 'La fecha de nacimiento no es válida.' });
     }
@@ -246,6 +247,7 @@ const editarPaciente = async (req, res) => {
     res.json({ ok: true, mensaje: 'Paciente actualizado correctamente.' });
   } catch (err) {
     await conn.rollback();
+    console.error('PATIENT_UPDATE_FAILED', err?.code === 'ECONNREFUSED' ? 'CONNECTION_REFUSED' : 'OPERATION_FAILED');
     res.status(500).json({ ok: false, mensaje: 'Error al editar paciente.' });
   } finally {
     conn.release();
@@ -319,6 +321,7 @@ const getAuditoriaPaciente = async (req, res) => {
     );
     res.json({ ok: true, data: rows });
   } catch (err) {
+    console.error('PATIENT_AUDIT_READ_FAILED', err?.code === 'ECONNREFUSED' ? 'CONNECTION_REFUSED' : 'OPERATION_FAILED');
     res.status(500).json({ ok: false, mensaje: 'Error al obtener auditoría.' });
   }
 };

@@ -22,3 +22,10 @@ PREPARACION_DEV.json
 *.sql
 !micodent-backend/migrations/*.sql
 *.zip
+**/.scannerwork/
+**/.cache/
+**/.tmp-*/
+**/node-compile-cache/
+**/src/uploads/
+micodent-backend/public/
+# Fixed baseline evidence is archived under docs/baseline/evidence, not here.

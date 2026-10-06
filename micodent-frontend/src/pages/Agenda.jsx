@@ -43,7 +43,7 @@ const Agenda = () => {
       } else {
         const dias = obtenerDiasGrillaMes(fechaActual);
         desde = formatearFechaISO(dias[0]);
-        hasta = formatearFechaISO(dias[dias.length - 1]);
+        hasta = formatearFechaISO(dias.at(-1));
       }
       const { data } = await citasService.getAll(desde, hasta);
       if (current === requestId.current) setCitas(data.data || []);
@@ -109,6 +109,23 @@ const Agenda = () => {
     return fechaActual.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
   };
 
+  const renderCalendar = () => {
+    if (loading) return (
+      <div className="flex justify-center items-center py-20">
+          <div className="w-10 h-10 border-4 border-clinical-500 border-t-transparent rounded-full animate-spin"/>
+        </div>
+    );
+    if (vista === 'dia') return (
+      <AgendaDia doctores={doctores} citas={citas} onSlotClick={handleSlotClick} onCitaClick={handleCitaClick} />
+    );
+    if (vista === 'semana') return (
+      <AgendaSemana fechaActual={fechaActual} citas={citas} onDiaClick={saltarADia} onCitaClick={handleCitaClick} />
+    );
+    return (
+      <AgendaMes fechaActual={fechaActual} citas={citas} onDiaClick={saltarADia} />
+    );
+  };
+
   return (
     <div className="animate-fade-in text-slate-800 pb-10">
       <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -137,17 +154,7 @@ const Agenda = () => {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <div className="w-10 h-10 border-4 border-clinical-500 border-t-transparent rounded-full animate-spin"/>
-        </div>
-      ) : vista === 'dia' ? (
-        <AgendaDia doctores={doctores} citas={citas} onSlotClick={handleSlotClick} onCitaClick={handleCitaClick} />
-      ) : vista === 'semana' ? (
-        <AgendaSemana fechaActual={fechaActual} citas={citas} onDiaClick={saltarADia} onCitaClick={handleCitaClick} />
-      ) : (
-        <AgendaMes fechaActual={fechaActual} citas={citas} onDiaClick={saltarADia} />
-      )}
+      {renderCalendar()}
 
       <CitaModal
         isOpen={showModal}

@@ -9,7 +9,7 @@ const PiezaSelector = ({ seleccionadas, onChange }) => {
   return (
     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 overflow-x-auto">
       {TOOTH_ROWS.map((fila, i) => (
-        <div key={i} className={`flex gap-1 justify-center flex-wrap ${i === 1 || i === 2 ? 'opacity-70' : ''}`}>
+        <div key={fila.join('-')} className={`flex gap-1 justify-center flex-wrap ${i === 1 || i === 2 ? 'opacity-70' : ''}`}>
           {fila.map(n => (
             <button
               key={n}

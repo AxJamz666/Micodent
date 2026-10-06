@@ -6,10 +6,13 @@ import {
   Check, Clock, Trash2, Edit, Lock, UploadCloud, Baby, FileSignature, Archive, ArchiveRestore
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import SignaturePad from '../components/SignaturePad';
 import { pacientesService, historiasService, authService, dashboardService } from '../services/api';
 import ClinicalImage from '../components/ClinicalImage';
+import InputV from '../components/InputV';
 import { useSession } from '../services/browserSession';
 import MetodoPago from '../components/MetodoPago';
+import ModalDialog from '../components/ModalDialog';
 import OdontogramaEditor from '../components/OdontogramaEditor';
 import RecetarioTab from '../components/RecetarioTab';
 import OrdenRadiografiaTab from '../components/OrdenRadiografiaTab';
@@ -36,71 +39,131 @@ const calculateAge = (fecha) => {
 // ==========================================
 // PIZARRA DIGITAL — firma del paciente
 // ==========================================
-const SignaturePad = ({ onEnd, initialImage }) => {
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (initialImage) {
-      const img = new Image();
-      img.onload = () => ctx.drawImage(img, 0, 0);
-      img.src = initialImage;
-    }
-  }, [initialImage]);
+const PestanasPaciente = ({ activeTab, setActiveTab, esDoctor }) => (
+  <div className="mb-5 flex w-full gap-1 overflow-x-auto border-b border-slate-200 pb-1">
+    <TabBtn active={activeTab==='datosPersonales'} onClick={()=>setActiveTab('datosPersonales')} icon={<User size={16}/>} label="Datos Personales"/>
+    {esDoctor && <TabBtn active={activeTab==='triaje'} onClick={()=>setActiveTab('triaje')} icon={<Activity size={16}/>} label="Triaje y Antecedentes"/>}
+    {esDoctor && <TabBtn active={activeTab==='diagnostico'} onClick={()=>setActiveTab('diagnostico')} icon={<FileText size={16}/>} label="Diagnóstico y Plan"/>}
+    {esDoctor && <TabBtn active={activeTab==='odontograma'} onClick={()=>setActiveTab('odontograma')} icon={<ShieldAlert size={16}/>} label="Odontograma"/>}
+    <TabBtn active={activeTab==='radiografias'} onClick={()=>setActiveTab('radiografias')} icon={<ImageIcon size={16}/>} label="Radiografías"/>
+    <TabBtn active={activeTab==='evolucion'} onClick={()=>setActiveTab('evolucion')} icon={<CreditCard size={16}/>} label="Evolución"/>
+    <TabBtn active={activeTab==='recetario'} onClick={()=>setActiveTab('recetario')} icon={<FileSignature size={16}/>} label="Recetario"/>
+    <TabBtn active={activeTab==='ordenesRx'} onClick={()=>setActiveTab('ordenesRx')} icon={<FileText size={16}/>} label="Órdenes Rx"/>
+    {esDoctor && <TabBtn active={activeTab==='consentimiento'} onClick={()=>setActiveTab('consentimiento')} icon={<PenTool size={16}/>} label="Firmas"/>}
+  </div>
+);
 
-  const startDrawing = (e) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches?.[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches?.[0].clientY) - rect.top;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    setIsDrawing(true);
-  };
-
-  const draw = (e) => {
-    if (!isDrawing) return;
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches?.[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches?.[0].clientY) - rect.top;
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  };
-
-  const stopDrawing = () => {
-    if (isDrawing) {
-      setIsDrawing(false);
-      onEnd(canvasRef.current.toDataURL('image/png'));
-    }
-  };
-
-  const clearPad = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    onEnd(null);
-  };
-
-  return (
-    <div className="flex flex-col items-center gap-2 w-full">
-      <canvas
-        ref={canvasRef}
-        width={350}
-        height={120}
-        className="bg-white border-2 border-dashed border-slate-300 rounded-xl cursor-crosshair touch-none shadow-inner max-w-full"
-        onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
-        onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}
-      />
-      <button type="button" onClick={clearPad} className="text-xs font-bold text-red-500 hover:text-red-700 underline">Borrar y firmar de nuevo</button>
+const AnexosPaciente = ({ radiografias, subiendoImagen, onSubir, onAnular, onSeleccionar,
+  setRadiografias, esAdmin, hcId, onToggleArchivadas, cargandoArchivadas,
+  mostrarArchivadas, archivadas, onRestaurar }) => (
+  <div className="animate-fade-in space-y-6">
+    <div className="border-b pb-4">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800"><ImageIcon size={21} className="text-clinical-600"/> Placas y anexos fotográficos</h3>
+        <label className={`cursor-pointer px-6 py-2.5 bg-clinical-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-clinical-700 shadow-md transition-all ${subiendoImagen ? 'opacity-50 pointer-events-none' : ''}`}>
+          <UploadCloud size={18}/> {subiendoImagen ? 'Subiendo...' : 'Subir Imagen'}
+          <input type="file" accept="image/*" className="hidden" onChange={onSubir} disabled={subiendoImagen} />
+        </label>
+      </div>
+      <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-lg border border-green-100 inline-flex items-center gap-1">
+        <Check size={12}/> Cada imagen se guarda al subirla
+      </span>
     </div>
-  );
-};
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {radiografias.length === 0 ? (
+        <div className="col-span-2 text-center py-16 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl">
+          <ImageIcon size={48} className="mx-auto text-slate-300 mb-4" />
+          <p className="text-slate-500 font-bold">No hay placas registradas.</p>
+        </div>
+      ) : radiografias.map(rad => (
+        <div key={rad.id} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden group">
+          <div className="relative h-64 bg-black flex items-center justify-center cursor-pointer">
+            <button type="button" aria-label={`Abrir anexo: ${rad.descripcion || 'Placa'}`} onClick={() => onSeleccionar(rad)} className="absolute inset-0" />
+            <div className="contents pointer-events-none [&_button]:pointer-events-auto [&_a]:pointer-events-auto">
+              <ClinicalImage record={rad} alt="Placa" className="max-h-full max-w-full object-contain" />
+            </div>
+            <button type="button" title="Anular anexo" aria-label="Anular anexo" onClick={(e) => { e.stopPropagation(); onAnular(rad.id); }} className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"><Trash2 size={16}/></button>
+          </div>
+          <div className="p-4 bg-slate-50">
+            <input type="text" placeholder="Ej. Radiografía Panorámica Inicial..." className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-clinical-500 text-sm font-bold text-slate-700" value={rad.descripcion} onChange={(e) => setRadiografias(prev => prev.map(r => r.id === rad.id ? { ...r, descripcion: e.target.value } : r))} />
+          </div>
+        </div>
+      ))}
+    </div>
+    {esAdmin && hcId && <div className="border-t border-slate-200 pt-4">
+      <button type="button" onClick={onToggleArchivadas} disabled={cargandoArchivadas}
+        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-clinical-600 disabled:opacity-50">
+        <Archive size={16}/>{mostrarArchivadas ? 'Ocultar anexos anulados' : 'Ver anexos anulados'}
+      </button>
+      {mostrarArchivadas && <div className="mt-3 space-y-2">
+        {archivadas.length === 0 && <p className="text-sm text-slate-500">No hay anexos anulados.</p>}
+        {archivadas.map(rad => <div key={rad.id} className="flex flex-wrap items-center justify-between gap-3 border border-slate-200 p-3 text-sm">
+          <span>{rad.descripcion || 'Anexo'} · {rad.anulada_en?.slice(0, 10) || 'Sin fecha'}</span>
+          <button type="button" onClick={() => onRestaurar(rad.id)} className="inline-flex items-center gap-2 text-clinical-600 font-semibold">
+            <ArchiveRestore size={16}/> Restaurar
+          </button>
+        </div>)}
+      </div>}
+    </div>}
+  </div>
+);
+
+const ModalTratamiento = ({ editEvoId, setEditEvoId, formNuevoTratamiento, setFormNuevoTratamiento, posConfig, savingTreatment, treatmentAction, handleCrearTratamiento, setShowNuevoTratamiento }) => (
+  <ModalDialog aria-label={editEvoId ? 'Editar Tratamiento' : 'Nuevo Tratamiento'} onRequestClose={() => { setShowNuevoTratamiento(false); setEditEvoId(null); setFormNuevoTratamiento({ fecha: fechaHoyLima(), descripcion: '', costoTotal: '', abonoInicial: '', estadoClinico: '', tipoComision: 'estandar', cantidadRadiografias: 1, nombreLaboratorio: '', montoLaboratorio: '' }); }} closeDisabled={savingTreatment} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
+            <div className="ui-dialog-header">
+              <h3 className="font-semibold text-base">{editEvoId ? 'Editar Tratamiento' : 'Nuevo Tratamiento'}</h3>
+              <button onClick={() => { setShowNuevoTratamiento(false); setEditEvoId(null); setFormNuevoTratamiento({ fecha: fechaHoyLima(), descripcion: '', costoTotal: '', abonoInicial: '', estadoClinico: '', tipoComision: 'estandar', cantidadRadiografias: 1, nombreLaboratorio: '', montoLaboratorio: '' }); }} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
+            </div>
+            <form id="tratamiento-form" onSubmit={handleCrearTratamiento} className="p-6 space-y-5">
+              <InputV label="Fecha de Inicio" type="date" value={formNuevoTratamiento.fecha} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, fecha: v})} />
+              <Field label="Descripción del Tratamiento" value={formNuevoTratamiento.descripcion} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, descripcion: v})} isTextArea rows="2" />
+              {!editEvoId && (
+                <>
+                  <Field label="Estado Clínico (cómo encontraste al paciente hoy)" value={formNuevoTratamiento.estadoClinico} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, estadoClinico: v})} isTextArea rows="2" />
+                  <fieldset className="min-w-0">
+                    <legend className="block w-full text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Tipo de Tratamiento (para el cálculo de comisión)</legend>
+                    <div className="flex gap-2">
+                      {[{ v: 'estandar', l: 'Estándar' }, { v: 'rehabilitacion', l: 'Rehabilitación' }, { v: 'endodoncia', l: 'Endodoncia' }].map(op => (
+                        <button key={op.v} type="button" aria-pressed={formNuevoTratamiento.tipoComision === op.v} onClick={() => setFormNuevoTratamiento({...formNuevoTratamiento, tipoComision: op.v})}
+                          className={`flex-1 py-2.5 rounded-xl border text-xs font-bold transition-colors ${formNuevoTratamiento.tipoComision === op.v ? 'bg-clinical-50 border-clinical-300 text-clinical-700' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                          {op.l}
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+                  {formNuevoTratamiento.tipoComision === 'endodoncia' && (
+                    <InputV label="Cantidad de Radiografías" placeholder="1" format="num" value={formNuevoTratamiento.cantidadRadiografias} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, cantidadRadiografias: v})} />
+                  )}
+                  <InputV label="Otros costos externos (S/)" placeholder="0.00" format="dec" required={false} value={formNuevoTratamiento.costoExterno || ''} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, costoExterno: v})} />
+                  {formNuevoTratamiento.tipoComision === 'rehabilitacion' && (
+                    <div className="grid grid-cols-2 gap-4 border-l-2 border-amber-600 bg-slate-50 p-4">
+                      <div className="col-span-2">
+                        <label htmlFor="tratamiento-laboratorio" className="ui-field-label">Nombre del Laboratorio</label>
+                        <input id="tratamiento-laboratorio" value={formNuevoTratamiento.nombreLaboratorio} onChange={e => setFormNuevoTratamiento({...formNuevoTratamiento, nombreLaboratorio: e.target.value})}
+                          className="ui-input" placeholder="Ej. Laboratorio Dental Center" />
+                      </div>
+                      <InputV label="Costo Laboratorio (S/)" placeholder="0.00" format="dec" value={formNuevoTratamiento.montoLaboratorio} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, montoLaboratorio: v})} />
+                      <p className="col-span-2 text-xs text-slate-600">Si aún no tienes el costo exacto, puedes dejarlo en blanco — pero la comisión del doctor se calculará sin descuento de laboratorio hasta que lo completes (por ahora, solo se puede agregar en la creación del tratamiento).</p>
+                    </div>
+                  )}
+                </>
+              )}
+              <div className={`grid ${editEvoId ? 'grid-cols-1' : 'grid-cols-2'} gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100`}>
+                <InputV label="Costo Total (S/)" placeholder="0.00" format="dec" value={formNuevoTratamiento.costoTotal} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, costoTotal: v})} />
+                {!editEvoId && (
+                  <InputV label="Abono Inicial (S/)" placeholder="0.00 (opcional)" format="dec" required={false} value={formNuevoTratamiento.abonoInicial} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, abonoInicial: v})} />
+                )}
+              </div>
+              {!editEvoId && <MetodoPago value={formNuevoTratamiento.metodo} monto={formNuevoTratamiento.abonoInicial} config={posConfig} onChange={metodo=>setFormNuevoTratamiento({...formNuevoTratamiento,metodo})}/>}
+            </form>
+            <div data-dialog-footer>
+              <button type="submit" form="tratamiento-form" disabled={savingTreatment || (!editEvoId && formNuevoTratamiento.metodo === 'Tarjeta' && !posConfig)} className="ui-button-primary w-full">{savingTreatment ? 'Guardando...' : treatmentAction}</button>
+            </div>
+          </div>
+        </ModalDialog>
+);
 
 const PacienteDetalle = () => {
   const { user: verifiedUser } = useSession();
@@ -267,7 +330,8 @@ const PacienteDetalle = () => {
           setFirmaPaciente(h.firma?.firma_paciente_data || null);
           setSnapshot({ triaje, diagnostico, firmaPaciente: h.firma?.firma_paciente_data || null });
         }
-      } catch (err) {
+      } catch {
+        // Report load failure with the fixed notice, without displaying clinical API error details.
         toast.error('Error al cargar los datos del paciente.');
       } finally {
         setLoading(false);
@@ -306,7 +370,8 @@ const PacienteDetalle = () => {
       }
       setOdontograma(objOdonto);
       setTratamientosAsignados(arrAsig);
-    } catch (err) {
+    } catch {
+      // Keep the displayed odontogram when refresh fails; the existing notice reports the failure.
       toast.error('Error al actualizar el odontograma.');
     }
   };
@@ -327,7 +392,8 @@ const PacienteDetalle = () => {
         doctorId: c.doctor_id || '',
         doctorNombre: c.doctor_nombre || '',
       })));
-    } catch (err) {
+    } catch {
+      // Keep the displayed evolutions when refresh fails rather than replacing them with an empty list.
       toast.error('Error al actualizar las evoluciones.');
     }
   };
@@ -337,7 +403,8 @@ const PacienteDetalle = () => {
       const { data } = await historiasService.getByPaciente(id);
       if (!data.ok) return;
       setRecetas((data.data.recetas || []).map(r => ({ ...r, anulada: !!r.anulada })));
-    } catch (err) {
+    } catch {
+      // Keep the displayed prescriptions on failure and report the existing fixed notice.
       toast.error('Error al actualizar las recetas.');
     }
   };
@@ -347,7 +414,8 @@ const PacienteDetalle = () => {
       const { data } = await historiasService.getByPaciente(id);
       if (!data.ok) return;
       setOrdenes((data.data.ordenes || []).map(o => ({ ...o, anulada: !!o.anulada })));
-    } catch (err) {
+    } catch {
+      // Keep the displayed Rx orders on failure and report the existing fixed notice.
       toast.error('Error al actualizar las órdenes.');
     }
   };
@@ -471,7 +539,8 @@ const PacienteDetalle = () => {
         const res = await historiasService.getRadiografias(hcId);
         setRadiografias(res.data.data);
       }
-    } catch (err) {
+    } catch {
+      // Upload or refresh failure is not confirmation of success; preserve the list and show the fixed notice.
       toast.error('Error al subir imagen.');
     } finally {
       setSubiendoImagen(false);
@@ -516,14 +585,14 @@ const PacienteDetalle = () => {
     } catch (err) { toast.error(err.response?.data?.mensaje || 'No se pudo restaurar el anexo.'); }
   };
 
-  const calcularTotalPagado = (pagos) => Array.isArray(pagos) ? pagos.reduce((sum, p) => sum + parseFloat(p?.monto || 0), 0) : 0;
-  const calcularResta = (costoTotal, pagos) => (parseFloat(costoTotal || 0) - calcularTotalPagado(pagos)).toFixed(2);
+  const calcularTotalPagado = (pagos) => Array.isArray(pagos) ? pagos.reduce((sum, p) => sum + Number.parseFloat(p?.monto || 0), 0) : 0;
+  const calcularResta = (costoTotal, pagos) => (Number.parseFloat(costoTotal || 0) - calcularTotalPagado(pagos)).toFixed(2);
 
   const handleCrearTratamiento = async (e) => {
     e.preventDefault();
     if (treatmentBusy.current) return;
     treatmentBusy.current = true; setSavingTreatment(true);
-    const costo = parseFloat(formNuevoTratamiento.costoTotal) || 0;
+    const costo = Number.parseFloat(formNuevoTratamiento.costoTotal) || 0;
     try {
       if (editEvoId) {
         await historiasService.editarConsulta(editEvoId, {
@@ -533,7 +602,7 @@ const PacienteDetalle = () => {
         });
         toast.success('Tratamiento actualizado.');
       } else {
-        const abono = parseFloat(formNuevoTratamiento.abonoInicial) || 0;
+        const abono = Number.parseFloat(formNuevoTratamiento.abonoInicial) || 0;
         if (abono > costo) { toast.error('El abono no puede exceder el costo total.'); return; }
         await historiasService.agregarConsulta(hcId, {
           descripcion: formNuevoTratamiento.descripcion,
@@ -544,10 +613,10 @@ const PacienteDetalle = () => {
           fecha_consulta: formNuevoTratamiento.fecha,
           estado_clinico: formNuevoTratamiento.estadoClinico,
           tipo_comision: formNuevoTratamiento.tipoComision,
-          cantidad_radiografias: formNuevoTratamiento.tipoComision === 'endodoncia' ? (parseInt(formNuevoTratamiento.cantidadRadiografias) || 0) : 0,
+          cantidad_radiografias: formNuevoTratamiento.tipoComision === 'endodoncia' ? (Number.parseInt(formNuevoTratamiento.cantidadRadiografias) || 0) : 0,
           costo_externo: formNuevoTratamiento.costoExterno || '0',
           laboratorio: formNuevoTratamiento.tipoComision === 'rehabilitacion'
-            ? { nombre_laboratorio: formNuevoTratamiento.nombreLaboratorio, monto_total: parseFloat(formNuevoTratamiento.montoLaboratorio) || 0 }
+            ? { nombre_laboratorio: formNuevoTratamiento.nombreLaboratorio, monto_total: Number.parseFloat(formNuevoTratamiento.montoLaboratorio) || 0 }
             : null,
         });
         toast.success('Evolución registrada y firmada.');
@@ -578,8 +647,8 @@ const PacienteDetalle = () => {
   const handleAbonar = async (e) => {
     e.preventDefault();
     if (paymentBusy.current) return;
-    const abono = parseFloat(formAbono.monto);
-    const resta = parseFloat(calcularResta(selectedEvolucion?.costoTotal, selectedEvolucion?.pagos));
+    const abono = Number.parseFloat(formAbono.monto);
+    const resta = Number.parseFloat(calcularResta(selectedEvolucion?.costoTotal, selectedEvolucion?.pagos));
     if (!Number.isFinite(abono) || abono <= 0 || abono > resta) { toast.error('Monto inválido.'); return; }
     paymentBusy.current = true; setSavingPayment(true);
     try {
@@ -632,6 +701,8 @@ const PacienteDetalle = () => {
   }
 
   const estadoCfg = ESTADO_HC_CONFIG[estadoHC];
+  const personalAction = esNuevo ? 'Registrar paciente' : 'Guardar cambios';
+  const treatmentAction = editEvoId ? 'Guardar Cambios' : 'Guardar y Firmar';
 
   return (
     <div className="animate-fade-in text-slate-800 max-w-[1400px] mx-auto pb-10">
@@ -665,19 +736,7 @@ const PacienteDetalle = () => {
         )}
       </div>
 
-      {!esNuevo && (
-        <div className="mb-5 flex w-full gap-1 overflow-x-auto border-b border-slate-200 pb-1">
-          <TabBtn active={activeTab==='datosPersonales'} onClick={()=>setActiveTab('datosPersonales')} icon={<User size={16}/>} label="Datos Personales"/>
-          {esDoctor && <TabBtn active={activeTab==='triaje'}        onClick={()=>setActiveTab('triaje')}        icon={<Activity size={16}/>}    label="Triaje y Antecedentes"/>}
-          {esDoctor && <TabBtn active={activeTab==='diagnostico'}   onClick={()=>setActiveTab('diagnostico')}   icon={<FileText size={16}/>}    label="Diagnóstico y Plan"/>}
-          {esDoctor && <TabBtn active={activeTab==='odontograma'}   onClick={()=>setActiveTab('odontograma')}   icon={<ShieldAlert size={16}/>} label="Odontograma"/>}
-          <TabBtn active={activeTab==='radiografias'}  onClick={()=>setActiveTab('radiografias')}  icon={<ImageIcon size={16}/>}   label="Radiografías"/>
-          <TabBtn active={activeTab==='evolucion'}     onClick={()=>setActiveTab('evolucion')}     icon={<CreditCard size={16}/>}  label="Evolución"/>
-          <TabBtn active={activeTab==='recetario'}     onClick={()=>setActiveTab('recetario')}     icon={<FileSignature size={16}/>} label="Recetario"/>
-          <TabBtn active={activeTab==='ordenesRx'}     onClick={()=>setActiveTab('ordenesRx')}     icon={<FileText size={16}/>}    label="Órdenes Rx"/>
-          {esDoctor && <TabBtn active={activeTab==='consentimiento'}onClick={()=>setActiveTab('consentimiento')}icon={<PenTool size={16}/>}     label="Firmas"/>}
-        </div>
-      )}
+      {!esNuevo && <PestanasPaciente activeTab={activeTab} setActiveTab={setActiveTab} esDoctor={esDoctor} />}
 
       <div className="min-h-[500px] rounded-lg border border-slate-200 bg-white p-4 sm:p-6">
 
@@ -689,42 +748,42 @@ const PacienteDetalle = () => {
             <form onSubmit={handleGuardarDatosPersonales} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="ui-field-label">DNI</label>
-                  <input required name="dni" value={formPersonal.dni} onChange={handleChangePersonal} maxLength="8"
+                  <label htmlFor="paciente-dni" className="ui-field-label">DNI</label>
+                  <input id="paciente-dni" required name="dni" value={formPersonal.dni} onChange={handleChangePersonal} maxLength="8"
                     className="ui-input" />
                 </div>
                 <div>
-                  <label className="ui-field-label">Celular</label>
-                  <input required name="celular" value={formPersonal.celular} onChange={handleChangePersonal} maxLength="9"
+                  <label htmlFor="paciente-celular" className="ui-field-label">Celular</label>
+                  <input id="paciente-celular" required name="celular" value={formPersonal.celular} onChange={handleChangePersonal} maxLength="9"
                     className="ui-input" />
                 </div>
                 <div>
-                  <label className="ui-field-label">Nombres</label>
-                  <input required name="nombres" value={formPersonal.nombres} onChange={handleChangePersonal}
+                  <label htmlFor="paciente-nombres" className="ui-field-label">Nombres</label>
+                  <input id="paciente-nombres" required name="nombres" value={formPersonal.nombres} onChange={handleChangePersonal}
                     className="ui-input" />
                 </div>
                 <div>
-                  <label className="ui-field-label">Apellidos</label>
-                  <input required name="apellidos" value={formPersonal.apellidos} onChange={handleChangePersonal}
+                  <label htmlFor="paciente-apellidos" className="ui-field-label">Apellidos</label>
+                  <input id="paciente-apellidos" required name="apellidos" value={formPersonal.apellidos} onChange={handleChangePersonal}
                     className="ui-input" />
                 </div>
                 <div>
-                  <label className="ui-field-label">Fecha de nacimiento</label>
-                  <input required type="date" name="fechaNacimiento" value={formPersonal.fechaNacimiento} onChange={handleChangePersonal}
+                  <label htmlFor="paciente-nacimiento" className="ui-field-label">Fecha de nacimiento</label>
+                  <input id="paciente-nacimiento" required type="date" name="fechaNacimiento" value={formPersonal.fechaNacimiento} onChange={handleChangePersonal}
                     min="1900-01-01" max={new Date().toISOString().split('T')[0]}
                     className="ui-input" />
                 </div>
                 <div>
-                  <label className="ui-field-label">Sexo</label>
-                  <select name="sexo" value={formPersonal.sexo} onChange={handleChangePersonal}
+                  <label htmlFor="paciente-sexo" className="ui-field-label">Sexo</label>
+                  <select id="paciente-sexo" name="sexo" value={formPersonal.sexo} onChange={handleChangePersonal}
                     className="ui-input">
                     <option value="M">Masculino</option>
                     <option value="F">Femenino</option>
                   </select>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="ui-field-label">Domicilio actual</label>
-                  <input required name="domicilio" value={formPersonal.domicilio} onChange={handleChangePersonal}
+                  <label htmlFor="paciente-domicilio" className="ui-field-label">Domicilio actual</label>
+                  <input id="paciente-domicilio" required name="domicilio" value={formPersonal.domicilio} onChange={handleChangePersonal}
                     className="ui-input" />
                 </div>
               </div>
@@ -735,18 +794,18 @@ const PacienteDetalle = () => {
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="ui-field-label">Nombre completo</label>
-                    <input name="apoderadoNombre" value={formPersonal.apoderadoNombre} onChange={handleChangePersonal}
+                    <label htmlFor="apoderado-nombre" className="ui-field-label">Nombre completo</label>
+                    <input id="apoderado-nombre" name="apoderadoNombre" value={formPersonal.apoderadoNombre} onChange={handleChangePersonal}
                       className="ui-input" />
                   </div>
                   <div>
-                    <label className="ui-field-label">Parentesco</label>
-                    <input name="apoderadoParentesco" value={formPersonal.apoderadoParentesco} onChange={handleChangePersonal}
+                    <label htmlFor="apoderado-parentesco" className="ui-field-label">Parentesco</label>
+                    <input id="apoderado-parentesco" name="apoderadoParentesco" value={formPersonal.apoderadoParentesco} onChange={handleChangePersonal}
                       className="ui-input" />
                   </div>
                   <div>
-                    <label className="ui-field-label">Celular</label>
-                    <input name="apoderadoCelular" value={formPersonal.apoderadoCelular} onChange={handleChangePersonal} maxLength="9"
+                    <label htmlFor="apoderado-celular" className="ui-field-label">Celular</label>
+                    <input id="apoderado-celular" name="apoderadoCelular" value={formPersonal.apoderadoCelular} onChange={handleChangePersonal} maxLength="9"
                       className="ui-input" />
                   </div>
                 </div>
@@ -756,7 +815,7 @@ const PacienteDetalle = () => {
                 <button type="submit" disabled={savingPersonal}
                   className="ui-button-primary w-full sm:w-auto">
                   <Save size={18}/>
-                  {savingPersonal ? 'Guardando...' : esNuevo ? 'Registrar paciente' : 'Guardar cambios'}
+                  {savingPersonal ? 'Guardando...' : personalAction}
                 </button>
               </div>
             </form>
@@ -812,57 +871,11 @@ const PacienteDetalle = () => {
           </div>
         )}
 
-        {activeTab === 'radiografias' && (
-          <div className="animate-fade-in space-y-6">
-            <div className="border-b pb-4">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800"><ImageIcon size={21} className="text-clinical-600"/> Placas y anexos fotográficos</h3>
-                <label className={`cursor-pointer px-6 py-2.5 bg-clinical-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-clinical-700 shadow-md transition-all ${subiendoImagen ? 'opacity-50 pointer-events-none' : ''}`}>
-                  <UploadCloud size={18}/> {subiendoImagen ? 'Subiendo...' : 'Subir Imagen'}
-                  <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={subiendoImagen} />
-                </label>
-              </div>
-              <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-lg border border-green-100 inline-flex items-center gap-1">
-                <Check size={12}/> Cada imagen se guarda al subirla
-              </span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {radiografias.length === 0 ? (
-                <div className="col-span-2 text-center py-16 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl">
-                  <ImageIcon size={48} className="mx-auto text-slate-300 mb-4" />
-                  <p className="text-slate-500 font-bold">No hay placas registradas.</p>
-                </div>
-              ) : (
-                radiografias.map(rad => (
-                  <div key={rad.id} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden group">
-                    <div className="relative h-64 bg-black flex items-center justify-center cursor-pointer" onClick={() => setSelectedImage(rad)}>
-                      <ClinicalImage record={rad} alt="Placa" className="max-h-full max-w-full object-contain" />
-                      <button type="button" title="Anular anexo" aria-label="Anular anexo" onClick={(e) => { e.stopPropagation(); handleEliminarRadiografia(rad.id); }} className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"><Trash2 size={16}/></button>
-                    </div>
-                    <div className="p-4 bg-slate-50">
-                      <input type="text" placeholder="Ej. Radiografía Panorámica Inicial..." className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-clinical-500 text-sm font-bold text-slate-700" value={rad.descripcion} onChange={(e) => setRadiografias(prev => prev.map(r => r.id === rad.id ? { ...r, descripcion: e.target.value } : r))} />
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            {verifiedUser?.isAdmin && hcId && <div className="border-t border-slate-200 pt-4">
-              <button type="button" onClick={toggleArchivadas} disabled={cargandoArchivadas}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-clinical-600 disabled:opacity-50">
-                <Archive size={16}/>{mostrarArchivadas ? 'Ocultar anexos anulados' : 'Ver anexos anulados'}
-              </button>
-              {mostrarArchivadas && <div className="mt-3 space-y-2">
-                {archivadas.length === 0 && <p className="text-sm text-slate-500">No hay anexos anulados.</p>}
-                {archivadas.map(rad => <div key={rad.id} className="flex flex-wrap items-center justify-between gap-3 border border-slate-200 p-3 text-sm">
-                  <span>{rad.descripcion || 'Anexo'} · {rad.anulada_en?.slice(0, 10) || 'Sin fecha'}</span>
-                  <button type="button" onClick={() => restaurarAnexo(rad.id)} className="inline-flex items-center gap-2 text-clinical-600 font-semibold">
-                    <ArchiveRestore size={16}/> Restaurar
-                  </button>
-                </div>)}
-              </div>}
-            </div>}
-          </div>
-        )}
+        {activeTab === 'radiografias' && <AnexosPaciente radiografias={radiografias} subiendoImagen={subiendoImagen}
+          onSubir={handleFileUpload} onAnular={handleEliminarRadiografia} onSeleccionar={setSelectedImage}
+          setRadiografias={setRadiografias} esAdmin={verifiedUser?.isAdmin} hcId={hcId}
+          onToggleArchivadas={toggleArchivadas} cargandoArchivadas={cargandoArchivadas}
+          mostrarArchivadas={mostrarArchivadas} archivadas={archivadas} onRestaurar={restaurarAnexo} />}
 
         {activeTab === 'evolucion' && (
           <div className="animate-fade-in space-y-6">
@@ -886,7 +899,7 @@ const PacienteDetalle = () => {
                   ) : (
                     evoluciones.map(evo => {
                       const resta = calcularResta(evo.costoTotal, evo.pagos);
-                      const isCancelado = parseFloat(resta) <= 0;
+                      const isCancelado = Number.parseFloat(resta) <= 0;
                       return (
                         <tr key={evo.id} className="hover:bg-slate-50/50 transition-colors">
                           <td data-label="Fecha" className="p-4 font-medium text-slate-500">{evo.fecha}</td>
@@ -898,7 +911,7 @@ const PacienteDetalle = () => {
                               </span>
                             )}
                           </td>
-                          <td data-label="Total" className="p-4 text-right font-semibold text-slate-800">S/ {parseFloat(evo.costoTotal).toFixed(2)}</td>
+                          <td data-label="Total" className="p-4 text-right font-semibold text-slate-800">S/ {Number.parseFloat(evo.costoTotal).toFixed(2)}</td>
                           <td data-label="Resta" className="p-4 text-right font-semibold text-amber-700">S/ {resta}</td>
                           <td data-label="Estado" className="p-4 text-center">
                             <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-semibold ${isCancelado ? 'border-green-200 bg-green-50 text-green-700' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
@@ -1001,63 +1014,11 @@ const PacienteDetalle = () => {
 
       {/* MODAL: NUEVO / EDITAR TRATAMIENTO */}
       {showNuevoTratamiento && (
-        <div role="dialog" aria-modal="true" aria-label={editEvoId ? 'Editar Tratamiento' : 'Nuevo Tratamiento'} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
-            <div className="ui-dialog-header">
-              <h3 className="font-semibold text-base">{editEvoId ? 'Editar Tratamiento' : 'Nuevo Tratamiento'}</h3>
-              <button onClick={() => { setShowNuevoTratamiento(false); setEditEvoId(null); setFormNuevoTratamiento({ fecha: fechaHoyLima(), descripcion: '', costoTotal: '', abonoInicial: '', estadoClinico: '', tipoComision: 'estandar', cantidadRadiografias: 1, nombreLaboratorio: '', montoLaboratorio: '' }); }} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button>
-            </div>
-            <form id="tratamiento-form" onSubmit={handleCrearTratamiento} className="p-6 space-y-5">
-              <InputV label="Fecha de Inicio" type="date" value={formNuevoTratamiento.fecha} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, fecha: v})} />
-              <Field label="Descripción del Tratamiento" value={formNuevoTratamiento.descripcion} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, descripcion: v})} isTextArea rows="2" />
-              {!editEvoId && (
-                <>
-                  <Field label="Estado Clínico (cómo encontraste al paciente hoy)" value={formNuevoTratamiento.estadoClinico} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, estadoClinico: v})} isTextArea rows="2" />
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Tipo de Tratamiento (para el cálculo de comisión)</label>
-                    <div className="flex gap-2">
-                      {[{ v: 'estandar', l: 'Estándar' }, { v: 'rehabilitacion', l: 'Rehabilitación' }, { v: 'endodoncia', l: 'Endodoncia' }].map(op => (
-                        <button key={op.v} type="button" onClick={() => setFormNuevoTratamiento({...formNuevoTratamiento, tipoComision: op.v})}
-                          className={`flex-1 py-2.5 rounded-xl border text-xs font-bold transition-colors ${formNuevoTratamiento.tipoComision === op.v ? 'bg-clinical-50 border-clinical-300 text-clinical-700' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
-                          {op.l}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {formNuevoTratamiento.tipoComision === 'endodoncia' && (
-                    <InputV label="Cantidad de Radiografías" placeholder="1" format="num" value={formNuevoTratamiento.cantidadRadiografias} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, cantidadRadiografias: v})} />
-                  )}
-                  <InputV label="Otros costos externos (S/)" placeholder="0.00" format="dec" required={false} value={formNuevoTratamiento.costoExterno || ''} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, costoExterno: v})} />
-                  {formNuevoTratamiento.tipoComision === 'rehabilitacion' && (
-                    <div className="grid grid-cols-2 gap-4 border-l-2 border-amber-600 bg-slate-50 p-4">
-                      <div className="col-span-2">
-                        <label className="ui-field-label">Nombre del Laboratorio</label>
-                        <input value={formNuevoTratamiento.nombreLaboratorio} onChange={e => setFormNuevoTratamiento({...formNuevoTratamiento, nombreLaboratorio: e.target.value})}
-                          className="ui-input" placeholder="Ej. Laboratorio Dental Center" />
-                      </div>
-                      <InputV label="Costo Laboratorio (S/)" placeholder="0.00" format="dec" value={formNuevoTratamiento.montoLaboratorio} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, montoLaboratorio: v})} />
-                      <p className="col-span-2 text-xs text-slate-600">Si aún no tienes el costo exacto, puedes dejarlo en blanco — pero la comisión del doctor se calculará sin descuento de laboratorio hasta que lo completes (por ahora, solo se puede agregar en la creación del tratamiento).</p>
-                    </div>
-                  )}
-                </>
-              )}
-              <div className={`grid ${editEvoId ? 'grid-cols-1' : 'grid-cols-2'} gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100`}>
-                <InputV label="Costo Total (S/)" placeholder="0.00" format="dec" value={formNuevoTratamiento.costoTotal} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, costoTotal: v})} />
-                {!editEvoId && (
-                  <InputV label="Abono Inicial (S/)" placeholder="0.00 (opcional)" format="dec" required={false} value={formNuevoTratamiento.abonoInicial} onChange={v => setFormNuevoTratamiento({...formNuevoTratamiento, abonoInicial: v})} />
-                )}
-              </div>
-              {!editEvoId && <MetodoPago value={formNuevoTratamiento.metodo} monto={formNuevoTratamiento.abonoInicial} config={posConfig} onChange={metodo=>setFormNuevoTratamiento({...formNuevoTratamiento,metodo})}/>}
-            </form>
-            <div data-dialog-footer>
-              <button type="submit" form="tratamiento-form" disabled={savingTreatment || (!editEvoId && formNuevoTratamiento.metodo === 'Tarjeta' && !posConfig)} className="ui-button-primary w-full">{savingTreatment ? 'Guardando...' : editEvoId ? 'Guardar Cambios' : 'Guardar y Firmar'}</button>
-            </div>
-          </div>
-        </div>
+        <ModalTratamiento editEvoId={editEvoId} setEditEvoId={setEditEvoId} formNuevoTratamiento={formNuevoTratamiento} setFormNuevoTratamiento={setFormNuevoTratamiento} posConfig={posConfig} savingTreatment={savingTreatment} treatmentAction={treatmentAction} handleCrearTratamiento={handleCrearTratamiento} setShowNuevoTratamiento={setShowNuevoTratamiento} />
       )}
 
       {showAbonoModal && selectedEvolucion && (
-        <div role="dialog" aria-modal="true" aria-label="Registrar Abono" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Registrar Abono" onRequestClose={() => setShowAbonoModal(false)} closeDisabled={savingPayment} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="ui-dialog-header"><h3 className="font-semibold text-base">Registrar Abono</h3><button onClick={() => setShowAbonoModal(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button></div>
             <form onSubmit={handleAbonar} className="p-6 space-y-5">
@@ -1067,11 +1028,11 @@ const PacienteDetalle = () => {
               <button type="submit" disabled={savingPayment || (formAbono.metodo === 'Tarjeta' && !posConfig)} className="ui-button-primary w-full">{savingPayment ? 'Confirmando...' : 'Confirmar Abono'}</button>
             </form>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {showAdendaModal && selectedEvolucion && (
-        <div role="dialog" aria-modal="true" aria-label="Agregar Corrección" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Agregar Corrección" onRequestClose={() => setShowAdendaModal(false)} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="ui-dialog-header"><h3 className="font-semibold text-base flex items-center gap-2"><Lock size={18}/> Agregar Corrección</h3><button onClick={() => setShowAdendaModal(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button></div>
             <form onSubmit={handleAgregarAdenda} className="p-6 space-y-5">
@@ -1084,11 +1045,11 @@ const PacienteDetalle = () => {
               <button type="submit" className="ui-button-primary w-full">Guardar Corrección</button>
             </form>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {showHistorialModal && selectedEvolucion && (
-        <div role="dialog" aria-modal="true" aria-label="Historial y Correcciones" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Historial y Correcciones" onRequestClose={() => setShowHistorialModal(false)} closeDisabled={savingReconciliation} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="ui-dialog-header"><h3 className="font-semibold text-base flex items-center gap-2"><Calendar size={18}/> Historial y Correcciones</h3><button onClick={() => setShowHistorialModal(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button></div>
             <div className="p-6 max-h-96 overflow-y-auto space-y-3">
@@ -1119,7 +1080,7 @@ const PacienteDetalle = () => {
                     </div>
                     <div>
                       <p className="text-[10px] text-slate-500 uppercase font-bold">Comisión Generada</p>
-                      <p className="text-sm font-black text-clinical-600">S/ {(selectedEvolucion.pagos || []).reduce((sum, p) => sum + parseFloat(p.comision_generada || 0), 0).toFixed(2)}</p>
+                      <p className="text-sm font-black text-clinical-600">S/ {(selectedEvolucion.pagos || []).reduce((sum, p) => sum + Number.parseFloat(p.comision_generada || 0), 0).toFixed(2)}</p>
                     </div>
                   </div>
                 )}
@@ -1136,7 +1097,7 @@ const PacienteDetalle = () => {
                         <p className="text-xs text-slate-400">{pago.fechaHora || `${pago.fecha_pago} ${pago.hora_pago}`}</p>
                       </div>
                     </div>
-                    <p className="font-black text-green-600 text-lg">S/ {parseFloat(pago.monto).toFixed(2)}</p>
+                    <p className="font-black text-green-600 text-lg">S/ {Number.parseFloat(pago.monto).toFixed(2)}</p>
                     {localStorage.getItem('isAdmin') === 'true' && index === selectedEvolucion.pagos.length - 1 && <button type="button" className="text-red-700 text-xs underline" onClick={async () => {
                       const motivo = window.prompt('Motivo de anulación del abono:');
                       if (!motivo) return;
@@ -1165,11 +1126,11 @@ const PacienteDetalle = () => {
               )}
             </div>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {showHCAuditModal && (
-        <div role="dialog" aria-modal="true" aria-label="Historial de Cambios" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Historial de Cambios" onRequestClose={() => setShowHCAuditModal(false)} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
             <div className="ui-dialog-header"><h3 className="font-semibold text-base flex items-center gap-2"><History size={18}/> Historial de Cambios</h3><button onClick={() => setShowHCAuditModal(false)} className="ui-dialog-close" aria-label="Cerrar"><X size={18}/></button></div>
             <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
@@ -1197,7 +1158,7 @@ const PacienteDetalle = () => {
               )}
             </div>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {selectedImage && (
@@ -1229,23 +1190,5 @@ const Field = ({ label, value, onChange, isTextArea, rows=3 }) => (
   </div>
 );
 
-const InputV = ({ label, placeholder, value, onChange, unit, format, type="text", required=true }) => {
-  const handleChange = (e) => {
-    let val = e.target.value || '';
-    if (format === 'pa') val = val.replace(/[^0-9/]/g, '');
-    else if (format === 'num') val = val.replace(/[^0-9]/g, '');
-    else if (format === 'dec') val = val.replace(/[^0-9.]/g, '');
-    onChange(val);
-  };
-  return (
-    <div>
-      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{label}</label>
-      <div className="relative">
-        <input type={type} placeholder={placeholder} required={required} className={`w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white font-medium ${unit ? 'pr-12' : ''}`} value={value} onChange={handleChange} />
-        {unit && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none">{unit}</span>}
-      </div>
-    </div>
-  );
-};
 
 export default PacienteDetalle;

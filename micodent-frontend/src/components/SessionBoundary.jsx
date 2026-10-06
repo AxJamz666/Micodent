@@ -44,8 +44,13 @@ export default function SessionBoundary({ children }) {
   useEffect(() => { if (blocked) action.current?.focus(); }, [blocked, status]);
 
   const checking = status === 'checking';
-  const title = checking ? 'Verificando sesion' : status === 'unavailable' ? 'No se pudo verificar la sesion'
-    : status === 'expired' ? 'Sesion finalizada' : 'La sesion cambio en otra pestana';
+  let title = 'La sesion cambio en otra pestana';
+  if (checking) title = 'Verificando sesion';
+  else if (status === 'unavailable') title = 'No se pudo verificar la sesion';
+  else if (status === 'expired') title = 'Sesion finalizada';
+  let description = 'Esta pestana esta bloqueada. Al continuar se descartara lo que no hayas guardado en ella.';
+  if (checking) description = 'Espera un momento.';
+  else if (status === 'unavailable') description = 'No se cerro tu sesion. Comprueba la conexion e intenta nuevamente.';
   return (
     <>
       {/* Keep drafts in memory, but hide and disable the previous identity's UI. */}
@@ -57,9 +62,7 @@ export default function SessionBoundary({ children }) {
             : <LockKeyhole aria-hidden="true" className="mx-auto text-clinical-600" size={32} />}
           <h1 id="session-title" className="text-xl font-bold text-gray-900">{title}</h1>
           <p id="session-description" className="text-sm leading-6 text-gray-700">
-            {checking ? 'Espera un momento.' : status === 'unavailable'
-              ? 'No se cerro tu sesion. Comprueba la conexion e intenta nuevamente.'
-              : 'Esta pestana esta bloqueada. Al continuar se descartara lo que no hayas guardado en ella.'}
+            {description}
           </p>
           {!checking && <button ref={action} type="button"
             onClick={() => locked ? window.location.assign('/login') : browserSession.retry()}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Search, Check, Ban, UserX, RotateCcw, ArrowRight, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -16,7 +16,9 @@ const SLOTS = generarSlotsHorario();
 
 const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefill }) => {
   const navigate = useNavigate();
+  const fieldId = useId();
   const esEdicion = !!citaExistente;
+  const submitLabel = esEdicion ? 'Guardar Cambios' : 'Agendar Cita';
 
   const [form, setForm] = useState({
     paciente_id: null,
@@ -175,7 +177,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
             </div>
           )}
           <div>
-            <label className="ui-field-label">Paciente (opcional, buscar existente)</label>
+            {pacienteVinculado ? <p className="ui-field-label">Paciente (opcional, buscar existente)</p> : <label htmlFor={`${fieldId}-paciente`} className="ui-field-label">Paciente (opcional, buscar existente)</label>}
             {pacienteVinculado ? (
               <div className="flex items-center justify-between bg-clinical-50 border border-clinical-100 px-4 py-2.5 rounded-xl">
                 <span className="text-sm font-bold text-clinical-700">{pacienteVinculado.nombre}</span>
@@ -184,7 +186,7 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
             ) : (
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16}/>
-                <input type="text" value={busquedaPaciente} onChange={e => { setBusquedaPaciente(e.target.value); setResultadosBusqueda([]); }}
+                <input id={`${fieldId}-paciente`} type="text" value={busquedaPaciente} onChange={e => { setBusquedaPaciente(e.target.value); setResultadosBusqueda([]); }}
                   placeholder="Buscar por nombre o DNI..."
                   className="ui-input pl-9" />
                 {resultadosBusqueda.length > 0 && (
@@ -203,26 +205,26 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="ui-field-label">Nombre de contacto</label>
-              <input required value={form.nombre_contacto} onChange={e => setForm(prev => ({ ...prev, nombre_contacto: e.target.value }))}
+              <label htmlFor={`${fieldId}-nombre`} className="ui-field-label">Nombre de contacto</label>
+              <input id={`${fieldId}-nombre`} required value={form.nombre_contacto} onChange={e => setForm(prev => ({ ...prev, nombre_contacto: e.target.value }))}
                 className="ui-input" />
             </div>
             <div>
-              <label className="ui-field-label">Celular</label>
-              <input required value={form.celular_contacto} onChange={e => setForm(prev => ({ ...prev, celular_contacto: e.target.value.replace(/\D/g, '') }))} maxLength={9}
+              <label htmlFor={`${fieldId}-celular`} className="ui-field-label">Celular</label>
+              <input id={`${fieldId}-celular`} required value={form.celular_contacto} onChange={e => setForm(prev => ({ ...prev, celular_contacto: e.target.value.replace(/\D/g, '') }))} maxLength={9}
                 className="ui-input" />
             </div>
           </div>
 
           <div>
-            <label className="ui-field-label">Motivo de consulta</label>
-            <textarea rows={2} value={form.motivo_consulta} onChange={e => setForm(prev => ({ ...prev, motivo_consulta: e.target.value }))}
+            <label htmlFor={`${fieldId}-motivo`} className="ui-field-label">Motivo de consulta</label>
+            <textarea id={`${fieldId}-motivo`} rows={2} value={form.motivo_consulta} onChange={e => setForm(prev => ({ ...prev, motivo_consulta: e.target.value }))}
               className="ui-input resize-y" />
           </div>
 
           <div>
-            <label className="ui-field-label">Doctor</label>
-            <select required value={form.doctor_id} onChange={e => setForm(prev => ({ ...prev, doctor_id: e.target.value }))}
+            <label htmlFor={`${fieldId}-doctor`} className="ui-field-label">Doctor</label>
+            <select id={`${fieldId}-doctor`} required value={form.doctor_id} onChange={e => setForm(prev => ({ ...prev, doctor_id: e.target.value }))}
               className="ui-input">
               <option value="">Selecciona un doctor...</option>
               {doctores.map(d => <option key={d.id} value={d.id}>{d.nombre_completo}</option>)}
@@ -231,13 +233,13 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="ui-field-label">Fecha</label>
-              <input required type="date" value={form.fecha} onChange={e => setForm(prev => ({ ...prev, fecha: e.target.value }))}
+              <label htmlFor={`${fieldId}-fecha`} className="ui-field-label">Fecha</label>
+              <input id={`${fieldId}-fecha`} required type="date" value={form.fecha} onChange={e => setForm(prev => ({ ...prev, fecha: e.target.value }))}
                 className="ui-input" />
             </div>
             <div>
-              <label className="ui-field-label">Hora de inicio</label>
-              <select required value={form.hora_inicio} onChange={e => setForm(prev => ({ ...prev, hora_inicio: e.target.value }))}
+              <label htmlFor={`${fieldId}-hora`} className="ui-field-label">Hora de inicio</label>
+              <select id={`${fieldId}-hora`} required value={form.hora_inicio} onChange={e => setForm(prev => ({ ...prev, hora_inicio: e.target.value }))}
                 className="ui-input">
                 <option value="">Elige...</option>
                 {SLOTS.map(s => <option key={s} value={s}>{formatearHora12h(s)}</option>)}
@@ -245,20 +247,20 @@ const CitaModal = ({ isOpen, onClose, onGuardado, doctores, citaExistente, prefi
             </div>
           </div>
 
-          <div>
-            <label className="ui-field-label">Duración</label>
+          <fieldset className="min-w-0">
+            <legend className="ui-field-label w-full">Duración</legend>
             <div className="flex gap-2">
               {DURACIONES.map(d => (
-                <button key={d.valor} type="button" onClick={() => setForm(prev => ({ ...prev, duracion_minutos: d.valor }))}
+                <button key={d.valor} type="button" aria-pressed={form.duracion_minutos === d.valor} onClick={() => setForm(prev => ({ ...prev, duracion_minutos: d.valor }))}
                   className={`flex-1 py-2.5 rounded-xl border text-sm font-bold transition-colors ${form.duracion_minutos === d.valor ? 'bg-clinical-50 border-clinical-300 text-clinical-700' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
                   {d.label}
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           <button type="submit" disabled={guardando || cambiandoEstado} className="ui-button-primary w-full">
-            {guardando ? 'Guardando...' : esEdicion ? 'Guardar Cambios' : 'Agendar Cita'}
+            {guardando ? 'Guardando...' : submitLabel}
           </button>
         </form>
       </div>

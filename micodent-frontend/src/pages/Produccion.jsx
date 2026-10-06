@@ -54,7 +54,7 @@ export default function Produccion({ embedded = false }) {
       <label className="ui-field-label">Hasta<input aria-label="Hasta" className="ui-input mt-1" type="date" value={hasta} onChange={e => { setHasta(e.target.value); setPage(1); }}/></label>
     </div>
     {error && <p role="alert" className="text-red-700">{error}</p>}
-    {loading && <p role="status">Cargando producción...</p>}
+    {loading && <output className="block">Cargando producción...</output>}
     {!error && <>
       <dl className="grid grid-cols-2 lg:grid-cols-5 gap-4 border-b pb-5">
         {[['Facturado en el período', totals.facturado], ['Total a cuenta', totals.cobrado], ['Comisiones', totals.comision], ...(admin ? [['Costos externos descontados', totals.costo_externo], ['Ganancia clínica', totals.margen]] : [])].map(([label, value]) => <div key={label} title={label === 'Ganancia clínica' ? 'Después de costos externos y comisiones; antes de gastos operativos.' : undefined}><dt className="text-sm text-slate-600">{label}</dt><dd className="text-xl font-semibold mt-1">{loading ? '...' : financialMoney(value)}</dd></div>)}

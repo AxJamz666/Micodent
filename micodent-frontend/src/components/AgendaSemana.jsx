@@ -36,7 +36,7 @@ const AgendaSemana = ({ fechaActual, citas, onDiaClick, onCitaClick }) => {
 
               <div className="relative">
                 {slots.map(s => (
-                  <div key={s} onClick={() => onDiaClick(dia)} style={{ height: ALTURA_SLOT }} className="border-b border-slate-50 hover:bg-slate-50/50 cursor-pointer"></div>
+                  <button type="button" key={s} aria-label={`Ver agenda del ${diaISO} a las ${formatearHora12h(s)}`} onClick={() => onDiaClick(dia)} style={{ height: ALTURA_SLOT }} className="block w-full border-b border-slate-50 hover:bg-slate-50/50 cursor-pointer"></button>
                 ))}
 
                 {citasConCarril.map(cita => {

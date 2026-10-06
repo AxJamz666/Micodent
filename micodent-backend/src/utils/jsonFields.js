@@ -2,8 +2,12 @@ function parse(value, fallback) {
   for (let n=0; typeof value === 'string' && n<3; n++) {
     try { value=JSON.parse(value); } catch { return fallback; }
   }
-  return Array.isArray(fallback) ? (Array.isArray(value) ? value : fallback)
-    : (value && typeof value === 'object' && !Array.isArray(value) ? value : fallback);
+  if (Array.isArray(fallback)) {
+    if (Array.isArray(value)) return value;
+    return fallback;
+  }
+  if (value && typeof value === 'object' && !Array.isArray(value)) return value;
+  return fallback;
 }
 function document(row) {
   const out = { ...row };

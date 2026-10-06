@@ -58,7 +58,8 @@ const Pacientes = () => {
       const pacRes = await pacientesService.getAll(searchTerm || undefined, mostrarArchivados ? 'true' : undefined);
       const pacientesLista = pacRes.data?.data || pacRes.data || [];
       setPacientes(Array.isArray(pacientesLista) ? pacientesLista : []);
-    } catch (err) {
+    } catch {
+      // Leave the last patient list intact on API failure and show the existing fixed notice.
       toast.error('Error al cargar pacientes.');
     } finally {
       setLoading(false);
@@ -131,6 +132,93 @@ const Pacientes = () => {
 
 
   const ordenActualLabel = ORDEN_OPCIONES.find(o => o.key === orden)?.label || '';
+
+  const renderPatientList = () => {
+    if (loading) return (
+      <div className="flex justify-center items-center py-20">
+          <div className="w-10 h-10 border-4 border-clinical-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+    );
+    if (pacientesOrdenados.length === 0) return (
+      <div className="text-center py-16 text-slate-400">
+          <User size={48} className="mx-auto mb-3 opacity-20" />
+          <p className="font-medium">
+            {searchTerm ? 'No se encontraron pacientes.' : 'Aún no hay pacientes registrados.'}
+          </p>
+        </div>
+    );
+    return (
+      <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <table className="ui-table min-w-[860px]">
+            <thead>
+              <tr>
+                <th className="p-4">Paciente</th>
+                <th className="p-4">DNI</th>
+                <th className="p-4">Celular</th>
+                <th className="p-4">HC</th>
+                <th className="p-4">Edad</th>
+                <th className="p-4">Estado</th>
+                <th className="p-4">Últ. actividad</th>
+                <th className="p-4 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {pacientesOrdenados.map(p => {
+                const estadoCfg = ESTADO_HC_CONFIG[p.estado_hc] || ESTADO_HC_CONFIG.vacia;
+                return (
+                  <tr
+                    key={p.id}
+                    onClick={event => {
+                      if (event.target.closest('[data-patient-actions]')) {
+                        event.stopPropagation();
+                        return;
+                      }
+                      if (p.activo) navigate(`/pacientes/${p.id}`);
+                    }}
+                    className={`transition-colors ${p.activo ? 'hover:bg-slate-50 cursor-pointer' : 'opacity-60'}`}
+                  >
+                    <td className="p-4 font-bold text-slate-800">{p.apellidos}, {p.nombres}</td>
+                    <td className="p-4 text-slate-500">{p.dni}</td>
+                    <td className="p-4 text-slate-500">{p.celular || '—'}</td>
+                    <td className="p-4 text-slate-500 font-mono text-xs">{p.nro_historia || '—'}</td>
+                    <td className="p-4 text-slate-500">{calculateAge(p.fecha_nacimiento)}</td>
+                    <td className="p-4">
+                      {p.activo ? (
+                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest ${estadoCfg.class}`}>{estadoCfg.label}</span>
+                      ) : (
+                        <span className="text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest bg-slate-100 text-slate-500">Archivado</span>
+                      )}
+                    </td>
+                    <td className="p-4 text-slate-500 text-xs">{p.ultima_actividad ? String(p.ultima_actividad).substring(0, 10) : '—'}</td>
+                    <td className="p-4">
+                      <div data-patient-actions className="flex items-center justify-end gap-1">
+                        {p.activo ? (
+                          <>
+                            <button onClick={() => navigate(`/pacientes/${p.id}`)} className="p-2 text-slate-400 hover:text-clinical-600 hover:bg-clinical-50 rounded-lg transition-colors" title="Abrir ficha">
+                              <FolderOpen size={16} />
+                            </button>
+                            <button onClick={() => navigate(`/historias?view=${p.id}`)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Ver reporte">
+                              <Printer size={16} />
+                            </button>
+                            <button onClick={() => handleDelete(p)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Archivar paciente">
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        ) : (
+                          <button onClick={() => handleReactivar(p)} className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Reactivar paciente">
+                            <RotateCcw size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+    );
+  };
 
   return (
     <div className="animate-fade-in text-slate-800 pb-10">
@@ -207,82 +295,7 @@ const Pacientes = () => {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <div className="w-10 h-10 border-4 border-clinical-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : pacientesOrdenados.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
-          <User size={48} className="mx-auto mb-3 opacity-20" />
-          <p className="font-medium">
-            {searchTerm ? 'No se encontraron pacientes.' : 'Aún no hay pacientes registrados.'}
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-200">
-          <table className="ui-table min-w-[860px]">
-            <thead>
-              <tr>
-                <th className="p-4">Paciente</th>
-                <th className="p-4">DNI</th>
-                <th className="p-4">Celular</th>
-                <th className="p-4">HC</th>
-                <th className="p-4">Edad</th>
-                <th className="p-4">Estado</th>
-                <th className="p-4">Últ. actividad</th>
-                <th className="p-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {pacientesOrdenados.map(p => {
-                const estadoCfg = ESTADO_HC_CONFIG[p.estado_hc] || ESTADO_HC_CONFIG.vacia;
-                return (
-                  <tr
-                    key={p.id}
-                    onClick={() => p.activo && navigate(`/pacientes/${p.id}`)}
-                    className={`transition-colors ${p.activo ? 'hover:bg-slate-50 cursor-pointer' : 'opacity-60'}`}
-                  >
-                    <td className="p-4 font-bold text-slate-800">{p.apellidos}, {p.nombres}</td>
-                    <td className="p-4 text-slate-500">{p.dni}</td>
-                    <td className="p-4 text-slate-500">{p.celular || '—'}</td>
-                    <td className="p-4 text-slate-500 font-mono text-xs">{p.nro_historia || '—'}</td>
-                    <td className="p-4 text-slate-500">{calculateAge(p.fecha_nacimiento)}</td>
-                    <td className="p-4">
-                      {p.activo ? (
-                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest ${estadoCfg.class}`}>{estadoCfg.label}</span>
-                      ) : (
-                        <span className="text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest bg-slate-100 text-slate-500">Archivado</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-slate-500 text-xs">{p.ultima_actividad ? String(p.ultima_actividad).substring(0, 10) : '—'}</td>
-                    <td className="p-4">
-                      <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                        {p.activo ? (
-                          <>
-                            <button onClick={() => navigate(`/pacientes/${p.id}`)} className="p-2 text-slate-400 hover:text-clinical-600 hover:bg-clinical-50 rounded-lg transition-colors" title="Abrir ficha">
-                              <FolderOpen size={16} />
-                            </button>
-                            <button onClick={() => navigate(`/historias?view=${p.id}`)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Ver reporte">
-                              <Printer size={16} />
-                            </button>
-                            <button onClick={() => handleDelete(p)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Archivar paciente">
-                              <Trash2 size={16} />
-                            </button>
-                          </>
-                        ) : (
-                          <button onClick={() => handleReactivar(p)} className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Reactivar paciente">
-                            <RotateCcw size={16} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {renderPatientList()}
 
 
     </div>

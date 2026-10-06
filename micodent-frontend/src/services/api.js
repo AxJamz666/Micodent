@@ -46,7 +46,7 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    if (axios.isCancel(error)) return Promise.reject(error);
+    if (axios.isCancel(error)) throw error;
     if (error.response?.data instanceof Blob && error.response.data.type.includes('application/json') && error.response.data.size < 65536) {
       try { error.response.data = JSON.parse(await error.response.data.text()); } catch { /* Keep the original HTTP status. */ }
     }
@@ -58,7 +58,7 @@ api.interceptors.response.use(
         browserSession.expire(error.config.sessionEpoch);
       }
     }
-    return Promise.reject(error);
+    throw error;
   }
 );
 

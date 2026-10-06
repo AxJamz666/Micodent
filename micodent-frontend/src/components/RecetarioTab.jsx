@@ -1,9 +1,11 @@
 import { useId, useState } from 'react';
-import { Plus, X, Lock, Printer, FileSignature, RefreshCw, History } from 'lucide-react';
+import { Plus, X, Printer, FileSignature, RefreshCw, History } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { historiasService } from '../services/api';
 import FirmaMiniBlock from './FirmaMiniBlock';
 import PrintPortal from './PrintPortal';
+import ModalDialog from './ModalDialog';
+import DocumentActions from './DocumentActions';
 import { printDocument } from '../utils/printDocument';
 
 const CampoTexto = ({ label, value, onChange, rows = 3, required = true }) => {
@@ -114,22 +116,10 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
                   <p className="text-xs font-bold text-slate-500">Dr(a). {receta.doctor_nombre} · {receta.firmado_en || receta.fecha}</p>
                   <p className="text-sm text-slate-800 mt-1 line-clamp-1">{receta.rp}</p>
                 </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {receta.reemplaza_a && (
-                    <button onClick={() => setHistorialReceta(receta)} className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Historial de correcciones">
-                      <History size={16}/>
-                    </button>
-                  )}
-                  {esDoctor && (
-                    <button onClick={() => abrirReemitir(receta)} className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Corregir (anula esta y emite una nueva)">
-                      <RefreshCw size={16}/>
-                    </button>
-                  )}
-                  <button onClick={() => setSelectedReceta(receta)} className="p-2 text-slate-400 hover:text-clinical-600 hover:bg-clinical-50 rounded-lg transition-colors" title="Ver / Imprimir">
-                    <Printer size={16}/>
-                  </button>
-                  <Lock size={14} className="text-slate-400" />
-                </div>
+                <DocumentActions hasHistory={receta.reemplaza_a} canCorrect={esDoctor}
+                  onShowHistory={() => setHistorialReceta(receta)}
+                  onCorrect={() => abrirReemitir(receta)}
+                  onPreview={() => setSelectedReceta(receta)} />
               </div>
             </div>
           ))}
@@ -137,7 +127,7 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
       )}
 
       {showNueva && (
-        <div role="dialog" aria-modal="true" aria-label="Nueva Receta" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Nueva Receta" onRequestClose={() => setShowNueva(false)} closeDisabled={guardando} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="ui-dialog-header">
               <h3 className="font-semibold text-base">Nueva Receta</h3>
@@ -151,11 +141,11 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
               </button>
             </form>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {recetaAReemitir && (
-        <div role="dialog" aria-modal="true" aria-label="Corregir Receta" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Corregir Receta" onRequestClose={() => setRecetaAReemitir(null)} closeDisabled={reemitiendo} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="ui-dialog-header">
               <h3 className="font-semibold text-base flex items-center gap-2"><RefreshCw size={18}/> Corregir Receta</h3>
@@ -176,11 +166,11 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
               </div>
             </form>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {historialReceta && (
-        <div role="dialog" aria-modal="true" aria-label="Historial de esta Receta" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Historial de esta Receta" onRequestClose={() => setHistorialReceta(null)} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[85vh]">
             <div className="ui-dialog-header">
               <h3 className="font-semibold text-base flex items-center gap-2"><History size={18}/> Historial de esta Receta</h3>
@@ -221,7 +211,7 @@ const RecetarioTab = ({ historiaId, recetas, onGuardado, pacienteInfo, esDoctor 
               </div>
             </div>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {selectedReceta && (

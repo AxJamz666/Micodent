@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TrendingUp, Users, DollarSign, Wallet, Percent, Plus, X, Trash2, Edit, Package, AlertTriangle, RotateCcw, History } from 'lucide-react';
 import ConfiguracionPos from '../components/ConfiguracionPos';
+import ModalDialog from '../components/ModalDialog';
 import toast from 'react-hot-toast';
 import { activityFields, money } from '../utils/data';
 import { FINANCE_EVENT } from '../utils/financeEvents';
@@ -13,6 +14,45 @@ const formatearFechaISO = (date) => {
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 };
+
+const EstadoPagoLaboratorio = ({ trabajo, vistaLab, pagandoLabId, montoPagoLab, setMontoPagoLab, setPagandoLabId, onPagar }) => {
+  if (vistaLab === 'pagados') {
+    return (
+      <span className="px-3 py-2 bg-green-50 text-green-700 rounded-xl text-xs font-bold border border-green-100">
+        Pagado completo{trabajo.ultima_fecha_pago ? ` · ${String(trabajo.ultima_fecha_pago).substring(0, 10)}` : ''}
+      </span>
+    );
+  }
+  if (pagandoLabId === trabajo.id) {
+    return (
+      <div className="flex items-center gap-2">
+        <input type="text" autoFocus placeholder="Monto" value={montoPagoLab}
+          onChange={e => setMontoPagoLab(e.target.value.replace(/[^0-9.]/g, ''))}
+          className="w-28 px-3 py-2 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 text-sm" />
+        <button onClick={() => onPagar(trabajo.id)} className="px-3 py-2 bg-clinical-500 text-white rounded-xl text-xs font-bold hover:bg-clinical-600">Confirmar</button>
+        <button onClick={() => { setPagandoLabId(null); setMontoPagoLab(''); }} className="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200">Cancelar</button>
+      </div>
+    );
+  }
+  return (
+    <button onClick={() => { setPagandoLabId(trabajo.id); setMontoPagoLab(''); }} className="px-4 py-2 bg-clinical-50 text-clinical-700 rounded-xl text-xs font-bold hover:bg-clinical-100 border border-clinical-100">
+      Registrar Pago
+    </button>
+  );
+};
+
+const MovimientosCaja = ({ data }) => (
+  <section aria-label="Movimientos de caja" className="mb-8">
+            <h3 className="text-lg font-bold mb-3">Movimientos de caja del período</h3>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <KpiCard color="bg-teal-100 text-teal-700" icon={<DollarSign size={22}/>} label="Entradas registradas" value={data?.caja ? money(data.caja.ingresos) : 'No disponible'} />
+              <KpiCard color="bg-amber-100 text-amber-700" icon={<Package size={22}/>} label="Pagos a laboratorio" value={data?.caja ? money(data.caja.pagosLaboratorio) : 'No disponible'} />
+              <KpiCard color="bg-red-100 text-red-700" icon={<Wallet size={22}/>} label="Gastos pagados" value={data?.caja ? money(data.caja.gastosOperativos) : 'No disponible'} />
+              <KpiCard color="bg-green-100 text-green-700" icon={<TrendingUp size={22}/>} label="Flujo neto registrado" value={data?.caja ? money(data.caja.flujoNeto) : 'No disponible'} />
+            </div>
+            <div className="mt-3 flex items-center gap-2 flex-wrap"><p className="text-xs text-slate-500">Recargos de tarjeta incluidos: {money(data?.caja?.recargosTarjeta)}. Flujo del período, sin saldo inicial ni pagos no registrados.</p><ConfiguracionPos/></div>
+          </section>
+);
 
 const FinanzasDashboard = () => {
   const hoy = formatearFechaISO(new Date());
@@ -90,7 +130,7 @@ const FinanzasDashboard = () => {
     { v: 'sueldos', l: 'Sueldos Personal' },
     { v: 'imprevistos', l: 'Gastos Imprevistos' },
   ];
-  const CATEGORIAS_CON_MES_CONSUMO = ['luz', 'agua', 'internet', 'alquiler'];
+  const CATEGORIAS_CON_MES_CONSUMO = new Set(['luz', 'agua', 'internet', 'alquiler']);
 
   const cargarGastos = useCallback(async () => {
     const sequence = ++requests.current.gastos;
@@ -209,7 +249,7 @@ const FinanzasDashboard = () => {
   };
 
   const handlePagarLaboratorio = async (trabajoId) => {
-    const monto = parseFloat(montoPagoLab);
+    const monto = Number.parseFloat(montoPagoLab);
     if (!monto || monto <= 0) { toast.error('Ingresa un monto válido.'); return; }
     try {
       await laboratorioService.registrarPago(trabajoId, { monto });
@@ -263,12 +303,12 @@ const FinanzasDashboard = () => {
 
       {vista !== 'produccion' && <div className="mb-6 flex flex-wrap items-end gap-4 border-b border-slate-200 pb-5">
         <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Desde</label>
-          <input type="date" value={desde} onChange={e => setDesde(e.target.value)} className="ui-input" />
+          <label htmlFor="finanzas-desde" className="block text-xs font-bold text-slate-500 uppercase mb-1">Desde</label>
+          <input id="finanzas-desde" type="date" value={desde} onChange={e => setDesde(e.target.value)} className="ui-input" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Hasta</label>
-          <input type="date" value={hasta} onChange={e => setHasta(e.target.value)} className="ui-input" />
+          <label htmlFor="finanzas-hasta" className="block text-xs font-bold text-slate-500 uppercase mb-1">Hasta</label>
+          <input id="finanzas-hasta" type="date" value={hasta} onChange={e => setHasta(e.target.value)} className="ui-input" />
         </div>
         <div className="flex gap-1.5 items-center flex-wrap">
           <button onClick={() => setRangoRapido(1)} className="ui-button-secondary">Hoy</button>
@@ -276,8 +316,8 @@ const FinanzasDashboard = () => {
             title="Elegir mes completo" className="ui-input" />
         </div>
         <div className="flex-1 min-w-[180px]">
-          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Doctor</label>
-          <select value={doctorFiltro} onChange={e => setDoctorFiltro(e.target.value)} className="ui-input">
+          <label htmlFor="finanzas-doctor" className="block text-xs font-bold text-slate-500 uppercase mb-1">Doctor</label>
+          <select id="finanzas-doctor" value={doctorFiltro} onChange={e => setDoctorFiltro(e.target.value)} className="ui-input">
             <option value="todos">Todos los doctores</option>
             {data?.porDoctor?.map(d => <option key={d.doctor_id} value={d.doctor_id}>{d.doctor_nombre}</option>)}
           </select>
@@ -298,21 +338,12 @@ const FinanzasDashboard = () => {
       {vista === 'resumen' && (
         <>
           {errorResumen && <p role="alert" className="mb-4 text-red-700">{errorResumen} <button className="underline" onClick={cargar}>Reintentar</button></p>}
-          <section aria-label="Movimientos de caja" className="mb-8">
-            <h3 className="text-lg font-bold mb-3">Movimientos de caja del período</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <KpiCard color="bg-teal-100 text-teal-700" icon={<DollarSign size={22}/>} label="Entradas registradas" value={data?.caja ? money(data.caja.ingresos) : 'No disponible'} />
-              <KpiCard color="bg-amber-100 text-amber-700" icon={<Package size={22}/>} label="Pagos a laboratorio" value={data?.caja ? money(data.caja.pagosLaboratorio) : 'No disponible'} />
-              <KpiCard color="bg-red-100 text-red-700" icon={<Wallet size={22}/>} label="Gastos pagados" value={data?.caja ? money(data.caja.gastosOperativos) : 'No disponible'} />
-              <KpiCard color="bg-green-100 text-green-700" icon={<TrendingUp size={22}/>} label="Flujo neto registrado" value={data?.caja ? money(data.caja.flujoNeto) : 'No disponible'} />
-            </div>
-            <div className="mt-3 flex items-center gap-2 flex-wrap"><p className="text-xs text-slate-500">Recargos de tarjeta incluidos: {money(data?.caja?.recargosTarjeta)}. Flujo del período, sin saldo inicial ni pagos no registrados.</p><ConfiguracionPos/></div>
-          </section>
+          <MovimientosCaja data={data} />
           <h3 className="text-lg font-bold mb-3">Resultado de producción</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-            <KpiCard color="bg-slate-100 text-slate-600" icon={<Percent size={22}/>} label="Comisiones generadas" value={`S/ ${parseFloat(data?.totales?.totalComisionBruta || 0).toFixed(2)}`} />
-            <KpiCard color="bg-amber-100 text-amber-700" icon={<Wallet size={22}/>} label="Costos externos aplicados" value={data?.totales?.movimientosPorConciliar ? 'Por conciliar' : `S/ ${parseFloat(data?.totales?.costosExternosAplicados || 0).toFixed(2)}`} />
-            <KpiCard color={parseFloat(data?.totales?.gananciaNetaReal || 0) >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} icon={<TrendingUp size={22}/>} label="Resultado tras costos y gastos" value={data?.totales?.movimientosPorConciliar ? 'Por conciliar' : `S/ ${parseFloat(data?.totales?.gananciaNetaReal || 0).toFixed(2)}`} />
+            <KpiCard color="bg-slate-100 text-slate-600" icon={<Percent size={22}/>} label="Comisiones generadas" value={`S/ ${Number.parseFloat(data?.totales?.totalComisionBruta || 0).toFixed(2)}`} />
+            <KpiCard color="bg-amber-100 text-amber-700" icon={<Wallet size={22}/>} label="Costos externos aplicados" value={data?.totales?.movimientosPorConciliar ? 'Por conciliar' : `S/ ${Number.parseFloat(data?.totales?.costosExternosAplicados || 0).toFixed(2)}`} />
+            <KpiCard color={Number.parseFloat(data?.totales?.gananciaNetaReal || 0) >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} icon={<TrendingUp size={22}/>} label="Resultado tras costos y gastos" value={data?.totales?.movimientosPorConciliar ? 'Por conciliar' : `S/ ${Number.parseFloat(data?.totales?.gananciaNetaReal || 0).toFixed(2)}`} />
           </div>
 
           <div className="overflow-x-auto rounded-lg border border-slate-200">
@@ -338,10 +369,10 @@ const FinanzasDashboard = () => {
                       <td className="p-4 text-center text-slate-600">
                         <span className="inline-flex items-center gap-1"><Users size={13} className="text-slate-400"/> {d.pacientes_atendidos}</span>
                       </td>
-                      <td className="p-4 text-right font-bold text-slate-800">S/ {parseFloat(d.total_cobrado).toFixed(2)}</td>
-                      <td className="p-4 text-right text-purple-600">S/ {parseFloat(d.comision_bruta).toFixed(2)}</td>
-                      <td className="p-4 text-right text-red-500">{parseFloat(d.penalidades) > 0 ? `- S/ ${parseFloat(d.penalidades).toFixed(2)}` : '—'}</td>
-                      <td className="p-4 text-right font-bold text-clinical-600">S/ {parseFloat(d.comision_neta).toFixed(2)}</td>
+                      <td className="p-4 text-right font-bold text-slate-800">S/ {Number.parseFloat(d.total_cobrado).toFixed(2)}</td>
+                      <td className="p-4 text-right text-purple-600">S/ {Number.parseFloat(d.comision_bruta).toFixed(2)}</td>
+                      <td className="p-4 text-right text-red-500">{Number.parseFloat(d.penalidades) > 0 ? `- S/ ${Number.parseFloat(d.penalidades).toFixed(2)}` : '—'}</td>
+                      <td className="p-4 text-right font-bold text-clinical-600">S/ {Number.parseFloat(d.comision_neta).toFixed(2)}</td>
                     </tr>
                   ))
                 )}
@@ -371,7 +402,7 @@ const FinanzasDashboard = () => {
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
             {CATEGORIAS_GASTO.map(cat => {
-              const total = gastos.filter(g => g.categoria === cat.v && g.estado === 'activo').reduce((sum, g) => sum + parseFloat(g.monto), 0);
+              const total = gastos.filter(g => g.categoria === cat.v && g.estado === 'activo').reduce((sum, g) => sum + Number.parseFloat(g.monto), 0);
               return (
                 <div key={cat.v} className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{cat.l}</p>
@@ -419,7 +450,7 @@ const FinanzasDashboard = () => {
                       <td className={`p-4 ${g.estado === 'anulado' ? 'line-through text-red-400' : 'text-slate-700'}`}>{CATEGORIAS_GASTO.find(c => c.v === g.categoria)?.l || g.categoria}</td>
                       <td className={`p-4 ${g.estado === 'anulado' ? 'line-through text-red-400' : 'text-slate-500'}`}>{g.descripcion || '—'}</td>
                       <td className="p-4 text-slate-500 text-xs font-mono">{g.mes_consumo || '—'}</td>
-                      <td className={`p-4 text-right font-bold ${g.estado === 'anulado' ? 'line-through text-red-400' : 'text-slate-800'}`}>S/ {parseFloat(g.monto).toFixed(2)}</td>
+                      <td className={`p-4 text-right font-bold ${g.estado === 'anulado' ? 'line-through text-red-400' : 'text-slate-800'}`}>S/ {Number.parseFloat(g.monto).toFixed(2)}</td>
                       <td className="p-4">
                         <div className="flex items-center justify-center gap-1.5">
                           {g.estado === 'anulado' ? (
@@ -474,28 +505,14 @@ const FinanzasDashboard = () => {
                       <p className="font-bold text-slate-800">{t.nombre_laboratorio}</p>
                       <p className="text-xs text-slate-500 mt-0.5">{t.apellidos}, {t.nombres} · HC {t.nro_historia}{t.descripcion ? ` · ${t.descripcion}` : ''}</p>
                       <div className="flex gap-4 mt-2 text-xs">
-                        <span className="text-slate-500">Total: <b className="text-slate-700">S/ {parseFloat(t.monto_total).toFixed(2)}</b></span>
-                        <span className="text-green-600">Pagado: <b>S/ {parseFloat(t.total_pagado).toFixed(2)}</b></span>
+                        <span className="text-slate-500">Total: <b className="text-slate-700">S/ {Number.parseFloat(t.monto_total).toFixed(2)}</b></span>
+                        <span className="text-green-600">Pagado: <b>S/ {Number.parseFloat(t.total_pagado).toFixed(2)}</b></span>
                         {vistaLab === 'pendientes' && <span className="text-red-600">Pendiente: <b>S/ {t.saldo_pendiente.toFixed(2)}</b></span>}
                       </div>
                     </div>
-                    {vistaLab === 'pagados' ? (
-                      <span className="px-3 py-2 bg-green-50 text-green-700 rounded-xl text-xs font-bold border border-green-100">
-                        Pagado completo{t.ultima_fecha_pago ? ` · ${String(t.ultima_fecha_pago).substring(0, 10)}` : ''}
-                      </span>
-                    ) : pagandoLabId === t.id ? (
-                      <div className="flex items-center gap-2">
-                        <input type="text" autoFocus placeholder="Monto" value={montoPagoLab}
-                          onChange={e => setMontoPagoLab(e.target.value.replace(/[^0-9.]/g, ''))}
-                          className="w-28 px-3 py-2 border rounded-xl outline-none focus:border-clinical-500 bg-slate-50 text-sm" />
-                        <button onClick={() => handlePagarLaboratorio(t.id)} className="px-3 py-2 bg-clinical-500 text-white rounded-xl text-xs font-bold hover:bg-clinical-600">Confirmar</button>
-                        <button onClick={() => { setPagandoLabId(null); setMontoPagoLab(''); }} className="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200">Cancelar</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => { setPagandoLabId(t.id); setMontoPagoLab(''); }} className="px-4 py-2 bg-clinical-50 text-clinical-700 rounded-xl text-xs font-bold hover:bg-clinical-100 border border-clinical-100">
-                        Registrar Pago
-                      </button>
-                    )}
+                    <EstadoPagoLaboratorio trabajo={t} vistaLab={vistaLab} pagandoLabId={pagandoLabId}
+                      montoPagoLab={montoPagoLab} setMontoPagoLab={setMontoPagoLab}
+                      setPagandoLabId={setPagandoLabId} onPagar={handlePagarLaboratorio} />
                   </div>
                 </div>
               ))}
@@ -505,7 +522,7 @@ const FinanzasDashboard = () => {
       )}
 
       {showGastoModal && (
-        <div role="dialog" aria-modal="true" aria-label={editGastoId ? 'Editar Gasto' : 'Nuevo Gasto'} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label={editGastoId ? 'Editar Gasto' : 'Nuevo Gasto'} onRequestClose={() => setShowGastoModal(false)} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="ui-dialog-header">
               <h3 className="font-semibold text-base">{editGastoId ? 'Editar Gasto' : 'Nuevo Gasto'}</h3>
@@ -513,33 +530,33 @@ const FinanzasDashboard = () => {
             </div>
             <form onSubmit={handleGuardarGasto} className="p-6 space-y-5">
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Categoría</label>
-                <select value={formGasto.categoria} onChange={e => setFormGasto({...formGasto, categoria: e.target.value, mes_consumo: CATEGORIAS_CON_MES_CONSUMO.includes(e.target.value) ? formGasto.mes_consumo : ''})}
+                <label htmlFor="gasto-categoria" className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Categoría</label>
+                <select id="gasto-categoria" value={formGasto.categoria} onChange={e => setFormGasto({...formGasto, categoria: e.target.value, mes_consumo: CATEGORIAS_CON_MES_CONSUMO.has(e.target.value) ? formGasto.mes_consumo : ''})}
                   className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white text-sm">
                   {CATEGORIAS_GASTO.map(c => <option key={c.v} value={c.v}>{c.l}</option>)}
                 </select>
               </div>
-              {CATEGORIAS_CON_MES_CONSUMO.includes(formGasto.categoria) && (
+              {CATEGORIAS_CON_MES_CONSUMO.has(formGasto.categoria) && (
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Mes de Consumo (opcional)</label>
-                  <input type="month" value={formGasto.mes_consumo || ''} onChange={e => setFormGasto({...formGasto, mes_consumo: e.target.value})}
+                  <label htmlFor="gasto-mes" className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Mes de Consumo (opcional)</label>
+                  <input id="gasto-mes" type="month" value={formGasto.mes_consumo || ''} onChange={e => setFormGasto({...formGasto, mes_consumo: e.target.value})}
                     className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white border-slate-200 text-sm" />
                 </div>
               )}
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Descripción (opcional)</label>
-                <input value={formGasto.descripcion} onChange={e => setFormGasto({...formGasto, descripcion: e.target.value})}
+                <label htmlFor="gasto-descripcion" className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Descripción (opcional)</label>
+                <input id="gasto-descripcion" value={formGasto.descripcion} onChange={e => setFormGasto({...formGasto, descripcion: e.target.value})}
                   className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white border-slate-200 text-sm" placeholder="Ej. Recibo Luz Sur - Marzo" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Monto (S/)</label>
-                  <input value={formGasto.monto} onChange={e => setFormGasto({...formGasto, monto: e.target.value.replace(/[^0-9.]/g, '')})}
+                  <label htmlFor="gasto-monto" className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Monto (S/)</label>
+                  <input id="gasto-monto" value={formGasto.monto} onChange={e => setFormGasto({...formGasto, monto: e.target.value.replace(/[^0-9.]/g, '')})}
                     className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white border-slate-200 text-sm" placeholder="0.00" required />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Fecha de Pago</label>
-                  <input type="date" value={formGasto.fecha_pago} onChange={e => setFormGasto({...formGasto, fecha_pago: e.target.value})}
+                  <label htmlFor="gasto-fecha" className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Fecha de Pago</label>
+                  <input id="gasto-fecha" type="date" value={formGasto.fecha_pago} onChange={e => setFormGasto({...formGasto, fecha_pago: e.target.value})}
                     className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white border-slate-200 text-sm" required />
                 </div>
               </div>
@@ -548,11 +565,11 @@ const FinanzasDashboard = () => {
               </button>
             </form>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {showPenalidadModal && (
-        <div role="dialog" aria-modal="true" aria-label="Registrar Penalidad" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Registrar Penalidad" onRequestClose={() => setShowPenalidadModal(false)} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl animate-pop-in overflow-hidden">
             <div className="ui-dialog-header">
               <h3 className="font-semibold text-base flex items-center gap-2"><AlertTriangle size={18} className="text-red-600"/> Registrar Penalidad</h3>
@@ -561,8 +578,8 @@ const FinanzasDashboard = () => {
             <form onSubmit={handleCrearPenalidad} className="p-6 space-y-5">
               <p className="border-l-2 border-red-600 bg-red-50 px-3 py-2 text-sm text-red-900">Se descontará de la comisión neta del doctor en el periodo — por ejemplo, un rehacimiento de laboratorio por error clínico.</p>
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Doctor</label>
-                <select required value={formPenalidad.doctor_id} onChange={e => setFormPenalidad({...formPenalidad, doctor_id: e.target.value})}
+                <label htmlFor="penalidad-doctor" className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Doctor</label>
+                <select id="penalidad-doctor" required value={formPenalidad.doctor_id} onChange={e => setFormPenalidad({...formPenalidad, doctor_id: e.target.value})}
                   className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-clinical-500 bg-white text-sm">
                   <option value="">Selecciona un doctor...</option>
                   {doctoresLista.map(d => <option key={d.id} value={d.id}>{d.nombre_completo}</option>)}
@@ -570,29 +587,29 @@ const FinanzasDashboard = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Monto (S/)</label>
-                  <input required value={formPenalidad.monto} onChange={e => setFormPenalidad({...formPenalidad, monto: e.target.value.replace(/[^0-9.]/g, '')})}
+                  <label htmlFor="penalidad-monto" className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Monto (S/)</label>
+                  <input id="penalidad-monto" required value={formPenalidad.monto} onChange={e => setFormPenalidad({...formPenalidad, monto: e.target.value.replace(/[^0-9.]/g, '')})}
                     className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-red-400 bg-white border-slate-200 text-sm" placeholder="0.00" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Fecha</label>
-                  <input type="date" value={formPenalidad.fecha} onChange={e => setFormPenalidad({...formPenalidad, fecha: e.target.value})}
+                  <label htmlFor="penalidad-fecha" className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Fecha</label>
+                  <input id="penalidad-fecha" type="date" value={formPenalidad.fecha} onChange={e => setFormPenalidad({...formPenalidad, fecha: e.target.value})}
                     className="w-full px-4 py-2.5 border rounded-xl outline-none focus:border-red-400 bg-white border-slate-200 text-sm" required />
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Motivo</label>
-                <textarea required rows={2} value={formPenalidad.motivo} onChange={e => setFormPenalidad({...formPenalidad, motivo: e.target.value})}
+                <label htmlFor="penalidad-motivo" className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Motivo</label>
+                <textarea id="penalidad-motivo" required rows={2} value={formPenalidad.motivo} onChange={e => setFormPenalidad({...formPenalidad, motivo: e.target.value})}
                   className="w-full px-4 py-3 border rounded-2xl outline-none focus:border-red-400 resize-none bg-white border-slate-200 text-sm" placeholder="Ej. Rehacimiento de corona por error de toma de molde" />
               </div>
               <button type="submit" className="inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800">Registrar Penalidad</button>
             </form>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {showAuditoriaModal && (
-        <div role="dialog" aria-modal="true" aria-label="Registro de Actividad Financiera" className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <ModalDialog aria-label="Registro de Actividad Financiera" onRequestClose={() => setShowAuditoriaModal(false)} className="dialog-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl animate-pop-in overflow-hidden flex flex-col max-h-[90vh]">
             <div className="ui-dialog-header">
               <h3 className="font-semibold text-base flex items-center gap-2"><History size={18}/> Registro de Actividad Financiera</h3>
@@ -627,7 +644,7 @@ const FinanzasDashboard = () => {
               )}
             </div>
           </div>
-        </div>
+        </ModalDialog>
       )}
     </div>
   );

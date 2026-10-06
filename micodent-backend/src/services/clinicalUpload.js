@@ -12,7 +12,7 @@ function contentMatches(bytes, extension) {
 }
 
 async function validStagedFile(file) {
-  if (!file || !file.size || file.size > 10 * 1024 * 1024) return false;
+  if (!file?.size || file.size > 10 * 1024 * 1024) return false;
   const bytes = await fs.readFile(file.path);
   return bytes.length === file.size && contentMatches(bytes, path.extname(file.filename));
 }
